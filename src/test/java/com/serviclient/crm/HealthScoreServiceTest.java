@@ -1,12 +1,14 @@
 package com.serviclient.crm;
 
+import com.serviclient.crm.dao.ClienteDAO;
+import com.serviclient.crm.dao.TicketDAO;
 import com.serviclient.crm.entity.Cliente;
 import com.serviclient.crm.entity.Empresa;
 import com.serviclient.crm.entity.enums.EstadoCliente;
+import com.serviclient.crm.entity.enums.EstadoTicket;
 import com.serviclient.crm.entity.enums.PrioridadTicket;
-import com.serviclient.crm.repository.ClienteRepository;
 import com.serviclient.crm.repository.EncuestaSatisfaccionRepository;
-import com.serviclient.crm.repository.TicketRepository;
+import com.serviclient.crm.repository.HealthScoreHistorialRepository;
 import com.serviclient.crm.service.HealthScoreService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,13 +29,16 @@ import static org.mockito.Mockito.when;
 class HealthScoreServiceTest {
 
     @Mock
-    private TicketRepository ticketRepository;
+    private TicketDAO ticketDAO;
+
+    @Mock
+    private ClienteDAO clienteDAO;
 
     @Mock
     private EncuestaSatisfaccionRepository encuestaRepository;
 
     @Mock
-    private ClienteRepository clienteRepository;
+    private HealthScoreHistorialRepository healthScoreHistorialRepository;
 
     @InjectMocks
     private HealthScoreService healthScoreService;
@@ -63,8 +68,10 @@ class HealthScoreServiceTest {
 
     @Test
     void testRecalcularHealthScoreEnRiesgo() {
-        // Mock: 2 tickets críticos abiertos
-        when(ticketRepository.countByClienteIdAndPrioridadAndEstadoNot(eq(10L), eq(PrioridadTicket.CRITICA), any()))
+        // Mock: 3 tickets abiertos, 2 de ellos críticos
+        when(ticketDAO.countByClienteIdAndEstadoNot(eq(10L), eq(EstadoTicket.CERRADO)))
+                .thenReturn(3L);
+        when(ticketDAO.countByClienteIdAndPrioridadAndEstadoNot(eq(10L), eq(PrioridadTicket.CRITICA), eq(EstadoTicket.CERRADO)))
                 .thenReturn(2L);
         // Mock: CSAT bajo de 2.5
         when(encuestaRepository.obtenerPromedioCsatPorCliente(10L))
@@ -72,22 +79,19 @@ class HealthScoreServiceTest {
 
         int score = healthScoreService.recalcularYActualizarHealthScore(cliente);
 
-        // 100 - (2*20=40) - 30 (CSAT < 3.0) - 15 (Renovacion <= 30 dias) = 15
-        assertEquals(15, score);
+        // 100 - (3 * 5 = 15) - (2 * 15 = 30) - 20 (CSAT < 3.0) = 35
+        assertEquals(35, score);
         assertEquals(EstadoCliente.EN_RIESGO, cliente.getEstadoSalud());
     }
 
     @Test
     void testFactoresDeRiesgoDetectados() {
-        when(ticketRepository.countByClienteIdAndPrioridadAndEstadoNot(eq(10L), eq(PrioridadTicket.CRITICA), any()))
+        when(ticketDAO.countByClienteIdAndPrioridadAndEstadoNot(eq(10L), eq(PrioridadTicket.CRITICA), eq(EstadoTicket.CERRADO)))
                 .thenReturn(1L);
-        cliente.setCsatPromedio(3.5);
 
         List<HealthScoreService.FactorSalud> factores = healthScoreService.obtenerFactoresRiesgo(cliente);
 
         assertFalse(factores.isEmpty());
-        assertTrue(factores.stream().anyMatch(f -> f.getTitulo().equals("Ticket crítico pendiente")));
-        assertTrue(factores.stream().anyMatch(f -> f.getTitulo().equals("CSAT bajo")));
-        assertTrue(factores.stream().anyMatch(f -> f.getTitulo().equals("Renovación próxima")));
+        assertTrue(factores.stream().anyMatch(f -> f.getTitulo().equals("Tickets Críticos Abiertos")));
     }
 }

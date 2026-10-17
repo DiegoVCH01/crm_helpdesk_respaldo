@@ -49,7 +49,7 @@ class SecurityAndAuthControllerTest {
     void testLoginExitoso() throws Exception {
         mockMvc.perform(formLogin().user("email", "admin@serviclient.com").password("admin123"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/clientes"))
+                .andExpect(redirectedUrl("/dashboard"))
                 .andExpect(authenticated().withUsername("admin@serviclient.com"));
     }
 
