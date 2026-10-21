@@ -1,5 +1,6 @@
 package com.serviclient.crm.service;
 
+import com.google.common.base.Preconditions;
 import com.serviclient.crm.dao.ConfiguracionCsatDAO;
 import com.serviclient.crm.dao.ConfiguracionHealthScoreDAO;
 import com.serviclient.crm.dao.ConfiguracionSlaDAO;
@@ -33,6 +34,16 @@ public class EmpresaService {
 
     @Transactional
     public Empresa registrarEmpresaCompleta(RegistroEmpresaDto dto) {
+        // --- INTEGRACIÓN GUAVA PRECONDITIONS
+        Preconditions.checkNotNull(dto, "El formulario de registro de empresa no puede ser nulo");
+        Preconditions.checkArgument(dto.getNombreComercial() != null && !dto.getNombreComercial().isBlank(), 
+                "El nombre comercial es obligatorio");
+        Preconditions.checkArgument(dto.getAdminEmail() != null && !dto.getAdminEmail().isBlank(), 
+                "El correo del administrador es obligatorio");
+        Preconditions.checkArgument(dto.getAdminPassword() != null && !dto.getAdminPassword().isBlank(), 
+                "La contraseña del administrador es obligatoria");
+        // --
+
         if (usuarioDAO.existsByEmail(dto.getAdminEmail())) {
             throw new IllegalArgumentException("Ya existe un usuario registrado con el correo: " + dto.getAdminEmail());
         }

@@ -160,6 +160,8 @@ public class AuthController {
         }
 
         if (bindingResult.hasErrors()) {
+            // ¡NUEVO! Extraemos el mensaje de error y lo mandamos a la alerta roja
+            model.addAttribute("errorMessage", bindingResult.getAllErrors().get(0).getDefaultMessage());
             model.addAttribute("pasoActual", 1);
             return "auth/registro-paso1";
         }
@@ -222,6 +224,8 @@ public class AuthController {
         }
 
         if (bindingResult.hasErrors()) {
+            // ¡NUEVO! Extraemos el mensaje de error y lo mandamos a la alerta roja
+            model.addAttribute("errorMessage", bindingResult.getAllErrors().get(0).getDefaultMessage());
             model.addAttribute("pasoActual", 2);
             return "auth/registro-paso2";
         }
@@ -279,10 +283,13 @@ public class AuthController {
             session.removeAttribute("registroForm");
             redirectAttributes.addFlashAttribute("successMessage", "¡Empresa registrada con éxito! Ya puedes iniciar sesión con tu cuenta de administrador.");
             return "redirect:/login";
-        } catch (IllegalArgumentException ex) {
+            
+        } catch (IllegalArgumentException | NullPointerException ex) {
+            // ¡AQUÍ ATRAPAMOS LOS ERRORES DE GUAVA PRECONDITIONS!
             model.addAttribute("errorMessage", ex.getMessage());
             model.addAttribute("pasoActual", 3);
             return "auth/registro-paso3";
+            
         } catch (Exception ex) {
             log.error("Error al registrar empresa", ex);
             model.addAttribute("errorMessage", "Ocurrió un error inesperado durante el registro: " + ex.getMessage());

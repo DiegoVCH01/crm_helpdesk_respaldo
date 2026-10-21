@@ -33,6 +33,10 @@
                 </div>
 
                 <h2 style="font-size: 20px; font-weight: 800; margin-bottom: 12px;">Paso 3 — Configuración Inicial</h2>
+                <!-- Guava Preconditions -->
+                <div th:if="${errorMessage != null}" style="background-color: #FEF2F2; border: 1px solid #FECACA; color: #991B1B; padding: 12px 16px; border-radius: 8px; font-weight: 500; font-size: 13.5px; margin-bottom: 20px;">
+                    <span th:text="${errorMessage}"></span>
+                </div>
 
                 <form th:action="@{/registro/paso-3}" th:object="${registroForm}" method="post">
                     <!-- Hidden fields from previous steps to maintain session completeness -->
