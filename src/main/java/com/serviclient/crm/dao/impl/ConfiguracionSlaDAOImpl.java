@@ -20,7 +20,8 @@ public class ConfiguracionSlaDAOImpl implements ConfiguracionSlaDAO {
 
     @Override
     public Optional<ConfiguracionSla> findById(Long id) {
-        if (id == null) return Optional.empty();
+        if (id == null)
+            return Optional.empty();
         return Optional.ofNullable(entityManager.find(ConfiguracionSla.class, id));
     }
 
@@ -35,7 +36,8 @@ public class ConfiguracionSlaDAOImpl implements ConfiguracionSlaDAO {
     @Override
     public Optional<ConfiguracionSla> findByEmpresaIdAndPrioridad(Long empresaId, PrioridadTicket prioridad) {
         TypedQuery<ConfiguracionSla> query = entityManager.createQuery(
-                "SELECT c FROM ConfiguracionSla c WHERE c.empresa.id = :empresaId AND c.prioridad = :prioridad", ConfiguracionSla.class);
+                "SELECT c FROM ConfiguracionSla c WHERE c.empresa.id = :empresaId AND c.prioridad = :prioridad",
+                ConfiguracionSla.class);
         query.setParameter("empresaId", empresaId);
         query.setParameter("prioridad", prioridad);
         return query.getResultStream().findFirst();
@@ -67,8 +69,15 @@ public class ConfiguracionSlaDAOImpl implements ConfiguracionSlaDAO {
     @Transactional
     public void delete(ConfiguracionSla configuracionSla) {
         if (configuracionSla != null) {
-            ConfiguracionSla toRemove = entityManager.contains(configuracionSla) ? configuracionSla : entityManager.merge(configuracionSla);
+            ConfiguracionSla toRemove = entityManager.contains(configuracionSla) ? configuracionSla
+                    : entityManager.merge(configuracionSla);
             entityManager.remove(toRemove);
         }
+    }
+
+    @Override
+    public long count() {
+        Long total = entityManager.createQuery("SELECT COUNT(c) FROM ConfiguracionSla c", Long.class).getSingleResult();
+        return total != null ? total : 0L;
     }
 }

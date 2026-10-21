@@ -1,7 +1,10 @@
 package com.serviclient.crm.service;
 
 import com.serviclient.crm.dao.ClienteDAO;
+import com.serviclient.crm.dao.EncuestaCsatDAO;
+import com.serviclient.crm.dao.RenovacionDAO;
 import com.serviclient.crm.dao.TicketDAO;
+import com.serviclient.crm.dao.AuditoriaDAO;
 import com.serviclient.crm.dao.TicketHistorialDAO;
 import com.serviclient.crm.dto.DashboardDto;
 import com.serviclient.crm.dto.DashboardDto.ActividadItemDto;
@@ -13,7 +16,6 @@ import com.serviclient.crm.entity.enums.EstadoEncuestaCsat;
 import com.serviclient.crm.entity.enums.EstadoRenovacion;
 import com.serviclient.crm.entity.enums.EstadoTicket;
 import com.serviclient.crm.entity.enums.PrioridadTicket;
-import com.serviclient.crm.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -43,9 +45,9 @@ public class DashboardService {
 
     private final ClienteDAO clienteDAO;
     private final TicketDAO ticketDAO;
-    private final RenovacionRepository renovacionRepository;
-    private final EncuestaCsatRepository encuestaCsatRepository;
-    private final AuditoriaRepository auditoriaRepository;
+    private final RenovacionDAO renovacionDAO;
+    private final EncuestaCsatDAO encuestaCsatDAO;
+    private final AuditoriaDAO auditoriaDAO;
     private final TicketHistorialDAO ticketHistorialDAO;
 
     /**
@@ -143,7 +145,7 @@ public class DashboardService {
         }
 
         // 3. Satisfacción CSAT
-        List<EncuestaCsat> encuestas = encuestaCsatRepository.findByEmpresaId(empresaId);
+        List<EncuestaCsat> encuestas = encuestaCsatDAO.findByEmpresaId(empresaId);
         long encuestasRespondidas = 0;
         long encuestasPendientes = 0;
         long bajaSatisfaccionCount = 0;
@@ -182,7 +184,7 @@ public class DashboardService {
                                    csatPromedio >= 3.0 ? "Calificación aceptable" : "Requiere atención";
 
         // 4. Renovaciones
-        List<Renovacion> renovaciones = renovacionRepository.findByEmpresaIdOrderByFechaVencimientoAsc(empresaId);
+        List<Renovacion> renovaciones = renovacionDAO.findByEmpresaIdOrderByFechaVencimientoAsc(empresaId);
         
         long menor30 = 0;
         long entre31y90 = 0;
@@ -363,7 +365,7 @@ public class DashboardService {
 
         // 6. Actividad Reciente
         List<ActividadItemDto> actividad = new ArrayList<>();
-        List<Auditoria> logs = auditoriaRepository.findByEmpresaIdOrderByCreatedAtDesc(empresaId);
+        List<Auditoria> logs = auditoriaDAO.findByEmpresaIdOrderByCreatedAtDesc(empresaId);
         
         if (!logs.isEmpty()) {
             for (int i = 0; i < Math.min(logs.size(), 5); i++) {

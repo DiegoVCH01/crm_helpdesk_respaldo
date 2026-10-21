@@ -1,13 +1,13 @@
 package com.serviclient.crm.service;
 
 import com.serviclient.crm.dao.ClienteDAO;
+import com.serviclient.crm.dao.EncuestaSatisfaccionDAO;
+import com.serviclient.crm.dao.HealthScoreHistorialDAO;
 import com.serviclient.crm.dao.TicketDAO;
 import com.serviclient.crm.entity.Cliente;
 import com.serviclient.crm.entity.enums.EstadoSaludCliente;
 import com.serviclient.crm.entity.enums.EstadoTicket;
 import com.serviclient.crm.entity.enums.PrioridadTicket;
-import com.serviclient.crm.repository.EncuestaSatisfaccionRepository;
-import com.serviclient.crm.repository.HealthScoreHistorialRepository;
 import com.serviclient.crm.entity.HealthScoreHistorial;
 import lombok.Builder;
 import lombok.Getter;
@@ -29,8 +29,8 @@ public class HealthScoreService {
 
     private final ClienteDAO clienteDAO;
     private final TicketDAO ticketDAO;
-    private final EncuestaSatisfaccionRepository encuestaRepository;
-    private final HealthScoreHistorialRepository healthScoreHistorialRepository;
+    private final EncuestaSatisfaccionDAO encuestaSatisfaccionDAO;
+    private final HealthScoreHistorialDAO healthScoreHistorialDAO;
 
     @Getter
     @Builder
@@ -60,7 +60,7 @@ public class HealthScoreService {
         }
 
         // 3. Ajuste por CSAT
-        Double csatPromedio = encuestaRepository.obtenerPromedioCsatPorCliente(cliente.getId());
+        Double csatPromedio = encuestaSatisfaccionDAO.obtenerPromedioCsatPorCliente(cliente.getId());
         if (csatPromedio != null) {
             if (csatPromedio < 3.0) {
                 puntaje -= 20;
@@ -83,7 +83,7 @@ public class HealthScoreService {
                 .fechaCalculo(LocalDateTime.now())
                 .build();
 
-        healthScoreHistorialRepository.save(historial);
+        healthScoreHistorialDAO.save(historial);
         cliente.setHealthScore(puntaje);
         clienteDAO.save(cliente);
 

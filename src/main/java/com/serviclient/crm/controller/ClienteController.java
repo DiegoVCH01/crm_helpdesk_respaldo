@@ -1,6 +1,8 @@
 package com.serviclient.crm.controller;
 
 import com.serviclient.crm.config.security.CustomUserDetails;
+import com.serviclient.crm.dao.EncuestaSatisfaccionDAO;
+import com.serviclient.crm.dao.RenovacionDAO;
 import com.serviclient.crm.dto.ClienteDto;
 import com.serviclient.crm.entity.Cliente;
 import com.serviclient.crm.entity.Contacto;
@@ -8,8 +10,6 @@ import com.serviclient.crm.entity.EncuestaSatisfaccion;
 import com.serviclient.crm.entity.Renovacion;
 import com.serviclient.crm.entity.Usuario;
 import com.serviclient.crm.entity.enums.EstadoCliente;
-import com.serviclient.crm.repository.EncuestaSatisfaccionRepository;
-import com.serviclient.crm.repository.RenovacionRepository;
 import com.serviclient.crm.service.ClienteService;
 import com.serviclient.crm.service.HealthScoreService;
 import com.serviclient.crm.service.UsuarioService;
@@ -64,8 +64,8 @@ public class ClienteController {
     private final ClienteService clienteService;
     private final HealthScoreService healthScoreService;
     private final UsuarioService usuarioService;
-    private final EncuestaSatisfaccionRepository encuestaRepository;
-    private final RenovacionRepository renovacionRepository;
+    private final EncuestaSatisfaccionDAO encuestaSatisfaccionDAO;
+    private final RenovacionDAO renovacionDAO;
 
     // ─────────────────────────────────────────────────────────────────────────
     //  LISTADO
@@ -238,8 +238,8 @@ public class ClienteController {
         Cliente cliente = clienteService.obtenerPorId(id);
         ClienteService.KpisCliente360 kpis = clienteService.obtenerKpisCliente360(cliente);
         List<HealthScoreService.FactorSalud> factores = healthScoreService.obtenerFactoresRiesgo(cliente);
-        List<EncuestaSatisfaccion> encuestas = encuestaRepository.findByClienteId(id);
-        List<Renovacion> renovaciones = renovacionRepository.findByClienteId(id);
+        List<EncuestaSatisfaccion> encuestas = encuestaSatisfaccionDAO.findByClienteId(id);
+        List<Renovacion> renovaciones = renovacionDAO.findByClienteId(id);
 
         model.addAttribute("cliente", cliente);
         model.addAttribute("kpis", kpis);

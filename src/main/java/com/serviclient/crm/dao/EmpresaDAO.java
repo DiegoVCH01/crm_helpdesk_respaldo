@@ -14,4 +14,6 @@ public interface EmpresaDAO {
     List<Empresa> findAll();
 
     Empresa save(Empresa empresa);
+
+    Optional<Empresa> findByRuc(String ruc);
 }

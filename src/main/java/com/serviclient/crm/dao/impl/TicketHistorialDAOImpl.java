@@ -33,8 +33,10 @@ public class TicketHistorialDAOImpl implements TicketHistorialDAO {
 
     @Override
     public List<TicketHistorial> findByTicketIdOrderByFechaCreacionDesc(Long ticketId) {
-        return findByTicketIdOrderByCreatedAtDesc(ticketId);
-    }
+        return entityManager.createQuery(
+        "SELECT h FROM TicketHistorial h WHERE h.ticket.id = :ticketId ORDER BY h.createdAt DESC", TicketHistorial.class)
+        .setParameter("ticketId", ticketId).getResultList();
+}
 
     @Override
     @Transactional

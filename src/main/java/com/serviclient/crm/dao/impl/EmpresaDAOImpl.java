@@ -13,7 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Repository
 public class EmpresaDAOImpl implements EmpresaDAO {
 
-  @PersistenceContext private EntityManager entityManager;
+  @PersistenceContext
+  private EntityManager entityManager;
 
   @Override
   public Optional<Empresa> findById(Long id) {
@@ -26,8 +27,7 @@ public class EmpresaDAOImpl implements EmpresaDAO {
 
   @Override
   public Optional<Empresa> findFirstByOrderByIdAsc() {
-    TypedQuery<Empresa> query =
-        entityManager.createQuery("SELECT e FROM Empresa e ORDER BY e.id ASC", Empresa.class);
+    TypedQuery<Empresa> query = entityManager.createQuery("SELECT e FROM Empresa e ORDER BY e.id ASC", Empresa.class);
 
     query.setMaxResults(1);
 
@@ -48,5 +48,15 @@ public class EmpresaDAOImpl implements EmpresaDAO {
     }
 
     return entityManager.merge(empresa);
+  }
+
+  @Override
+  public Optional<Empresa> findByRuc(String ruc) {
+    List<Empresa> result = entityManager.createQuery(
+        "SELECT e FROM Empresa e WHERE e.ruc = :ruc", Empresa.class)
+        .setParameter("ruc", ruc)
+        .setMaxResults(1)
+        .getResultList();
+    return result.stream().findFirst();
   }
 }

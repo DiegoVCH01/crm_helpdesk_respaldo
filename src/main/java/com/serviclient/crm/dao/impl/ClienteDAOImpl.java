@@ -104,4 +104,11 @@ public class ClienteDAOImpl implements ClienteDAO {
             entityManager.remove(toRemove);
         }
     }
+
+    @Override
+    public long count() {
+        Long total = entityManager.createQuery("SELECT COUNT(c) FROM Cliente c", Long.class)
+                                  .getSingleResult();
+        return total != null ? total : 0L;
+    }
 }

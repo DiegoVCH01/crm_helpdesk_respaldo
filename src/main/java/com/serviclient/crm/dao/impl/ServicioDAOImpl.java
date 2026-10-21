@@ -52,4 +52,31 @@ public class ServicioDAOImpl implements ServicioDAO {
             entityManager.remove(toRemove);
         }
     }
+
+    @Override
+    public List<Servicio> findByEmpresaId(Long empresaId) {
+        return entityManager.createQuery(
+                "SELECT s FROM Servicio s WHERE s.empresa.id = :empresaId", Servicio.class)
+                .setParameter("empresaId", empresaId)
+                .getResultList();
+    }
+
+    @Override
+    public Optional<Servicio> findByEmpresaIdAndCodigo(Long empresaId, String codigo) {
+        List<Servicio> resultados = entityManager.createQuery(
+                "SELECT s FROM Servicio s WHERE s.empresa.id = :empresaId AND s.codigo = :codigo", Servicio.class)
+                .setParameter("empresaId", empresaId)
+                .setParameter("codigo", codigo)
+                .getResultList();
+        return resultados.stream().findFirst();
+    }
+
+    @Override
+    public Optional<Servicio> findByCodigo(String codigo) {
+        List<Servicio> resultados = entityManager.createQuery(
+                "SELECT s FROM Servicio s WHERE s.codigo = :codigo", Servicio.class)
+                .setParameter("codigo", codigo)
+                .getResultList();
+        return resultados.stream().findFirst();
+    }
 }

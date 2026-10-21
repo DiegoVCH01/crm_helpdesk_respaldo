@@ -16,4 +16,5 @@ public interface ClienteDAO {
     List<Cliente> findAll();
     void deleteById(Long id);
     void delete(Cliente cliente);
+    long count();
 }

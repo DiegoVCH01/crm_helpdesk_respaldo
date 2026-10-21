@@ -12,26 +12,25 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 
-@Repository // Obligatorio según la guía de tu equipo
+@Repository 
 public class EncuestaCsatDAOImpl implements EncuestaCsatDAO {
 
-    @PersistenceContext // Inyección de dependencia para controlar la DB
+    @PersistenceContext 
     private EntityManager entityManager;
 
     @Override
-    @Transactional // Solo en métodos que modifican datos (escritura)
+    @Transactional 
     public EncuestaCsat save(EncuestaCsat encuestaCsat) {
         if (encuestaCsat.getId() == null) {
-            entityManager.persist(encuestaCsat); // INSERT
+            entityManager.persist(encuestaCsat); 
             return encuestaCsat;
         } else {
-            return entityManager.merge(encuestaCsat); // UPDATE
+            return entityManager.merge(encuestaCsat);
         }
     }
 
     @Override
     public List<EncuestaCsat> findByEmpresaId(Long empresaId) {
-        // e.empresa.id navega por las entidades Java, no por columnas SQL
         return entityManager.createQuery("SELECT e FROM EncuestaCsat e WHERE e.empresa.id = :empresaId", EncuestaCsat.class)
                 .setParameter("empresaId", empresaId)
                 .getResultList();
@@ -52,7 +51,6 @@ public class EncuestaCsatDAOImpl implements EncuestaCsatDAO {
                     .getSingleResult();
             return Optional.of(result);
         } catch (NoResultException e) {
-            // getSingleResult() lanza un error si no encuentra nada. Lo capturamos y devolvems un Optional vacío.
             return Optional.empty(); 
         }
     }

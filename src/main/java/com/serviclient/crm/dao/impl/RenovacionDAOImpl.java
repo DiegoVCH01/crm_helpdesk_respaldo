@@ -108,10 +108,7 @@ public class RenovacionDAOImpl implements RenovacionDAO {
 
     @Override
     public List<Renovacion> findAll() {
-        return entityManager.createQuery(
-                "SELECT DISTINCT r FROM Renovacion r LEFT JOIN FETCH r.cliente", 
-                Renovacion.class
-        ).getResultList();
+        return entityManager.createQuery("SELECT r FROM Renovacion r", Renovacion.class).getResultList();
     }
 
     @Override

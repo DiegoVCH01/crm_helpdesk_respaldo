@@ -203,4 +203,11 @@ public class TicketDAOImpl implements TicketDAO {
             entityManager.remove(toRemove);
         }
     }
+
+    @Override
+    public long count() {
+        Long total = entityManager.createQuery("SELECT COUNT(t) FROM Ticket t", Long.class)
+                                  .getSingleResult();
+        return total != null ? total : 0L;
+    }
 }

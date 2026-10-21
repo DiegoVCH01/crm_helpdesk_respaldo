@@ -3,7 +3,7 @@ package com.serviclient.crm.controller;
 import com.serviclient.crm.config.security.CustomUserDetails;
 import com.serviclient.crm.dto.DashboardDto;
 import com.serviclient.crm.entity.Empresa;
-import com.serviclient.crm.repository.EmpresaRepository;
+import com.serviclient.crm.dao.EmpresaDAO;
 import com.serviclient.crm.service.DashboardService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -37,7 +37,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class DashboardController {
 
     private final DashboardService dashboardService;
-    private final EmpresaRepository empresaRepository;
+    private final EmpresaDAO empresaDAO;
 
     /**
      * Renderiza la vista principal del Dashboard con datos actualizados en tiempo real.
@@ -62,7 +62,7 @@ public class DashboardController {
         if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails userDetails && userDetails.getEmpresaId() != null) {
             empresaId = userDetails.getEmpresaId();
         } else {
-            empresaId = empresaRepository.findFirstByOrderByIdAsc().map(Empresa::getId).orElse(1L);
+            empresaId = empresaDAO.findFirstByOrderByIdAsc().map(Empresa::getId).orElse(1L);
         }
 
         DashboardDto dashboard = dashboardService.obtenerDashboard(empresaId, periodo, tabRenovacion);

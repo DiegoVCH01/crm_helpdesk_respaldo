@@ -8,7 +8,6 @@ import com.serviclient.crm.entity.enums.EstadoEncuestaCsat;
 import com.serviclient.crm.entity.enums.EstadoTicket;
 import com.serviclient.crm.entity.enums.PrioridadTicket;
 import com.serviclient.crm.entity.enums.TipoMensajeTicket;
-import com.serviclient.crm.repository.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -53,11 +52,11 @@ public class TicketService {
     private final TicketDAO ticketDAO;
     private final TicketMensajeDAO ticketMensajeDAO;
     private final TicketHistorialDAO ticketHistorialDAO;
-    private final EncuestaSatisfaccionRepository encuestaRepository;
-    private final EncuestaCsatRepository encuestaCsatRepository;
-    private final RespuestaCsatRepository respuestaCsatRepository;
+    private final EncuestaSatisfaccionDAO encuestaSatisfaccionDAO;
+    private final EncuestaCsatDAO encuestaCsatDAO;
+    private final RespuestaCsatDAO respuestaCsatDAO;
     private final ClienteDAO clienteDAO;
-    private final ContactoRepository contactoRepository;
+    private final ContactoDAO contactoDAO;
     private final UsuarioDAO usuarioDAO;
     private final CategoriaTicketDAO categoriaTicketDAO;
     private final ConfiguracionSlaDAO configuracionSlaDAO;
@@ -175,7 +174,7 @@ public class TicketService {
 
         Contacto contacto = null;
         if (dto.getContactoId() != null) {
-            contacto = contactoRepository.findById(dto.getContactoId()).orElse(null);
+            contacto = contactoDAO.findById(dto.getContactoId()).orElse(null);
         } else {
             contacto = cliente.getContactoPrincipal();
         }
@@ -387,14 +386,14 @@ public class TicketService {
                     .fechaEnvio(ahora)
                     .fechaRespuesta(ahora)
                     .build();
-            encuestaCsat = encuestaCsatRepository.save(encuestaCsat);
+            encuestaCsat = encuestaCsatDAO.save(encuestaCsat);
 
             RespuestaCsat respuesta = RespuestaCsat.builder()
                     .encuesta(encuestaCsat)
                     .puntuacion(5)
                     .comentario("Excelente atención y resolución rápida.")
                     .build();
-            respuestaCsatRepository.save(respuesta);
+            respuestaCsatDAO.save(respuesta);
 
             // También guardar en modelo legacy si se utiliza
             EncuestaSatisfaccion encuesta = EncuestaSatisfaccion.builder()
@@ -405,7 +404,7 @@ public class TicketService {
                     .comentario("Excelente atención y resolución rápida.")
                     .fechaCreacion(ahora)
                     .build();
-            encuestaRepository.save(encuesta);
+            encuestaSatisfaccionDAO.save(encuesta);
         }
 
         healthScoreService.recalcularYActualizarHealthScore(ticket.getCliente());

@@ -14,4 +14,5 @@ public interface ConfiguracionSlaDAO {
     List<ConfiguracionSla> findAll();
     void deleteById(Long id);
     void delete(ConfiguracionSla configuracionSla);
+    long count();
 }

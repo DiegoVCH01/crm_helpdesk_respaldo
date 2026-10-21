@@ -33,7 +33,9 @@ public class TicketMensajeDAOImpl implements TicketMensajeDAO {
 
     @Override
     public List<TicketMensaje> findByTicketIdOrderByFechaCreacionAsc(Long ticketId) {
-        return findByTicketIdOrderByCreatedAtAsc(ticketId);
+        return entityManager.createQuery(
+            "SELECT m FROM TicketMensaje m WHERE m.ticket.id = :ticketId ORDER BY m.createdAt ASC", TicketMensaje.class)
+            .setParameter("ticketId", ticketId).getResultList();
     }
 
     @Override

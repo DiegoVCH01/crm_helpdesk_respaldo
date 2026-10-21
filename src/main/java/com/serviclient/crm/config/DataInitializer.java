@@ -1,8 +1,8 @@
 package com.serviclient.crm.config;
 
+import com.serviclient.crm.dao.*;
 import com.serviclient.crm.entity.*;
 import com.serviclient.crm.entity.enums.*;
-import com.serviclient.crm.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
@@ -27,31 +27,31 @@ import java.util.Set;
 @Slf4j
 public class DataInitializer implements CommandLineRunner {
 
-    private final EmpresaRepository empresaRepository;
-    private final RolRepository rolRepository;
-    private final PermisoRepository permisoRepository;
-    private final UsuarioRepository usuarioRepository;
-    private final ServicioRepository servicioRepository;
-    private final ClienteRepository clienteRepository;
-    private final ContactoRepository contactoRepository;
-    private final ClienteServicioRepository clienteServicioRepository;
-    private final CategoriaTicketRepository categoriaTicketRepository;
-    private final ConfiguracionSlaRepository configuracionSlaRepository;
-    private final ConfiguracionCsatRepository configuracionCsatRepository;
-    private final ConfiguracionHealthScoreRepository configuracionHealthScoreRepository;
-    private final TicketRepository ticketRepository;
-    private final TicketMensajeRepository ticketMensajeRepository;
-    private final TicketHistorialRepository ticketHistorialRepository;
-    private final TicketAdjuntoRepository ticketAdjuntoRepository;
-    private final RenovacionRepository renovacionRepository;
-    private final RenovacionSeguimientoRepository renovacionSeguimientoRepository;
-    private final EncuestaCsatRepository encuestaCsatRepository;
-    private final RespuestaCsatRepository respuestaCsatRepository;
-    private final EncuestaSatisfaccionRepository encuestaRepository;
-    private final HealthScoreHistorialRepository healthScoreHistorialRepository;
-    private final InteraccionRepository interaccionRepository;
-    private final NotificacionRepository notificacionRepository;
-    private final AuditoriaRepository auditoriaRepository;
+    private final EmpresaDAO empresaDAO;
+    private final RolDAO rolDAO;
+    private final PermisoDAO permisoDAO;
+    private final UsuarioDAO usuarioDAO;
+    private final ServicioDAO servicioDAO;
+    private final ClienteDAO clienteDAO;
+    private final ContactoDAO contactoDAO;
+    private final ClienteServicioDAO clienteServicioDAO;
+    private final CategoriaTicketDAO categoriaTicketDAO;
+    private final ConfiguracionSlaDAO configuracionSlaDAO;
+    private final ConfiguracionCsatDAO configuracionCsatDAO;
+    private final ConfiguracionHealthScoreDAO configuracionHealthScoreDAO;
+    private final TicketDAO ticketDAO;
+    private final TicketMensajeDAO ticketMensajeDAO;
+    private final TicketHistorialDAO ticketHistorialDAO;
+    private final TicketAdjuntoDAO ticketAdjuntoDAO;
+    private final RenovacionDAO renovacionDAO;
+    private final RenovacionSeguimientoDAO renovacionSeguimientoDAO;
+    private final EncuestaCsatDAO encuestaCsatDAO;
+    private final RespuestaCsatDAO respuestaCsatDAO;
+    private final EncuestaSatisfaccionDAO encuestaSatisfaccionDAO;
+    private final HealthScoreHistorialDAO healthScoreHistorialDAO;
+    private final InteraccionDAO interaccionDAO;
+    private final NotificacionDAO notificacionDAO;
+    private final AuditoriaDAO auditoriaDAO;
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -60,7 +60,7 @@ public class DataInitializer implements CommandLineRunner {
         log.info("Verificando estado de la base de datos...");
 
         // 1. Empresa Principal
-        Empresa empresa = empresaRepository.findAll().stream().findFirst().orElseGet(() -> {
+        Empresa empresa = empresaDAO.findFirstByOrderByIdAsc().orElseGet(() -> {
             Empresa e = Empresa.builder()
                     .nombreComercial("ServiClient")
                     .razonSocial("ServiClient Cloud Solutions S.A.C.")
@@ -74,12 +74,12 @@ public class DataInitializer implements CommandLineRunner {
                     .zonaHoraria("America/Lima")
                     .estado("ACTIVA")
                     .build();
-            return empresaRepository.save(e);
+            return empresaDAO.save(e);
         });
 
         // 2. Permisos y Roles
         Set<Permiso> todosPermisos = new HashSet<>();
-        if (permisoRepository.count() == 0) {
+        if (permisoDAO.count() == 0) {
             String[] modulos = {"CLIENTES", "TICKETS", "RENOVACIONES", "CSAT", "CONFIGURACION"};
             String[] acciones = {"VER", "CREAR", "EDITAR", "ELIMINAR"};
             for (String m : modulos) {
@@ -90,17 +90,17 @@ public class DataInitializer implements CommandLineRunner {
                             .modulo(m)
                             .accion(a)
                             .build();
-                    todosPermisos.add(permisoRepository.save(p));
+                    todosPermisos.add(permisoDAO.save(p));
                 }
             }
         } else {
-            todosPermisos.addAll(permisoRepository.findAll());
+            todosPermisos.addAll(permisoDAO.findAll());
         }
 
-        RolEntity rolAdmin = rolRepository.findAll().stream()
+        RolEntity rolAdmin = rolDAO.findAll().stream()
                 .filter(r -> r.getNombre() != null && r.getNombre().toUpperCase().contains("ADMIN"))
                 .findFirst()
-                .orElseGet(() -> rolRepository.save(RolEntity.builder()
+                .orElseGet(() -> rolDAO.save(RolEntity.builder()
                         .empresa(empresa)
                         .nombre("Administrador")
                         .descripcion("Acceso total y configuración del sistema")
@@ -108,10 +108,10 @@ public class DataInitializer implements CommandLineRunner {
                         .permisos(todosPermisos)
                         .build()));
 
-        RolEntity rolAgente = rolRepository.findAll().stream()
+        RolEntity rolAgente = rolDAO.findAll().stream()
                 .filter(r -> r.getNombre() != null && r.getNombre().toUpperCase().contains("AGENTE"))
                 .findFirst()
-                .orElseGet(() -> rolRepository.save(RolEntity.builder()
+                .orElseGet(() -> rolDAO.save(RolEntity.builder()
                         .empresa(empresa)
                         .nombre("Agente de Soporte")
                         .descripcion("Atención y resolución de tickets e incidencias")
@@ -119,10 +119,10 @@ public class DataInitializer implements CommandLineRunner {
                         .permisos(todosPermisos)
                         .build()));
 
-        RolEntity rolSupervisor = rolRepository.findAll().stream()
+        RolEntity rolSupervisor = rolDAO.findAll().stream()
                 .filter(r -> r.getNombre() != null && r.getNombre().toUpperCase().contains("SUPERVISOR"))
                 .findFirst()
-                .orElseGet(() -> rolRepository.save(RolEntity.builder()
+                .orElseGet(() -> rolDAO.save(RolEntity.builder()
                         .empresa(empresa)
                         .nombre("Supervisor Customer Success")
                         .descripcion("Gestión de salud de clientes, CSAT y renovaciones")
@@ -131,14 +131,14 @@ public class DataInitializer implements CommandLineRunner {
                         .build()));
 
         // 3. Usuarios de prueba
-        Usuario admin = usuarioRepository.findByEmail("admin@serviclient.com").map(u -> {
+        Usuario admin = usuarioDAO.findByEmail("admin@serviclient.com").map(u -> {
             u.setPassword(passwordEncoder.encode("admin123"));
             u.setEstado("ACTIVO");
             u.setRolEntity(rolAdmin);
             u.setNombre("Juan");
             u.setApellido("Pérez");
-            return usuarioRepository.save(u);
-        }).orElseGet(() -> usuarioRepository.save(Usuario.builder()
+            return usuarioDAO.save(u);
+        }).orElseGet(() -> usuarioDAO.save(Usuario.builder()
                 .empresa(empresa)
                 .rolEntity(rolAdmin)
                 .nombre("Juan")
@@ -150,8 +150,8 @@ public class DataInitializer implements CommandLineRunner {
                 .ultimoAcceso(LocalDateTime.now())
                 .build()));
 
-        Usuario carlos = usuarioRepository.findByEmail("carlos.ruiz@serviclient.com").orElseGet(() ->
-                usuarioRepository.save(Usuario.builder()
+        Usuario carlos = usuarioDAO.findByEmail("carlos.ruiz@serviclient.com").orElseGet(() ->
+                usuarioDAO.save(Usuario.builder()
                         .empresa(empresa)
                         .rolEntity(rolAgente)
                         .nombre("Carlos")
@@ -163,21 +163,21 @@ public class DataInitializer implements CommandLineRunner {
                         .ultimoAcceso(LocalDateTime.now().minusHours(2))
                         .build()));
 
-        Usuario ana = usuarioRepository.findByEmail("ana.silva@serviclient.com").orElseGet(() ->
-                usuarioRepository.save(Usuario.builder()
+        Usuario ana = usuarioDAO.findByEmail("cristofer.silva@serviclient.com").orElseGet(() ->
+                usuarioDAO.save(Usuario.builder()
                         .empresa(empresa)
                         .rolEntity(rolAgente)
-                        .nombre("Ana")
+                        .nombre("Cristofer")
                         .apellido("Silva")
-                        .email("ana.silva@serviclient.com")
+                        .email("cristofer.silva@serviclient.com")
                         .password(passwordEncoder.encode("admin123"))
                         .telefono("+51 982 333 444")
                         .estado("ACTIVO")
                         .ultimoAcceso(LocalDateTime.now().minusHours(1))
                         .build()));
 
-        Usuario laura = usuarioRepository.findByEmail("laura.mendoza@serviclient.com").orElseGet(() ->
-                usuarioRepository.save(Usuario.builder()
+        Usuario laura = usuarioDAO.findByEmail("laura.mendoza@serviclient.com").orElseGet(() ->
+                usuarioDAO.save(Usuario.builder()
                         .empresa(empresa)
                         .rolEntity(rolSupervisor)
                         .nombre("Laura")
@@ -189,8 +189,8 @@ public class DataInitializer implements CommandLineRunner {
                         .ultimoAcceso(LocalDateTime.now().minusMinutes(30))
                         .build()));
 
-        Usuario maria = usuarioRepository.findByEmail("maria.lopez@serviclient.com").orElseGet(() ->
-                usuarioRepository.save(Usuario.builder()
+        Usuario maria = usuarioDAO.findByEmail("maria.lopez@serviclient.com").orElseGet(() ->
+                usuarioDAO.save(Usuario.builder()
                         .empresa(empresa)
                         .rolEntity(rolAgente)
                         .nombre("María")
@@ -202,8 +202,8 @@ public class DataInitializer implements CommandLineRunner {
                         .ultimoAcceso(LocalDateTime.now().minusHours(3))
                         .build()));
 
-        Usuario javier = usuarioRepository.findByEmail("javier.ramos@serviclient.com").orElseGet(() ->
-                usuarioRepository.save(Usuario.builder()
+        Usuario javier = usuarioDAO.findByEmail("javier.ramos@serviclient.com").orElseGet(() ->
+                usuarioDAO.save(Usuario.builder()
                         .empresa(empresa)
                         .rolEntity(rolAgente)
                         .nombre("Javier")
@@ -216,8 +216,8 @@ public class DataInitializer implements CommandLineRunner {
                         .build()));
 
         // 4. Servicios
-        Servicio srvErp = servicioRepository.findByCodigo("SRV-ERP").orElseGet(() ->
-                servicioRepository.save(Servicio.builder()
+        Servicio srvErp = servicioDAO.findByCodigo("SRV-ERP").orElseGet(() ->
+                servicioDAO.save(Servicio.builder()
                         .empresa(empresa)
                         .nombre("ERP Cloud Enterprise")
                         .descripcion("Sistema integral de planificación de recursos empresariales en la nube")
@@ -225,8 +225,8 @@ public class DataInitializer implements CommandLineRunner {
                         .estado("ACTIVO")
                         .build()));
 
-        Servicio srvHelpdesk = servicioRepository.findByCodigo("SRV-HD").orElseGet(() ->
-                servicioRepository.save(Servicio.builder()
+        Servicio srvHelpdesk = servicioDAO.findByCodigo("SRV-HD").orElseGet(() ->
+                servicioDAO.save(Servicio.builder()
                         .empresa(empresa)
                         .nombre("Helpdesk Omni-channel")
                         .descripcion("Plataforma de soporte y atención a usuarios multicanal")
@@ -234,8 +234,8 @@ public class DataInitializer implements CommandLineRunner {
                         .estado("ACTIVO")
                         .build()));
 
-        Servicio srvCrm = servicioRepository.findByCodigo("SRV-CRM").orElseGet(() ->
-                servicioRepository.save(Servicio.builder()
+        Servicio srvCrm = servicioDAO.findByCodigo("SRV-CRM").orElseGet(() ->
+                servicioDAO.save(Servicio.builder()
                         .empresa(empresa)
                         .nombre("CRM Ventas Pro")
                         .descripcion("Gestión de relaciones comerciales y pipeline de ventas")
@@ -243,8 +243,8 @@ public class DataInitializer implements CommandLineRunner {
                         .estado("ACTIVO")
                         .build()));
 
-        Servicio srvAnalytics = servicioRepository.findByCodigo("SRV-AI").orElseGet(() ->
-                servicioRepository.save(Servicio.builder()
+        Servicio srvAnalytics = servicioDAO.findByCodigo("SRV-AI").orElseGet(() ->
+                servicioDAO.save(Servicio.builder()
                         .empresa(empresa)
                         .nombre("Analítica Avanzada & IA")
                         .descripcion("Módulo de analítica predictiva y dashboards ejecutivos")
@@ -252,8 +252,8 @@ public class DataInitializer implements CommandLineRunner {
                         .estado("ACTIVO")
                         .build()));
 
-        Servicio srvSoportePremium = servicioRepository.findByCodigo("SRV-SP24").orElseGet(() ->
-                servicioRepository.save(Servicio.builder()
+        Servicio srvSoportePremium = servicioDAO.findByCodigo("SRV-SP24").orElseGet(() ->
+                servicioDAO.save(Servicio.builder()
                         .empresa(empresa)
                         .nombre("Soporte Premium 24/7")
                         .descripcion("Mesa de ayuda dedicada con SLA prioritario garantizado")
@@ -261,8 +261,8 @@ public class DataInitializer implements CommandLineRunner {
                         .estado("ACTIVO")
                         .build()));
 
-        Servicio srvModuloAnalytics = servicioRepository.findByCodigo("SRV-ANL").orElseGet(() ->
-                servicioRepository.save(Servicio.builder()
+        Servicio srvModuloAnalytics = servicioDAO.findByCodigo("SRV-ANL").orElseGet(() ->
+                servicioDAO.save(Servicio.builder()
                         .empresa(empresa)
                         .nombre("Módulo Analytics")
                         .descripcion("Tableros BI y visualización de indicadores en tiempo real")
@@ -271,50 +271,50 @@ public class DataInitializer implements CommandLineRunner {
                         .build()));
 
         // 5. Categorías de Tickets
-        CategoriaTicketEntity catSoporte = categoriaTicketRepository.findAll().stream()
+        CategoriaTicketEntity catSoporte = categoriaTicketDAO.findAll().stream()
                 .filter(c -> c.getNombre() != null && c.getNombre().equalsIgnoreCase("Soporte Técnico"))
                 .findFirst()
-                .orElseGet(() -> categoriaTicketRepository.save(CategoriaTicketEntity.builder()
+                .orElseGet(() -> categoriaTicketDAO.save(CategoriaTicketEntity.builder()
                         .empresa(empresa)
                         .nombre("Soporte Técnico")
                         .descripcion("Problemas y consultas de operación técnica")
                         .estado("ACTIVO")
                         .build()));
 
-        CategoriaTicketEntity catFacturacion = categoriaTicketRepository.findAll().stream()
+        CategoriaTicketEntity catFacturacion = categoriaTicketDAO.findAll().stream()
                 .filter(c -> c.getNombre() != null && c.getNombre().toUpperCase().contains("FACTURACI"))
                 .findFirst()
-                .orElseGet(() -> categoriaTicketRepository.save(CategoriaTicketEntity.builder()
+                .orElseGet(() -> categoriaTicketDAO.save(CategoriaTicketEntity.builder()
                         .empresa(empresa)
                         .nombre("Facturación & Cobranzas")
                         .descripcion("Consultas de pagos, recibos y contratos")
                         .estado("ACTIVO")
                         .build()));
 
-        CategoriaTicketEntity catOnboarding = categoriaTicketRepository.findAll().stream()
+        CategoriaTicketEntity catOnboarding = categoriaTicketDAO.findAll().stream()
                 .filter(c -> c.getNombre() != null && c.getNombre().toUpperCase().contains("ONBOARDING"))
                 .findFirst()
-                .orElseGet(() -> categoriaTicketRepository.save(CategoriaTicketEntity.builder()
+                .orElseGet(() -> categoriaTicketDAO.save(CategoriaTicketEntity.builder()
                         .empresa(empresa)
                         .nombre("Capacitación & Onboarding")
                         .descripcion("Entrenamiento e inducción para nuevos usuarios")
                         .estado("ACTIVO")
                         .build()));
 
-        CategoriaTicketEntity catFeature = categoriaTicketRepository.findAll().stream()
+        CategoriaTicketEntity catFeature = categoriaTicketDAO.findAll().stream()
                 .filter(c -> c.getNombre() != null && c.getNombre().toUpperCase().contains("FEATURE"))
                 .findFirst()
-                .orElseGet(() -> categoriaTicketRepository.save(CategoriaTicketEntity.builder()
+                .orElseGet(() -> categoriaTicketDAO.save(CategoriaTicketEntity.builder()
                         .empresa(empresa)
                         .nombre("Solicitud de Feature")
                         .descripcion("Requerimientos y mejoras solicitadas")
                         .estado("ACTIVO")
                         .build()));
 
-        CategoriaTicketEntity catCritica = categoriaTicketRepository.findAll().stream()
+        CategoriaTicketEntity catCritica = categoriaTicketDAO.findAll().stream()
                 .filter(c -> c.getNombre() != null && c.getNombre().toUpperCase().contains("CRÍTICA"))
                 .findFirst()
-                .orElseGet(() -> categoriaTicketRepository.save(CategoriaTicketEntity.builder()
+                .orElseGet(() -> categoriaTicketDAO.save(CategoriaTicketEntity.builder()
                         .empresa(empresa)
                         .nombre("Incidencia Crítica")
                         .descripcion("Interrupción de servicios críticos")
@@ -322,8 +322,8 @@ public class DataInitializer implements CommandLineRunner {
                         .build()));
 
         // 6. Configuraciones de SLA, CSAT y Health Score
-        if (configuracionSlaRepository.count() == 0) {
-            configuracionSlaRepository.save(ConfiguracionSla.builder()
+        if (configuracionSlaDAO.count() == 0) {
+            configuracionSlaDAO.save(ConfiguracionSla.builder()
                     .empresa(empresa)
                     .prioridad(PrioridadTicket.CRITICA)
                     .tiempoRespuestaMinutos(30)
@@ -331,7 +331,7 @@ public class DataInitializer implements CommandLineRunner {
                     .estado("ACTIVO")
                     .build());
 
-            configuracionSlaRepository.save(ConfiguracionSla.builder()
+            configuracionSlaDAO.save(ConfiguracionSla.builder()
                     .empresa(empresa)
                     .prioridad(PrioridadTicket.ALTA)
                     .tiempoRespuestaMinutos(60)
@@ -339,7 +339,7 @@ public class DataInitializer implements CommandLineRunner {
                     .estado("ACTIVO")
                     .build());
 
-            configuracionSlaRepository.save(ConfiguracionSla.builder()
+            configuracionSlaDAO.save(ConfiguracionSla.builder()
                     .empresa(empresa)
                     .prioridad(PrioridadTicket.MEDIA)
                     .tiempoRespuestaMinutos(120)
@@ -347,7 +347,7 @@ public class DataInitializer implements CommandLineRunner {
                     .estado("ACTIVO")
                     .build());
 
-            configuracionSlaRepository.save(ConfiguracionSla.builder()
+            configuracionSlaDAO.save(ConfiguracionSla.builder()
                     .empresa(empresa)
                     .prioridad(PrioridadTicket.BAJA)
                     .tiempoRespuestaMinutos(240)
@@ -356,8 +356,8 @@ public class DataInitializer implements CommandLineRunner {
                     .build());
         }
 
-        if (configuracionCsatRepository.count() == 0) {
-            configuracionCsatRepository.save(ConfiguracionCsat.builder()
+        if (configuracionCsatDAO.count() == 0) {
+            configuracionCsatDAO.save(ConfiguracionCsat.builder()
                     .empresa(empresa)
                     .activo(true)
                     .escalaMin(1)
@@ -367,8 +367,8 @@ public class DataInitializer implements CommandLineRunner {
                     .build());
         }
 
-        if (configuracionHealthScoreRepository.count() == 0) {
-            configuracionHealthScoreRepository.save(ConfiguracionHealthScore.builder()
+        if (configuracionHealthScoreDAO.count() == 0) {
+            configuracionHealthScoreDAO.save(ConfiguracionHealthScore.builder()
                     .empresa(empresa)
                     .pesoTickets(new BigDecimal("30.00"))
                     .pesoCsat(new BigDecimal("30.00"))
@@ -381,7 +381,7 @@ public class DataInitializer implements CommandLineRunner {
         }
 
         // Si ya existen clientes y tickets completos, no duplicamos
-        if (clienteRepository.count() >= 5 && ticketRepository.count() >= 5) {
+        if (clienteDAO.count() >= 5 && ticketDAO.count() >= 5) {
             log.info("[✓] Base de datos contiene registros completos de clientes y tickets.");
             return;
         }
@@ -626,14 +626,14 @@ public class DataInitializer implements CommandLineRunner {
         Renovacion r9 = crearRenovacion(empresa, c5, cs5, laura, LocalDate.now().plusMonths(12), 30,
                 EstadoRenovacion.RENOVADO, "Renovado por 12 meses adicionales con expansión de 30 puestos.");
         r9.setFechaRenovacion(LocalDate.now().minusDays(5));
-        renovacionRepository.save(r9);
+        renovacionDAO.save(r9);
         crearSeguimientoRenovacion(r9, laura, EstadoRenovacion.RENOVADO, "Firma de contrato de renovación por 1 año completada con Sofía Benítez.");
 
         // 10. CloudNet Corp - Completada (Renovado hace 15 días, Resp: Javier Ramos)
         Renovacion r10 = crearRenovacion(empresa, c7, cs7, javier, LocalDate.now().plusMonths(12), 30,
                 EstadoRenovacion.RENOVADO, "Renovado satisfactoriamente con SLA Diamante.");
         r10.setFechaRenovacion(LocalDate.now().minusDays(15));
-        renovacionRepository.save(r10);
+        renovacionDAO.save(r10);
         crearSeguimientoRenovacion(r10, javier, EstadoRenovacion.RENOVADO, "Contrato renovado con SLA extendido.");
 
         // ==========================================
@@ -646,7 +646,7 @@ public class DataInitializer implements CommandLineRunner {
         crearAuditoria(empresa, javier, AccionAuditoria.UPDATE, "TICKETS", t5.getId(), "Ticket TK-4018 marcado como resuelto para CloudNet Corp", "127.0.0.1", LocalDateTime.now().minusDays(1).plusHours(2));
 
         // 11. Notificaciones
-        notificacionRepository.save(Notificacion.builder()
+        notificacionDAO.save(Notificacion.builder()
                 .empresa(empresa)
                 .usuario(admin)
                 .tipo(TipoNotificacion.CLIENTE_EN_RIESGO)
@@ -657,7 +657,7 @@ public class DataInitializer implements CommandLineRunner {
                 .leida(false)
                 .build());
 
-        notificacionRepository.save(Notificacion.builder()
+        notificacionDAO.save(Notificacion.builder()
                 .empresa(empresa)
                 .usuario(carlos)
                 .tipo(TipoNotificacion.TICKET_ASIGNADO)
@@ -674,7 +674,7 @@ public class DataInitializer implements CommandLineRunner {
     private Cliente crearCliente(Empresa emp, Usuario resp, String nombreComercial, String razonSocial,
                                  String ruc, String industria, String tamano, String pais, String ciudad,
                                  String direccion, String web, String estado, int healthScore, EstadoSaludCliente estadoSalud) {
-        Cliente c = clienteRepository.save(Cliente.builder()
+        Cliente c = clienteDAO.save(Cliente.builder()
                 .empresa(emp)
                 .responsable(resp)
                 .nombreComercial(nombreComercial)
@@ -690,7 +690,7 @@ public class DataInitializer implements CommandLineRunner {
                 .createdAt(LocalDateTime.now().minusMonths(6))
                 .build());
 
-        healthScoreHistorialRepository.save(HealthScoreHistorial.builder()
+        healthScoreHistorialDAO.save(HealthScoreHistorial.builder()
                 .cliente(c)
                 .puntaje(new BigDecimal(healthScore + ".00"))
                 .estado(estadoSalud)
@@ -704,7 +704,7 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private Contacto crearContacto(Cliente cliente, String nombre, String apellido, String cargo, String email, String tel, boolean principal) {
-        return contactoRepository.save(Contacto.builder()
+        return contactoDAO.save(Contacto.builder()
                 .cliente(cliente)
                 .nombre(nombre)
                 .apellido(apellido)
@@ -717,7 +717,7 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private ClienteServicio crearClienteServicio(Cliente cliente, Servicio servicio, LocalDate inicio, LocalDate fin) {
-        return clienteServicioRepository.save(ClienteServicio.builder()
+        return clienteServicioDAO.save(ClienteServicio.builder()
                 .cliente(cliente)
                 .servicio(servicio)
                 .fechaInicio(inicio)
@@ -730,7 +730,7 @@ public class DataInitializer implements CommandLineRunner {
                                Usuario agente, String asunto, String descripcion, PrioridadTicket prioridad,
                                EstadoTicket estado, LocalDateTime slaResp, LocalDateTime slaRes,
                                LocalDateTime fResp, LocalDateTime fRes, LocalDateTime createdAt) {
-        return ticketRepository.save(Ticket.builder()
+        return ticketDAO.save(Ticket.builder()
                 .numeroTicket(numero)
                 .empresa(emp)
                 .cliente(cli)
@@ -750,7 +750,7 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void crearMensaje(Ticket ticket, Usuario usuario, Contacto contacto, TipoMensajeTicket tipo, String mensaje, LocalDateTime fecha) {
-        ticketMensajeRepository.save(TicketMensaje.builder()
+        ticketMensajeDAO.save(TicketMensaje.builder()
                 .ticket(ticket)
                 .usuario(usuario)
                 .contacto(contacto)
@@ -761,7 +761,7 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void crearHistorial(Ticket ticket, Usuario usuario, String tipoEvento, String descripcion, LocalDateTime fecha) {
-        ticketHistorialRepository.save(TicketHistorial.builder()
+        ticketHistorialDAO.save(TicketHistorial.builder()
                 .ticket(ticket)
                 .usuario(usuario)
                 .tipoEvento(tipoEvento)
@@ -771,7 +771,7 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void crearEncuestaYRespuesta(Empresa emp, Cliente cli, Contacto con, Ticket ticket, int puntuacion, String comentario) {
-        EncuestaCsat enc = encuestaCsatRepository.save(EncuestaCsat.builder()
+        EncuestaCsat enc = encuestaCsatDAO.save(EncuestaCsat.builder()
                 .empresa(emp)
                 .cliente(cli)
                 .contacto(con)
@@ -781,13 +781,13 @@ public class DataInitializer implements CommandLineRunner {
                 .fechaRespuesta(LocalDateTime.now().minusHours(18))
                 .build());
 
-        respuestaCsatRepository.save(RespuestaCsat.builder()
+        respuestaCsatDAO.save(RespuestaCsat.builder()
                 .encuesta(enc)
                 .puntuacion(puntuacion)
                 .comentario(comentario)
                 .build());
 
-        encuestaRepository.save(EncuestaSatisfaccion.builder()
+        encuestaSatisfaccionDAO.save(EncuestaSatisfaccion.builder()
                 .ticket(ticket)
                 .cliente(cli)
                 .contacto(con)
@@ -798,7 +798,7 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private Renovacion crearRenovacion(Empresa emp, Cliente cli, ClienteServicio cs, Usuario resp, LocalDate vencimiento, int diasAlerta, EstadoRenovacion estado, String notas) {
-        return renovacionRepository.save(Renovacion.builder()
+        return renovacionDAO.save(Renovacion.builder()
                 .empresa(emp)
                 .cliente(cli)
                 .clienteServicio(cs)
@@ -811,7 +811,7 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void crearSeguimientoRenovacion(Renovacion ren, Usuario user, EstadoRenovacion estado, String comentario) {
-        renovacionSeguimientoRepository.save(RenovacionSeguimiento.builder()
+        renovacionSeguimientoDAO.save(RenovacionSeguimiento.builder()
                 .renovacion(ren)
                 .usuario(user)
                 .fecha(LocalDateTime.now().minusDays(1))
@@ -821,7 +821,7 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void crearAuditoria(Empresa emp, Usuario user, AccionAuditoria accion, String entidad, Long registroId, String descripcion, String ip, LocalDateTime fecha) {
-        auditoriaRepository.save(Auditoria.builder()
+        auditoriaDAO.save(Auditoria.builder()
                 .empresa(emp)
                 .usuario(user)
                 .accion(accion)

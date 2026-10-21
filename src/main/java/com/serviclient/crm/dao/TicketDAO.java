@@ -29,4 +29,5 @@ public interface TicketDAO {
     List<Ticket> findAll();
     void deleteById(Long id);
     void delete(Ticket ticket);
+    long count();
 }

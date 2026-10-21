@@ -1,6 +1,10 @@
 package com.serviclient.crm.service;
 
 import com.serviclient.crm.dao.ClienteDAO;
+import com.serviclient.crm.dao.ClienteServicioDAO;
+import com.serviclient.crm.dao.ContactoDAO;
+import com.serviclient.crm.dao.HealthScoreHistorialDAO;
+import com.serviclient.crm.dao.ServicioDAO;
 import com.serviclient.crm.dao.TicketDAO;
 import com.serviclient.crm.dao.UsuarioDAO;
 import com.serviclient.crm.dto.ClienteDto;
@@ -10,7 +14,6 @@ import com.serviclient.crm.entity.enums.EstadoSaludCliente;
 import com.serviclient.crm.entity.enums.EstadoServicioCliente;
 import com.serviclient.crm.entity.enums.EstadoTicket;
 import com.serviclient.crm.entity.enums.PrioridadTicket;
-import com.serviclient.crm.repository.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -51,10 +54,10 @@ import java.util.stream.Collectors;
 public class ClienteService {
 
     private final ClienteDAO clienteDAO;
-    private final ContactoRepository contactoRepository;
-    private final ServicioRepository servicioRepository;
-    private final ClienteServicioRepository clienteServicioRepository;
-    private final HealthScoreHistorialRepository healthScoreHistorialRepository;
+    private final ContactoDAO contactoDAO; 
+    private final ServicioDAO servicioDAO; 
+    private final ClienteServicioDAO clienteServicioDAO;
+    private final HealthScoreHistorialDAO healthScoreHistorialDAO; 
     private final UsuarioDAO usuarioDAO;
     private final TicketDAO ticketDAO;
     private final EmpresaService empresaService;
@@ -187,10 +190,10 @@ public class ClienteService {
                 ? dto.getServicioContratado()
                 : "Plan SaaS Cloud";
 
-        Servicio servicio = servicioRepository.findByEmpresaId(empresaId).stream()
+        Servicio servicio = servicioDAO.findByEmpresaId(empresaId).stream()
                 .filter(s -> s.getNombre().equalsIgnoreCase(nombreServicio))
                 .findFirst()
-                .orElseGet(() -> servicioRepository.save(Servicio.builder()
+                .orElseGet(() -> servicioDAO.save(Servicio.builder()
                         .empresa(empresa)
                         .nombre(nombreServicio)
                         .descripcion(nombreServicio + " para cliente")
@@ -208,7 +211,7 @@ public class ClienteService {
                 .fechaFin(fechaFin)
                 .estado(EstadoServicioCliente.ACTIVO)
                 .build();
-        clienteServicioRepository.save(cs);
+        clienteServicioDAO.save(cs);
 
         // Contacto principal
         if (dto.getContactoNombre() != null && !dto.getContactoNombre().isBlank() &&
@@ -222,7 +225,7 @@ public class ClienteService {
                     .esContactoPrincipal(true)
                     .estado("ACTIVO")
                     .build();
-            contactoRepository.save(contacto);
+            contactoDAO.save(contacto);
         }
 
         // Historial Health Score inicial
@@ -236,7 +239,7 @@ public class ClienteService {
                 .puntajeActividad(new BigDecimal("15.00"))
                 .puntajeRenovacion(new BigDecimal("25.00"))
                 .build();
-        healthScoreHistorialRepository.save(hsh);
+        healthScoreHistorialDAO.save(hsh);
 
         healthScoreService.recalcularYActualizarHealthScore(guardado);
         return guardado;
@@ -262,10 +265,10 @@ public class ClienteService {
             Empresa empresa = empresaService.obtenerPorId(empresaId);
             String nombreServicio = dto.getServicioContratado();
 
-            Servicio servicio = servicioRepository.findByEmpresaId(empresaId).stream()
+            Servicio servicio = servicioDAO.findByEmpresaId(empresaId).stream()
                     .filter(s -> s.getNombre().equalsIgnoreCase(nombreServicio))
                     .findFirst()
-                    .orElseGet(() -> servicioRepository.save(Servicio.builder()
+                    .orElseGet(() -> servicioDAO.save(Servicio.builder()
                             .empresa(empresa)
                             .nombre(nombreServicio)
                             .descripcion(nombreServicio + " para cliente")
@@ -274,13 +277,13 @@ public class ClienteService {
                             .build()));
 
             // Actualizar o crear ClienteServicio
-            List<ClienteServicio> serviciosActuales = clienteServicioRepository.findByClienteId(id);
+            List<ClienteServicio> serviciosActuales = clienteServicioDAO.findByClienteId(id);
             if (!serviciosActuales.isEmpty()) {
                 ClienteServicio cs = serviciosActuales.get(0);
                 cs.setServicio(servicio);
                 if (dto.getFechaInicio() != null) cs.setFechaInicio(dto.getFechaInicio());
                 if (dto.getFechaRenovacion() != null) cs.setFechaFin(dto.getFechaRenovacion());
-                clienteServicioRepository.save(cs);
+                clienteServicioDAO.save(cs);
             } else {
                 LocalDate fechaIni = dto.getFechaInicio() != null ? dto.getFechaInicio() : LocalDate.now();
                 LocalDate fechaFin = dto.getFechaRenovacion() != null ? dto.getFechaRenovacion() : LocalDate.now().plusYears(1);
@@ -291,7 +294,7 @@ public class ClienteService {
                         .fechaFin(fechaFin)
                         .estado(EstadoServicioCliente.ACTIVO)
                         .build();
-                clienteServicioRepository.save(cs);
+                clienteServicioDAO.save(cs);
             }
         }
 
@@ -323,13 +326,13 @@ public class ClienteService {
 
     @Transactional(readOnly = true)
     public List<ClienteServicio> obtenerServiciosPorCliente(Long clienteId) {
-        return clienteServicioRepository.findByClienteId(clienteId);
+        return clienteServicioDAO.findByClienteId(clienteId);
     }
 
     @Transactional
     public Contacto agregarContacto(Long clienteId, Contacto contacto) {
         Cliente cliente = obtenerPorId(clienteId);
         contacto.setCliente(cliente);
-        return contactoRepository.save(contacto);
+        return contactoDAO.save(contacto);
     }
 }

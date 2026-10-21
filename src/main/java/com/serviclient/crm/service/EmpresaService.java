@@ -1,9 +1,15 @@
 package com.serviclient.crm.service;
 
+import com.serviclient.crm.dao.ConfiguracionCsatDAO;
+import com.serviclient.crm.dao.ConfiguracionHealthScoreDAO;
+import com.serviclient.crm.dao.ConfiguracionSlaDAO;
+import com.serviclient.crm.dao.EmpresaDAO;
+import com.serviclient.crm.dao.PermisoDAO;
+import com.serviclient.crm.dao.RolDAO;
+import com.serviclient.crm.dao.UsuarioDAO;
 import com.serviclient.crm.dto.RegistroEmpresaDto;
 import com.serviclient.crm.entity.*;
 import com.serviclient.crm.entity.enums.PrioridadTicket;
-import com.serviclient.crm.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -16,18 +22,18 @@ import java.util.HashSet;
 @RequiredArgsConstructor
 public class EmpresaService {
 
-    private final EmpresaRepository empresaRepository;
-    private final RolRepository rolRepository;
-    private final PermisoRepository permisoRepository;
-    private final UsuarioRepository usuarioRepository;
-    private final ConfiguracionSlaRepository configuracionSlaRepository;
-    private final ConfiguracionCsatRepository configuracionCsatRepository;
-    private final ConfiguracionHealthScoreRepository configuracionHealthScoreRepository;
+    private final EmpresaDAO empresaDAO;
+    private final RolDAO rolDAO;
+    private final PermisoDAO permisoDAO;
+    private final UsuarioDAO usuarioDAO;
+    private final ConfiguracionSlaDAO configuracionSlaDAO;
+    private final ConfiguracionCsatDAO configuracionCsatDAO;
+    private final ConfiguracionHealthScoreDAO configuracionHealthScoreDAO;
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public Empresa registrarEmpresaCompleta(RegistroEmpresaDto dto) {
-        if (usuarioRepository.existsByEmail(dto.getAdminEmail())) {
+        if (usuarioDAO.existsByEmail(dto.getAdminEmail())) {
             throw new IllegalArgumentException("Ya existe un usuario registrado con el correo: " + dto.getAdminEmail());
         }
 
@@ -45,10 +51,10 @@ public class EmpresaService {
                 .estado("ACTIVA")
                 .build();
 
-        Empresa empresaGuardada = empresaRepository.save(empresa);
+        Empresa empresaGuardada = empresaDAO.save(empresa);
 
         // 2. Crear Roles para la empresa
-        var permisos = new HashSet<>(permisoRepository.findAll());
+        var permisos = new HashSet<>(permisoDAO.findAll());
         RolEntity rolAdmin = RolEntity.builder()
                 .empresa(empresaGuardada)
                 .nombre("Administrador")
@@ -56,7 +62,7 @@ public class EmpresaService {
                 .estado("ACTIVO")
                 .permisos(permisos)
                 .build();
-        rolAdmin = rolRepository.save(rolAdmin);
+        rolAdmin = rolDAO.save(rolAdmin);
 
         RolEntity rolAgente = RolEntity.builder()
                 .empresa(empresaGuardada)
@@ -65,7 +71,7 @@ public class EmpresaService {
                 .estado("ACTIVO")
                 .permisos(permisos)
                 .build();
-        rolRepository.save(rolAgente);
+        rolDAO.save(rolAgente);
 
         RolEntity rolSupervisor = RolEntity.builder()
                 .empresa(empresaGuardada)
@@ -74,13 +80,13 @@ public class EmpresaService {
                 .estado("ACTIVO")
                 .permisos(permisos)
                 .build();
-        rolRepository.save(rolSupervisor);
+        rolDAO.save(rolSupervisor);
 
         // 3. Crear Configuraciones de SLA, CSAT y Health Score
         int sla1ra = dto.getSlaPrimerRespuestaHoras() != null ? dto.getSlaPrimerRespuestaHoras() * 60 : 120;
         int slaResol = dto.getSlaResolucionHoras() != null ? dto.getSlaResolucionHoras() * 60 : 1440;
 
-        configuracionSlaRepository.save(ConfiguracionSla.builder()
+        configuracionSlaDAO.save(ConfiguracionSla.builder()
                 .empresa(empresaGuardada)
                 .prioridad(PrioridadTicket.CRITICA)
                 .tiempoRespuestaMinutos(Math.max(30, sla1ra / 4))
@@ -88,7 +94,7 @@ public class EmpresaService {
                 .estado("ACTIVO")
                 .build());
 
-        configuracionSlaRepository.save(ConfiguracionSla.builder()
+        configuracionSlaDAO.save(ConfiguracionSla.builder()
                 .empresa(empresaGuardada)
                 .prioridad(PrioridadTicket.MEDIA)
                 .tiempoRespuestaMinutos(sla1ra)
@@ -96,7 +102,7 @@ public class EmpresaService {
                 .estado("ACTIVO")
                 .build());
 
-        configuracionCsatRepository.save(ConfiguracionCsat.builder()
+        configuracionCsatDAO.save(ConfiguracionCsat.builder()
                 .empresa(empresaGuardada)
                 .activo(dto.getActivarCsat() != null ? dto.getActivarCsat() : true)
                 .escalaMin(1)
@@ -104,7 +110,7 @@ public class EmpresaService {
                 .pregunta("¿Qué tan satisfecho estás con la atención recibida?")
                 .build());
 
-        configuracionHealthScoreRepository.save(ConfiguracionHealthScore.builder()
+        configuracionHealthScoreDAO.save(ConfiguracionHealthScore.builder()
                 .empresa(empresaGuardada)
                 .pesoTickets(new BigDecimal("30.00"))
                 .pesoCsat(new BigDecimal("30.00"))
@@ -126,14 +132,14 @@ public class EmpresaService {
                 .estado("ACTIVO")
                 .build();
 
-        usuarioRepository.save(admin);
+        usuarioDAO.save(admin);
 
         return empresaGuardada;
     }
 
     @Transactional(readOnly = true)
     public Empresa obtenerPorId(Long id) {
-        return empresaRepository.findById(id)
+        return empresaDAO.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Empresa no encontrada con id: " + id));
     }
 }

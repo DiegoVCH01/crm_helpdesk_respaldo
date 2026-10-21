@@ -4,7 +4,9 @@ import com.serviclient.crm.dao.*;
 import com.serviclient.crm.dto.TicketDto;
 import com.serviclient.crm.entity.*;
 import com.serviclient.crm.entity.enums.*;
-import com.serviclient.crm.repository.*;
+import com.serviclient.crm.repository.ContactoRepository;
+import com.serviclient.crm.repository.RespuestaCsatRepository;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -35,19 +37,19 @@ class TicketServiceTest {
     private TicketHistorialDAO ticketHistorialDAO;
 
     @Mock
-    private EncuestaSatisfaccionRepository encuestaRepository;
+    private EncuestaSatisfaccionDAO encuestaDAO;
 
     @Mock
-    private EncuestaCsatRepository encuestaCsatRepository;
+    private EncuestaCsatDAO encuestaCsatDAO;
 
     @Mock
-    private RespuestaCsatRepository respuestaCsatRepository;
+    private RespuestaCsatDAO respuestaCsatDAO;
 
     @Mock
     private ClienteDAO clienteDAO;
 
     @Mock
-    private ContactoRepository contactoRepository;
+    private ContactoDAO contactoDAO;
 
     @Mock
     private UsuarioDAO usuarioDAO;
@@ -193,7 +195,7 @@ class TicketServiceTest {
     void testCerrarTicketConCsat() {
         when(ticketDAO.findById(100L)).thenReturn(Optional.of(ticket));
         when(ticketDAO.save(any(Ticket.class))).thenReturn(ticket);
-        when(encuestaCsatRepository.save(any(EncuestaCsat.class))).thenAnswer(i -> i.getArgument(0));
+        when(encuestaCsatDAO.save(any(EncuestaCsat.class))).thenAnswer(i -> i.getArgument(0));
 
         ticketService.cerrarTicket(100L, true, "Caso solucionado", agente);
 
@@ -201,7 +203,7 @@ class TicketServiceTest {
         assertNotNull(ticket.getFechaResolucion());
         assertNotNull(ticket.getFechaCierre());
 
-        verify(encuestaCsatRepository, times(1)).save(any(EncuestaCsat.class));
+        verify(encuestaCsatDAO, times(1)).save(any(EncuestaCsat.class));
         verify(ticketHistorialDAO, times(1)).save(any(TicketHistorial.class));
         verify(healthScoreService, times(1)).recalcularYActualizarHealthScore(cliente);
     }

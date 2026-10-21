@@ -1,5 +1,6 @@
 package com.serviclient.crm.repository;
 
+import com.serviclient.crm.dao.*;
 import com.serviclient.crm.entity.*;
 import com.serviclient.crm.entity.enums.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,7 +32,7 @@ class JpaRepositoriesTest {
     private EmpresaRepository empresaRepository;
 
     @Autowired
-    private UsuarioRepository usuarioRepository;
+    private UsuarioDAO usuarioDAO;
 
     @Autowired
     private ClienteRepository clienteRepository;
@@ -128,7 +129,7 @@ class JpaRepositoriesTest {
         assertTrue(empresaEncontrada.isPresent());
         assertEquals("Test Corp", empresaEncontrada.get().getNombreComercial());
 
-        Optional<Usuario> usuarioEncontrado = usuarioRepository.findByEmail("admin.test@testcorp.com");
+        Optional<Usuario> usuarioEncontrado = usuarioDAO.findByEmail("admin.test@testcorp.com");
         assertTrue(usuarioEncontrado.isPresent());
         assertEquals(Rol.ADMIN, usuarioEncontrado.get().getRol());
         assertEquals(empresa.getId(), usuarioEncontrado.get().getEmpresa().getId());

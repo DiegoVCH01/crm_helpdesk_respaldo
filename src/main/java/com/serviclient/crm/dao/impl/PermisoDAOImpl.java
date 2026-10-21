@@ -6,13 +6,15 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 public class PermisoDAOImpl implements PermisoDAO {
 
-  @PersistenceContext private EntityManager entityManager;
+  @PersistenceContext
+  private EntityManager entityManager;
 
   @Override
   public List<Permiso> findAll() {
@@ -32,10 +34,27 @@ public class PermisoDAOImpl implements PermisoDAO {
 
   @Override
   public long count() {
-    TypedQuery<Long> query =
-        entityManager.createQuery("SELECT COUNT(p) FROM Permiso p", Long.class);
+    TypedQuery<Long> query = entityManager.createQuery("SELECT COUNT(p) FROM Permiso p", Long.class);
 
     Long total = query.getSingleResult();
     return total != null ? total : 0L;
+  }
+
+  @Override
+  public Optional<Permiso> findByNombre(String nombre) {
+    List<Permiso> result = entityManager.createQuery(
+        "SELECT p FROM Permiso p WHERE p.nombre = :nombre", Permiso.class)
+        .setParameter("nombre", nombre)
+        .setMaxResults(1)
+        .getResultList();
+    return result.stream().findFirst();
+  }
+
+  @Override
+  public List<Permiso> findByModulo(String modulo) {
+    return entityManager.createQuery(
+        "SELECT p FROM Permiso p WHERE p.modulo = :modulo", Permiso.class)
+        .setParameter("modulo", modulo)
+        .getResultList();
   }
 }

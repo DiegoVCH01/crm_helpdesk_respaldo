@@ -28,11 +28,10 @@ public class InteraccionDAOImpl implements InteraccionDAO {
     }
 
     @Override
-    public List<Interaccion> findByClienteId(Long clienteId) {
+    public List<Interaccion> findByClienteIdOrderByFechaInteraccionDesc(Long clienteId) {
         return entityManager.createQuery(
-                "SELECT i FROM Interaccion i WHERE i.cliente.id = :clienteId", Interaccion.class)
-                .setParameter("clienteId", clienteId)
-                .getResultList();
+            "SELECT i FROM Interaccion i WHERE i.cliente.id = :clienteId ORDER BY i.fechaInteraccion DESC", Interaccion.class)
+            .setParameter("clienteId", clienteId).getResultList();
     }
 
     @Override
