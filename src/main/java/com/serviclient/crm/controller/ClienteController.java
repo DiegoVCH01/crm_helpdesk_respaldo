@@ -290,9 +290,9 @@ public class ClienteController {
   // ─────────────────────────────────────────────────────────────────────────
 
   @Operation(summary = "Agregar contacto al cliente")
-  @PostMapping("/{id}/contactos")
+  @PostMapping("/{clienteId}/contactos")
   public String agregarContacto(
-      @PathVariable("id") Long clienteId,
+      @PathVariable Long clienteId,
       @ModelAttribute Contacto contacto,
       RedirectAttributes redirectAttributes) {
     try {

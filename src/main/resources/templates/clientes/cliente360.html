@@ -757,7 +757,7 @@
                         <div class="modal-title">Agregar Nuevo Contacto</div>
                         <button class="modal-close-btn" data-modal-close>&times;</button>
                     </div>
-                    <form th:action="@{/clientes/{id}/contactos(id=${cliente.id})}" method="post">
+                    <form th:action="@{/clientes/{clienteId}/contactos(clienteId=${cliente.id})}" method="post">
                         <div class="modal-body">
                             <div class="form-group">
                                 <div class="form-row-2">

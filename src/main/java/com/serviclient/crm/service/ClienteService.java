@@ -398,6 +398,7 @@ public class ClienteService {
   @Transactional
   public ResultadoContacto agregarContacto(Long clienteId, Contacto contacto) {
 
+    contacto.setId(null);
     Cliente cliente = obtenerPorId(clienteId);
 
     List<Contacto> activos =
