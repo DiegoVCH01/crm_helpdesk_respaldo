@@ -27,3 +27,4 @@ buildNumber.properties
 *.bak
 .DS_Store
 Thumbs.db
+.prettierrc

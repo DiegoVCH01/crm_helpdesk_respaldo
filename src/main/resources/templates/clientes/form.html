@@ -1,15 +1,22 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{layout/base :: layout(${modoEdicion ? 'Editar Cliente' : 'Nuevo Cliente'}, 'clientes', ~{::section})}">
+    th:replace="~{layout/base :: layout(${modoEdicion ? 'Editar Cliente' : 'Nuevo Cliente'}, 'clientes', ~{::section})}">
+
 <head>
     <title>Cliente - ServiClient</title>
 </head>
+
 <body>
     <section>
         <div class="page-header-row">
             <div class="page-title-group">
-                <h1 th:text="${modoEdicion ? 'Editar Cliente' : 'Registrar Nuevo Cliente'}">Cliente</h1>
-                <p th:text="${modoEdicion ? 'Modifica la información comercial de la cuenta.' : 'Ingresa la información comercial y de contacto de la cuenta.'}">Formulario</p>
+                <h1 th:text="${modoEdicion ? 'Editar Cliente' : 'Registrar Nuevo Cliente'}">
+                    Cliente
+                </h1>
+                <p
+                    th:text="${modoEdicion ? 'Modifica la información comercial de la cuenta.' : 'Ingresa la información comercial y de contacto de la cuenta.'}">
+                    Formulario
+                </p>
             </div>
             <div>
                 <a th:href="@{/clientes}" class="btn btn-secondary">← Volver al listado</a>
@@ -17,13 +24,20 @@
         </div>
 
         <!-- Mensajes de error -->
-        <div th:if="${errorMessage}"
-             style="margin-bottom: 20px; padding: 14px 18px; border-radius: 10px; background: #FEE2E2; border: 1px solid #FECACA; color: #DC2626; font-size: 14px; font-weight: 600;">
+        <div th:if="${errorMessage}" style="
+          margin-bottom: 20px;
+          padding: 14px 18px;
+          border-radius: 10px;
+          background: #fee2e2;
+          border: 1px solid #fecaca;
+          color: #dc2626;
+          font-size: 14px;
+          font-weight: 600;
+        ">
             ⚠ <span th:text="${errorMessage}"></span>
         </div>
 
-        <div class="table-card" style="max-width: 860px; padding: 36px; margin: 0 auto;">
-
+        <div class="table-card" style="max-width: 860px; padding: 36px; margin: 0 auto">
             <!--
                 Thymeleaf no permite condicionar el `th:action` de forma directa con expresiones
                 que mezclan path variables opcionales, por lo que usamos dos forms y
@@ -31,184 +45,426 @@
             -->
 
             <!-- FORM: CREAR (modoEdicion = false) -->
-            <form th:unless="${modoEdicion}"
-                  th:action="@{/clientes}"
-                  th:object="${clienteDto}"
-                  method="post">
-
-                <input type="hidden" th:field="*{id}">
+            <form th:unless="${modoEdicion}" th:action="@{/clientes}" th:object="${clienteDto}" method="post">
+                <input type="hidden" th:field="*{id}" />
 
                 <!-- Validación -->
-                <div th:if="${#fields.hasErrors('*')}"
-                     style="background:#FEF3C7;border:1px solid #FDE68A;border-radius:8px;padding:12px 16px;margin-bottom:20px;font-size:13px;color:#92400E;">
+                <div th:if="${#fields.hasErrors('*')}" style="
+              background: #fef3c7;
+              border: 1px solid #fde68a;
+              border-radius: 8px;
+              padding: 12px 16px;
+              margin-bottom: 20px;
+              font-size: 13px;
+              color: #92400e;
+            ">
                     <strong>Por favor corrige los errores indicados:</strong>
-                    <ul style="margin: 6px 0 0 16px;">
+                    <ul style="margin: 6px 0 0 16px">
                         <li th:each="err : ${#fields.allErrors()}" th:text="${err}"></li>
                     </ul>
                 </div>
 
                 <!-- Sección: Información Comercial -->
-                <div style="margin-bottom: 24px; padding-bottom: 18px; border-bottom: 1px solid var(--color-border-light);">
-                    <h3 style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--color-text-muted);margin-bottom:16px;">Información Comercial</h3>
+                <div style="
+              margin-bottom: 24px;
+              padding-bottom: 18px;
+              border-bottom: 1px solid var(--color-border-light);
+            ">
+                    <h3 style="
+                font-size: 13px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+                color: var(--color-text-muted);
+                margin-bottom: 16px;
+              ">
+                        Información Comercial
+                    </h3>
                     <div class="form-row-2">
                         <div class="form-group">
-                            <label class="form-label">Nombre Comercial <span style="color:#DC2626">*</span></label>
-                            <input type="text" th:field="*{nombreComercial}" class="form-input" placeholder="Ej. NovaTech Solutions" required>
-                            <span th:if="${#fields.hasErrors('nombreComercial')}" th:errors="*{nombreComercial}" style="font-size:12px;color:#DC2626;margin-top:4px;display:block;"></span>
+                            <label class="form-label">Nombre Comercial <span style="color: #dc2626">*</span></label>
+                            <input type="text" th:field="*{nombreComercial}" class="form-input"
+                                placeholder="Ej. NovaTech Solutions" required />
+                            <span th:if="${#fields.hasErrors('nombreComercial')}" th:errors="*{nombreComercial}" style="
+                    font-size: 12px;
+                    color: #dc2626;
+                    margin-top: 4px;
+                    display: block;
+                  "></span>
                         </div>
                         <div class="form-group">
                             <label class="form-label">Razón Social</label>
-                            <input type="text" th:field="*{razonSocial}" class="form-input" placeholder="Ej. NovaTech Solutions S.A.C.">
+                            <input type="text" th:field="*{razonSocial}" class="form-input"
+                                placeholder="Ej. NovaTech Solutions S.A.C." />
                         </div>
                     </div>
                     <div class="form-row-2">
                         <div class="form-group">
                             <label class="form-label">RUC / Identificación Fiscal</label>
-                            <input type="text" th:field="*{ruc}" class="form-input" placeholder="20123456789">
+                            <input type="text" th:field="*{ruc}" class="form-input" placeholder="20123456789" />
                         </div>
                         <div class="form-group">
                             <label class="form-label">Responsable Asignado</label>
                             <select th:field="*{responsableId}" class="form-select">
                                 <option value="">— Sin asignar —</option>
                                 <option th:each="u : ${usuarios}" th:value="${u.id}"
-                                        th:text="${u.nombreCompleto + ' (' + u.rol.descripcion + ')'}"></option>
+                                    th:text="${u.nombreCompleto + ' (' + u.rol.descripcion + ')'}"></option>
                             </select>
+                        </div>
+                    </div>
+                    <div class="form-row-2">
+                        <div class="form-group">
+                            <label class="form-label">Industria</label>
+                            <input type="text" th:field="*{industria}" class="form-input"
+                                placeholder="Ej. Tecnología, Finanzas, Salud" />
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Tamaño de Empresa</label>
+                            <select th:field="*{tamanoEmpresa}" class="form-select">
+                                <option value="">— Seleccionar —</option>
+                                <option value="Microempresa">Microempresa</option>
+                                <option value="Pequeña">Pequeña</option>
+                                <option value="Mediana">Mediana</option>
+                                <option value="Grande">Grande</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row-2">
+                        <div class="form-group">
+                            <label class="form-label">País</label>
+                            <input type="text" th:field="*{pais}" class="form-input" placeholder="Ej. Perú" />
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Ciudad</label>
+                            <input type="text" th:field="*{ciudad}" class="form-input" placeholder="Ej. Lima" />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Dirección</label>
+                        <input type="text" th:field="*{direccion}" class="form-input"
+                            placeholder="Ej. Av. Javier Prado 1234" />
+                    </div>
+
+                    <div class="form-row-2">
+                        <div class="form-group">
+                            <label class="form-label">Sitio Web</label>
+                            <input type="url" th:field="*{sitioWeb}" class="form-input"
+                                placeholder="https://empresa.com" />
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">URL del Logo</label>
+                            <input type="url" th:field="*{logoUrl}" class="form-input"
+                                placeholder="https://empresa.com/logo.png" />
                         </div>
                     </div>
                 </div>
 
                 <!-- Sección: Servicio y Contrato -->
-                <div style="margin-bottom: 24px; padding-bottom: 18px; border-bottom: 1px solid var(--color-border-light);">
-                    <h3 style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--color-text-muted);margin-bottom:16px;">Servicio y Contrato</h3>
+                <div style="
+              margin-bottom: 24px;
+              padding-bottom: 18px;
+              border-bottom: 1px solid var(--color-border-light);
+            ">
+                    <h3 style="
+                font-size: 13px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+                color: var(--color-text-muted);
+                margin-bottom: 16px;
+              ">
+                        Servicio y Contrato
+                    </h3>
                     <div class="form-group">
-                        <label class="form-label">Servicio Contratado <span style="color:#DC2626">*</span></label>
+                        <label class="form-label">Servicio Contratado
+                            <span style="color: #dc2626">*</span></label>
                         <input type="text" th:field="*{servicioContratado}" class="form-input"
-                               placeholder="Ej. SaaS Enterprise, Licencia Standard…" required>
-                        <span th:if="${#fields.hasErrors('servicioContratado')}" th:errors="*{servicioContratado}" style="font-size:12px;color:#DC2626;margin-top:4px;display:block;"></span>
+                            placeholder="Ej. SaaS Enterprise, Licencia Standard…" required />
+                        <span th:if="${#fields.hasErrors('servicioContratado')}" th:errors="*{servicioContratado}"
+                            style="
+                  font-size: 12px;
+                  color: #dc2626;
+                  margin-top: 4px;
+                  display: block;
+                "></span>
                     </div>
                     <div class="form-row-2">
                         <div class="form-group">
-                            <label class="form-label">Fecha de Inicio <span style="color:#DC2626">*</span></label>
-                            <input type="date" th:field="*{fechaInicio}" class="form-input" required>
-                            <span th:if="${#fields.hasErrors('fechaInicio')}" th:errors="*{fechaInicio}" style="font-size:12px;color:#DC2626;margin-top:4px;display:block;"></span>
+                            <label class="form-label">Fecha de Inicio <span style="color: #dc2626">*</span></label>
+                            <input type="date" th:field="*{fechaInicio}" class="form-input" required />
+                            <span th:if="${#fields.hasErrors('fechaInicio')}" th:errors="*{fechaInicio}" style="
+                    font-size: 12px;
+                    color: #dc2626;
+                    margin-top: 4px;
+                    display: block;
+                  "></span>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Fecha de Renovación <span style="color:#DC2626">*</span></label>
-                            <input type="date" th:field="*{fechaRenovacion}" class="form-input" required>
-                            <span th:if="${#fields.hasErrors('fechaRenovacion')}" th:errors="*{fechaRenovacion}" style="font-size:12px;color:#DC2626;margin-top:4px;display:block;"></span>
+                            <label class="form-label">Fecha de Renovación
+                                <span style="color: #dc2626">*</span></label>
+                            <input type="date" th:field="*{fechaRenovacion}" class="form-input" required />
+                            <span th:if="${#fields.hasErrors('fechaRenovacion')}" th:errors="*{fechaRenovacion}" style="
+                    font-size: 12px;
+                    color: #dc2626;
+                    margin-top: 4px;
+                    display: block;
+                  "></span>
                         </div>
                     </div>
                 </div>
 
                 <!-- Sección: Contacto Principal (solo al crear) -->
-                <div style="margin-bottom: 28px;">
-                    <h3 style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--color-text-muted);margin-bottom:4px;">Contacto Principal</h3>
-                    <p style="font-size:12px;color:var(--color-text-muted);margin-bottom:16px;">Opcional. Podrás agregar más contactos desde la ficha 360° del cliente.</p>
+                <div style="margin-bottom: 28px">
+                    <h3 style="
+                font-size: 13px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+                color: var(--color-text-muted);
+                margin-bottom: 4px;
+              ">
+                        Contacto Principal
+                    </h3>
+                    <p style="
+                font-size: 12px;
+                color: var(--color-text-muted);
+                margin-bottom: 16px;
+              ">
+                        Opcional. Podrás agregar más contactos desde la ficha 360° del
+                        cliente.
+                    </p>
                     <div class="form-row-2">
                         <div class="form-group">
                             <label class="form-label">Nombre</label>
-                            <input type="text" th:field="*{contactoNombre}" class="form-input" placeholder="Ej. Laura Méndez">
+                            <input type="text" th:field="*{contactoNombre}" class="form-input"
+                                placeholder="Ej. Laura" />
                         </div>
+
                         <div class="form-group">
-                            <label class="form-label">Cargo</label>
-                            <input type="text" th:field="*{contactoCargo}" class="form-input" placeholder="Ej. Directora de TI">
+                            <label class="form-label">Apellido</label>
+                            <input type="text" th:field="*{contactoApellido}" class="form-input"
+                                placeholder="Ej. Méndez" />
                         </div>
                     </div>
+
                     <div class="form-row-2">
                         <div class="form-group">
-                            <label class="form-label">Correo Electrónico</label>
-                            <input type="email" th:field="*{contactoEmail}" class="form-input" placeholder="laura@cliente.com">
+                            <label class="form-label">Cargo</label>
+                            <input type="text" th:field="*{contactoCargo}" class="form-input"
+                                placeholder="Ej. Directora de TI" />
                         </div>
+
                         <div class="form-group">
-                            <label class="form-label">Teléfono</label>
-                            <input type="text" th:field="*{contactoTelefono}" class="form-input" placeholder="+51 999 888 777">
+                            <label class="form-label">Correo Electrónico</label>
+                            <input type="email" th:field="*{contactoEmail}" class="form-input"
+                                placeholder="laura@cliente.com" />
                         </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Teléfono</label>
+                        <input type="text" th:field="*{contactoTelefono}" class="form-input"
+                            placeholder="+51 999 888 777" />
                     </div>
                 </div>
 
                 <!-- Acciones -->
-                <div style="display:flex;justify-content:flex-end;gap:12px;margin-top:8px;border-top:1px solid var(--color-border-light);padding-top:24px;">
+                <div style="
+              display: flex;
+              justify-content: flex-end;
+              gap: 12px;
+              margin-top: 8px;
+              border-top: 1px solid var(--color-border-light);
+              padding-top: 24px;
+            ">
                     <a th:href="@{/clientes}" class="btn btn-secondary">Cancelar</a>
-                    <button type="submit" class="btn btn-primary" style="padding:10px 32px;min-width:160px;">✚ Crear Cliente</button>
+                    <button type="submit" class="btn btn-primary" style="padding: 10px 32px; min-width: 160px">
+                        ✚ Crear Cliente
+                    </button>
                 </div>
             </form>
 
             <!-- FORM: EDITAR (modoEdicion = true) -->
-            <form th:if="${modoEdicion}"
-                  th:action="@{/clientes/{id}/editar(id=${clienteId})}"
-                  th:object="${clienteDto}"
-                  method="post">
-
-                <input type="hidden" th:field="*{id}">
+            <form th:if="${modoEdicion}" th:action="@{/clientes/{id}/editar(id=${clienteId})}" th:object="${clienteDto}"
+                method="post">
+                <input type="hidden" th:field="*{id}" />
 
                 <!-- Validación -->
-                <div th:if="${#fields.hasErrors('*')}"
-                     style="background:#FEF3C7;border:1px solid #FDE68A;border-radius:8px;padding:12px 16px;margin-bottom:20px;font-size:13px;color:#92400E;">
+                <div th:if="${#fields.hasErrors('*')}" style="
+              background: #fef3c7;
+              border: 1px solid #fde68a;
+              border-radius: 8px;
+              padding: 12px 16px;
+              margin-bottom: 20px;
+              font-size: 13px;
+              color: #92400e;
+            ">
                     <strong>Por favor corrige los errores indicados:</strong>
-                    <ul style="margin: 6px 0 0 16px;">
+                    <ul style="margin: 6px 0 0 16px">
                         <li th:each="err : ${#fields.allErrors()}" th:text="${err}"></li>
                     </ul>
                 </div>
 
                 <!-- Sección: Información Comercial -->
-                <div style="margin-bottom: 24px; padding-bottom: 18px; border-bottom: 1px solid var(--color-border-light);">
-                    <h3 style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--color-text-muted);margin-bottom:16px;">Información Comercial</h3>
+                <div style="
+              margin-bottom: 24px;
+              padding-bottom: 18px;
+              border-bottom: 1px solid var(--color-border-light);
+            ">
+                    <h3 style="
+                font-size: 13px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+                color: var(--color-text-muted);
+                margin-bottom: 16px;
+              ">
+                        Información Comercial
+                    </h3>
                     <div class="form-row-2">
                         <div class="form-group">
-                            <label class="form-label">Nombre Comercial <span style="color:#DC2626">*</span></label>
-                            <input type="text" th:field="*{nombreComercial}" class="form-input" placeholder="Ej. NovaTech Solutions" required>
-                            <span th:if="${#fields.hasErrors('nombreComercial')}" th:errors="*{nombreComercial}" style="font-size:12px;color:#DC2626;margin-top:4px;display:block;"></span>
+                            <label class="form-label">Nombre Comercial <span style="color: #dc2626">*</span></label>
+                            <input type="text" th:field="*{nombreComercial}" class="form-input"
+                                placeholder="Ej. NovaTech Solutions" required />
+                            <span th:if="${#fields.hasErrors('nombreComercial')}" th:errors="*{nombreComercial}" style="
+                    font-size: 12px;
+                    color: #dc2626;
+                    margin-top: 4px;
+                    display: block;
+                  "></span>
                         </div>
                         <div class="form-group">
                             <label class="form-label">Razón Social</label>
-                            <input type="text" th:field="*{razonSocial}" class="form-input" placeholder="Ej. NovaTech Solutions S.A.C.">
+                            <input type="text" th:field="*{razonSocial}" class="form-input"
+                                placeholder="Ej. NovaTech Solutions S.A.C." />
                         </div>
                     </div>
                     <div class="form-row-2">
                         <div class="form-group">
                             <label class="form-label">RUC / Identificación Fiscal</label>
-                            <input type="text" th:field="*{ruc}" class="form-input" placeholder="20123456789">
+                            <input type="text" th:field="*{ruc}" class="form-input" placeholder="20123456789" />
                         </div>
                         <div class="form-group">
                             <label class="form-label">Responsable Asignado</label>
                             <select th:field="*{responsableId}" class="form-select">
                                 <option value="">— Sin asignar —</option>
                                 <option th:each="u : ${usuarios}" th:value="${u.id}"
-                                        th:text="${u.nombreCompleto + ' (' + u.rol.descripcion + ')'}"></option>
+                                    th:text="${u.nombreCompleto + ' (' + u.rol.descripcion + ')'}"></option>
                             </select>
+                        </div>
+                    </div>
+                    <div class="form-row-2">
+                        <div class="form-group">
+                            <label class="form-label">Industria</label>
+                            <input type="text" th:field="*{industria}" class="form-input"
+                                placeholder="Ej. Tecnología, Finanzas, Salud" />
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Tamaño de Empresa</label>
+                            <select th:field="*{tamanoEmpresa}" class="form-select">
+                                <option value="">— Seleccionar —</option>
+                                <option value="Microempresa">Microempresa</option>
+                                <option value="Pequeña">Pequeña</option>
+                                <option value="Mediana">Mediana</option>
+                                <option value="Grande">Grande</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row-2">
+                        <div class="form-group">
+                            <label class="form-label">País</label>
+                            <input type="text" th:field="*{pais}" class="form-input" placeholder="Ej. Perú" />
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Ciudad</label>
+                            <input type="text" th:field="*{ciudad}" class="form-input" placeholder="Ej. Lima" />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Dirección</label>
+                        <input type="text" th:field="*{direccion}" class="form-input"
+                            placeholder="Ej. Av. Javier Prado 1234" />
+                    </div>
+
+                    <div class="form-row-2">
+                        <div class="form-group">
+                            <label class="form-label">Sitio Web</label>
+                            <input type="url" th:field="*{sitioWeb}" class="form-input"
+                                placeholder="https://empresa.com" />
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">URL del Logo</label>
+                            <input type="url" th:field="*{logoUrl}" class="form-input"
+                                placeholder="https://empresa.com/logo.png" />
                         </div>
                     </div>
                 </div>
 
                 <!-- Sección: Servicio y Contrato -->
-                <div style="margin-bottom: 28px;">
-                    <h3 style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--color-text-muted);margin-bottom:16px;">Servicio y Contrato</h3>
+                <div style="margin-bottom: 28px">
+                    <h3 style="
+                font-size: 13px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+                color: var(--color-text-muted);
+                margin-bottom: 16px;
+              ">
+                        Servicio y Contrato
+                    </h3>
                     <div class="form-group">
-                        <label class="form-label">Servicio Contratado <span style="color:#DC2626">*</span></label>
+                        <label class="form-label">Servicio Contratado
+                            <span style="color: #dc2626">*</span></label>
                         <input type="text" th:field="*{servicioContratado}" class="form-input"
-                               placeholder="Ej. SaaS Enterprise, Licencia Standard…" required>
-                        <span th:if="${#fields.hasErrors('servicioContratado')}" th:errors="*{servicioContratado}" style="font-size:12px;color:#DC2626;margin-top:4px;display:block;"></span>
+                            placeholder="Ej. SaaS Enterprise, Licencia Standard…" required />
+                        <span th:if="${#fields.hasErrors('servicioContratado')}" th:errors="*{servicioContratado}"
+                            style="
+                  font-size: 12px;
+                  color: #dc2626;
+                  margin-top: 4px;
+                  display: block;
+                "></span>
                     </div>
                     <div class="form-row-2">
                         <div class="form-group">
-                            <label class="form-label">Fecha de Inicio <span style="color:#DC2626">*</span></label>
-                            <input type="date" th:field="*{fechaInicio}" class="form-input" required>
+                            <label class="form-label">Fecha de Inicio <span style="color: #dc2626">*</span></label>
+                            <input type="date" th:field="*{fechaInicio}" class="form-input" required />
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Fecha de Renovación <span style="color:#DC2626">*</span></label>
-                            <input type="date" th:field="*{fechaRenovacion}" class="form-input" required>
+                            <label class="form-label">Fecha de Renovación
+                                <span style="color: #dc2626">*</span></label>
+                            <input type="date" th:field="*{fechaRenovacion}" class="form-input" required />
                         </div>
                     </div>
                 </div>
 
                 <!-- Acciones -->
-                <div style="display:flex;justify-content:flex-end;gap:12px;margin-top:8px;border-top:1px solid var(--color-border-light);padding-top:24px;">
+                <div style="
+              display: flex;
+              justify-content: flex-end;
+              gap: 12px;
+              margin-top: 8px;
+              border-top: 1px solid var(--color-border-light);
+              padding-top: 24px;
+            ">
                     <a th:href="@{/clientes}" class="btn btn-secondary">Cancelar</a>
-                    <button type="submit" class="btn btn-primary" style="padding:10px 32px;min-width:160px;">💾 Guardar Cambios</button>
+                    <button type="submit" class="btn btn-primary" style="padding: 10px 32px; min-width: 160px">
+                        💾 Guardar Cambios
+                    </button>
                 </div>
             </form>
-
         </div>
     </section>
 </body>
+
 </html>

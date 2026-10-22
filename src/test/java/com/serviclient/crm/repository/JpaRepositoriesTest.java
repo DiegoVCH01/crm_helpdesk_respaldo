@@ -2,6 +2,8 @@ package com.serviclient.crm.repository;
 
 import com.serviclient.crm.dao.*;
 import com.serviclient.crm.entity.*;
+import com.serviclient.crm.dao.impl.UsuarioDAOImpl;
+import org.springframework.context.annotation.Import;
 import com.serviclient.crm.entity.enums.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -23,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
 @ActiveProfiles("dev")
+@Import(UsuarioDAOImpl.class)
 class JpaRepositoriesTest {
 
     @Autowired
