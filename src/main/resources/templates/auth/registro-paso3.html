@@ -1,142 +1,246 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro de Empresa (Paso 3) - ServiClient</title>
-    <link rel="stylesheet" th:href="@{/css/styles.css}">
-</head>
-<body style="background-color: #F8FAFC;">
-    <div class="auth-wrapper">
-        <div class="auth-card" style="max-width: 650px;">
-            <div class="auth-header">
-                <div class="auth-logo">
-                    <svg style="width: 24px; height: 24px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                    </svg>
-                </div>
-                <h1 class="auth-title">ServiClient</h1>
-                <p class="auth-subtitle">Gestión inteligente de clientes y soporte</p>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Registro de Empresa (Paso 3) - ServiClient</title>
+        <link rel="stylesheet" th:href="@{/css/styles.css}" />
+    </head>
+    <body style="background-color: #f8fafc">
+        <div class="auth-wrapper">
+            <div class="auth-card" style="max-width: 650px">
+                <div class="auth-header">
+                    <div class="auth-logo">
+                        <svg style="width: 24px; height: 24px" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                    </div>
+                    <h1 class="auth-title">ServiClient</h1>
+                    <p class="auth-subtitle">Gestión inteligente de clientes y soporte</p>
 
-                <div class="auth-tabs">
-                    <a th:href="@{/login}" class="auth-tab">Iniciar sesión</a>
-                    <a th:href="@{/registro/paso-1}" class="auth-tab active">Registrarse</a>
-                </div>
-            </div>
-
-            <div class="auth-body">
-                <!-- Wizard Steps Indicator -->
-                <div class="wizard-steps">
-                    <div class="wizard-step-circle completed">1</div>
-                    <div class="wizard-step-circle completed">2</div>
-                    <div class="wizard-step-circle active">3</div>
+                    <div class="auth-tabs">
+                        <a th:href="@{/login}" class="auth-tab">Iniciar sesión</a>
+                        <a th:href="@{/registro/paso-1}" class="auth-tab active">Registrarse</a>
+                    </div>
                 </div>
 
-                <h2 style="font-size: 20px; font-weight: 800; margin-bottom: 12px;">Paso 3 — Configuración Inicial</h2>
-                <!-- Guava Preconditions -->
-                <div th:if="${errorMessage != null}" style="background-color: #FEF2F2; border: 1px solid #FECACA; color: #991B1B; padding: 12px 16px; border-radius: 8px; font-weight: 500; font-size: 13.5px; margin-bottom: 20px;">
-                    <span th:text="${errorMessage}"></span>
+                <div class="auth-body">
+                    <!-- Wizard Steps Indicator -->
+                    <div class="wizard-steps">
+                        <div class="wizard-step-circle completed">1</div>
+                        <div class="wizard-step-circle completed">2</div>
+                        <div class="wizard-step-circle active">3</div>
+                    </div>
+
+                    <h2 style="font-size: 20px; font-weight: 800; margin-bottom: 12px">Paso 3 — Configuración Inicial</h2>
+                    <!-- Guava Preconditions -->
+                    <div
+                        th:if="${errorMessage != null}"
+                        style="
+                            background-color: #fef2f2;
+                            border: 1px solid #fecaca;
+                            color: #991b1b;
+                            padding: 12px 16px;
+                            border-radius: 8px;
+                            font-weight: 500;
+                            font-size: 13.5px;
+                            margin-bottom: 20px;
+                        ">
+                        <span th:text="${errorMessage}"></span>
+                    </div>
+
+                    <form th:action="@{/registro/paso-3}" th:object="${registroForm}" method="post">
+                        <!-- Hidden fields from previous steps to maintain session completeness -->
+                        <input type="hidden" th:field="*{nombreComercial}" />
+                        <input type="hidden" th:field="*{razonSocial}" />
+                        <input type="hidden" th:field="*{ruc}" />
+                        <input type="hidden" th:field="*{industria}" />
+                        <input type="hidden" th:field="*{tamanoEmpresa}" />
+                        <input type="hidden" th:field="*{pais}" />
+                        <input type="hidden" th:field="*{ciudad}" />
+                        <input type="hidden" th:field="*{direccion}" />
+                        <input type="hidden" th:field="*{sitioWeb}" />
+                        <input type="hidden" th:field="*{logoUrl}" />
+
+                        <input type="hidden" th:field="*{adminNombre}" />
+                        <input type="hidden" th:field="*{adminApellido}" />
+                        <input type="hidden" th:field="*{adminEmail}" />
+                        <input type="hidden" th:field="*{adminTelefono}" />
+                        <input type="hidden" th:field="*{adminPassword}" />
+
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 20px; font-size: 13.5px; font-weight: 600">
+                            <input type="checkbox" id="checkRecomendada" th:field="*{usarConfiguracionRecomendada}" checked />
+                            <label for="checkRecomendada" style="cursor: pointer">Usar configuración recomendada</label>
+                        </div>
+
+                        <div style="margin-bottom: 20px">
+                            <h3
+                                style="
+                                    font-size: 14px;
+                                    font-weight: 700;
+                                    text-transform: uppercase;
+                                    letter-spacing: 0.05em;
+                                    color: var(--color-text-muted);
+                                    margin-bottom: 12px;
+                                ">
+                                SLA
+                            </h3>
+                            <div class="form-row-2">
+                                <div class="form-group">
+                                    <label class="form-label">Tiempo de Primera Respuesta (Horas)</label>
+                                    <input type="number" th:field="*{slaPrimerRespuestaHoras}" class="form-input" min="1" value="2" />
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Tiempo de Resolución (Horas)</label>
+                                    <input type="number" th:field="*{slaResolucionHoras}" class="form-input" min="1" value="24" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 20px">
+                            <h3
+                                style="
+                                    font-size: 14px;
+                                    font-weight: 700;
+                                    text-transform: uppercase;
+                                    letter-spacing: 0.05em;
+                                    color: var(--color-text-muted);
+                                    margin-bottom: 12px;
+                                ">
+                                CSAT
+                            </h3>
+                            <div
+                                style="
+                                    background-color: #f8fafc;
+                                    border: 1px solid var(--color-border);
+                                    border-radius: var(--radius-md);
+                                    padding: 12px 16px;
+                                    margin-bottom: 8px;
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: space-between;
+                                ">
+                                <span style="font-size: 13.5px; font-weight: 600">Activar encuesta de satisfacción</span>
+                                <input type="checkbox" th:field="*{activarCsat}" checked />
+                            </div>
+                            <div
+                                style="
+                                    background-color: #f8fafc;
+                                    border: 1px solid var(--color-border);
+                                    border-radius: var(--radius-md);
+                                    padding: 12px 16px;
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: space-between;
+                                ">
+                                <span style="font-size: 13.5px; font-weight: 600">Escala de 1 a 5</span>
+                                <input type="checkbox" checked disabled />
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 24px">
+                            <h3
+                                style="
+                                    font-size: 14px;
+                                    font-weight: 700;
+                                    text-transform: uppercase;
+                                    letter-spacing: 0.05em;
+                                    color: var(--color-text-muted);
+                                    margin-bottom: 12px;
+                                ">
+                                Health Score
+                            </h3>
+                            <div style="display: flex; flex-direction: column; gap: 8px; font-size: 13.5px">
+                                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer">
+                                    <input type="checkbox" th:field="*{factorTicketsCriticos}" checked />
+                                    <span>Tickets críticos</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer">
+                                    <input type="checkbox" th:field="*{factorCsat}" checked />
+                                    <span>CSAT</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer">
+                                    <input type="checkbox" th:field="*{factorRenovacionProxima}" checked />
+                                    <span>Renovación próxima</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Resumen Box -->
+                        <div
+                            style="
+                                background-color: #fafafa;
+                                border: 1px solid var(--color-border);
+                                border-radius: var(--radius-lg);
+                                padding: 16px 20px;
+                                margin-bottom: 24px;
+                            ">
+                            <div
+                                style="
+                                    font-size: 11px;
+                                    font-weight: 800;
+                                    text-transform: uppercase;
+                                    letter-spacing: 0.05em;
+                                    color: var(--color-text-muted);
+                                    margin-bottom: 8px;
+                                ">
+                                Resumen
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--color-text-main)">
+                                <div style="display: flex; align-items: center; gap: 8px; color: #059669; font-weight: 600">
+                                    <svg
+                                        style="width: 16px; height: 16px"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        stroke-width="2.5"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    <span>Empresa registrada</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 8px; color: #059669; font-weight: 600">
+                                    <svg
+                                        style="width: 16px; height: 16px"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        stroke-width="2.5"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    <span>Usuario administrador</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 8px; color: #059669; font-weight: 600">
+                                    <svg
+                                        style="width: 16px; height: 16px"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        stroke-width="2.5"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    <span>Configuración lista</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div
+                            style="
+                                display: flex;
+                                justify-content: space-between;
+                                padding-top: 20px;
+                                border-top: 1px solid var(--color-border-light);
+                            ">
+                            <a th:href="@{/registro/paso-2}" class="btn btn-secondary" style="padding: 10px 24px">Atrás</a>
+                            <button type="submit" class="btn btn-primary" style="padding: 10px 32px; font-weight: 700">
+                                Crear empresa
+                            </button>
+                        </div>
+                    </form>
                 </div>
-
-                <form th:action="@{/registro/paso-3}" th:object="${registroForm}" method="post">
-                    <!-- Hidden fields from previous steps to maintain session completeness -->
-                    <input type="hidden" th:field="*{nombreComercial}">
-                    <input type="hidden" th:field="*{razonSocial}">
-                    <input type="hidden" th:field="*{ruc}">
-                    <input type="hidden" th:field="*{industria}">
-                    <input type="hidden" th:field="*{pais}">
-                    <input type="hidden" th:field="*{ciudad}">
-                    <input type="hidden" th:field="*{direccion}">
-                    <input type="hidden" th:field="*{adminNombre}">
-                    <input type="hidden" th:field="*{adminApellido}">
-                    <input type="hidden" th:field="*{adminEmail}">
-                    <input type="hidden" th:field="*{adminPassword}">
-
-                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 20px; font-size: 13.5px; font-weight: 600;">
-                        <input type="checkbox" id="checkRecomendada" th:field="*{usarConfiguracionRecomendada}" checked>
-                        <label for="checkRecomendada" style="cursor: pointer;">Usar configuración recomendada</label>
-                    </div>
-
-                    <div style="margin-bottom: 20px;">
-                        <h3 style="font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted); margin-bottom: 12px;">SLA</h3>
-                        <div class="form-row-2">
-                            <div class="form-group">
-                                <label class="form-label">Tiempo de Primera Respuesta (Horas)</label>
-                                <input type="number" th:field="*{slaPrimerRespuestaHoras}" class="form-input" min="1" value="2">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Tiempo de Resolución (Horas)</label>
-                                <input type="number" th:field="*{slaResolucionHoras}" class="form-input" min="1" value="24">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div style="margin-bottom: 20px;">
-                        <h3 style="font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted); margin-bottom: 12px;">CSAT</h3>
-                        <div style="background-color: #F8FAFC; border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 12px 16px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between;">
-                            <span style="font-size: 13.5px; font-weight: 600;">Activar encuesta de satisfacción</span>
-                            <input type="checkbox" th:field="*{activarCsat}" checked>
-                        </div>
-                        <div style="background-color: #F8FAFC; border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between;">
-                            <span style="font-size: 13.5px; font-weight: 600;">Escala de 1 a 5</span>
-                            <input type="checkbox" checked disabled>
-                        </div>
-                    </div>
-
-                    <div style="margin-bottom: 24px;">
-                        <h3 style="font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted); margin-bottom: 12px;">Health Score</h3>
-                        <div style="display: flex; flex-direction: column; gap: 8px; font-size: 13.5px;">
-                            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                                <input type="checkbox" th:field="*{factorTicketsCriticos}" checked>
-                                <span>Tickets críticos</span>
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                                <input type="checkbox" th:field="*{factorCsat}" checked>
-                                <span>CSAT</span>
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                                <input type="checkbox" th:field="*{factorRenovacionProxima}" checked>
-                                <span>Renovación próxima</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- Resumen Box -->
-                    <div style="background-color: #FAFAFA; border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 16px 20px; margin-bottom: 24px;">
-                        <div style="font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted); margin-bottom: 8px;">Resumen</div>
-                        <div style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--color-text-main);">
-                            <div style="display: flex; align-items: center; gap: 8px; color: #059669; font-weight: 600;">
-                                <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                                </svg>
-                                <span>Empresa registrada</span>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 8px; color: #059669; font-weight: 600;">
-                                <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                                </svg>
-                                <span>Usuario administrador</span>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 8px; color: #059669; font-weight: 600;">
-                                <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                                </svg>
-                                <span>Configuración lista</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div style="display: flex; justify-content: space-between; padding-top: 20px; border-top: 1px solid var(--color-border-light);">
-                        <a th:href="@{/registro/paso-2}" class="btn btn-secondary" style="padding: 10px 24px;">
-                            Atrás
-                        </a>
-                        <button type="submit" class="btn btn-primary" style="padding: 10px 32px; font-weight: 700;">
-                            Crear empresa
-                        </button>
-                    </div>
-                </form>
             </div>
         </div>
-    </div>
-</body>
+    </body>
 </html>
