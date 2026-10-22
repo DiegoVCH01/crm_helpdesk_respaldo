@@ -24,8 +24,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
  * Servicio de lógica de negocio para la gestión de clientes B2B.
@@ -166,6 +168,14 @@ public class ClienteService {
   }
 
   @Transactional(readOnly = true)
+  public Cliente obtenerPorIdYEmpresa(Long id, Long empresaId) {
+    return clienteDAO
+        .findByIdAndEmpresaId(id, empresaId)
+        .orElseThrow(
+            () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cliente no encontrado."));
+  }
+
+  @Transactional(readOnly = true)
   public KpisCliente360 obtenerKpisCliente360(Cliente cliente) {
     long abiertos = ticketDAO.countByClienteIdAndEstadoNot(cliente.getId(), EstadoTicket.CERRADO);
     long criticos =
@@ -272,7 +282,7 @@ public class ClienteService {
             .cliente(guardado)
             .puntaje(new BigDecimal(scoreInicial))
             .estado(
-                scoreInicial >= 70
+                scoreInicial >= 80
                     ? EstadoSaludCliente.SALUDABLE
                     : (scoreInicial >= 50
                         ? EstadoSaludCliente.EN_OBSERVACION
@@ -291,7 +301,7 @@ public class ClienteService {
 
   @Transactional
   public Cliente actualizarCliente(Long id, Long empresaId, ClienteDto dto) {
-    Cliente cliente = obtenerPorId(id);
+    Cliente cliente = obtenerPorIdYEmpresa(id, empresaId);
 
     Usuario responsable = null;
     if (dto.getResponsableId() != null) {
@@ -361,8 +371,8 @@ public class ClienteService {
   }
 
   @Transactional
-  public void eliminarCliente(Long id) {
-    Cliente cliente = obtenerPorId(id);
+  public void eliminarCliente(Long id, Long empresaId) {
+    Cliente cliente = obtenerPorIdYEmpresa(id, empresaId);
     clienteDAO.delete(cliente);
   }
 

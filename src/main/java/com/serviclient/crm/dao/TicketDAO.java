@@ -12,6 +12,7 @@ import java.util.Optional;
 
 public interface TicketDAO {
     Optional<Ticket> findById(Long id);
+    Optional<Ticket> findByIdAndEmpresaId(Long id, Long empresaId);
     Optional<Ticket> findByNumeroTicket(String numeroTicket);
     Optional<Ticket> findByCodigo(String codigo);
     List<Ticket> findByEmpresaId(Long empresaId);

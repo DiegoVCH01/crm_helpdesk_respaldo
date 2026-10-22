@@ -133,7 +133,7 @@ public class Cliente {
   public EstadoCliente getEstadoSalud() {
     if (estadoClienteTransient != null) return estadoClienteTransient;
     int hs = getHealthScore();
-    if (hs >= 70) return EstadoCliente.SALUDABLE;
+    if (hs >= 80) return EstadoCliente.SALUDABLE;
     if (hs >= 50) return EstadoCliente.OBSERVACION;
     return EstadoCliente.EN_RIESGO;
   }

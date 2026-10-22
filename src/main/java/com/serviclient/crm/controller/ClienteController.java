@@ -175,7 +175,7 @@ public class ClienteController {
       @PathVariable("id") Long id,
       Model model) {
     Long empresaId = resolverEmpresaId(userDetails);
-    Cliente cliente = clienteService.obtenerPorId(id);
+    Cliente cliente = clienteService.obtenerPorIdYEmpresa(id, empresaId);
     ClienteDto dto = clienteService.toDto(cliente);
     List<Usuario> usuarios = usuarioService.obtenerTodosPorEmpresa(empresaId);
 
@@ -234,11 +234,16 @@ public class ClienteController {
       description = "Elimina permanentemente el cliente y todos sus datos asociados.")
   @PostMapping("/{id}/eliminar")
   public String eliminarCliente(
-      @PathVariable("id") Long id, RedirectAttributes redirectAttributes) {
+      @AuthenticationPrincipal CustomUserDetails userDetails,
+      @PathVariable("id") Long id,
+      RedirectAttributes redirectAttributes) {
+
+    Long empresaId = resolverEmpresaId(userDetails);
+
     try {
-      Cliente cliente = clienteService.obtenerPorId(id);
+      Cliente cliente = clienteService.obtenerPorIdYEmpresa(id, empresaId);
       String nombre = cliente.getNombreComercial();
-      clienteService.eliminarCliente(id);
+      clienteService.eliminarCliente(id, empresaId);
       redirectAttributes.addFlashAttribute(
           "successMessage", "Cliente \"" + nombre + "\" eliminado correctamente.");
     } catch (Exception ex) {
@@ -260,10 +265,13 @@ public class ClienteController {
               + " contratos.")
   @GetMapping("/{id}")
   public String verCliente360(
+      @AuthenticationPrincipal CustomUserDetails userDetails,
       @PathVariable("id") Long id,
       @RequestParam(value = "tab", defaultValue = "resumen") String tab,
       Model model) {
-    Cliente cliente = clienteService.obtenerPorId(id);
+
+    Long empresaId = resolverEmpresaId(userDetails);
+    Cliente cliente = clienteService.obtenerPorIdYEmpresa(id, empresaId);
     ClienteService.KpisCliente360 kpis = clienteService.obtenerKpisCliente360(cliente);
     List<HealthScoreService.FactorSalud> factores =
         healthScoreService.obtenerFactoresRiesgo(cliente);
@@ -292,13 +300,16 @@ public class ClienteController {
   @Operation(summary = "Agregar contacto al cliente")
   @PostMapping("/{clienteId}/contactos")
   public String agregarContacto(
+      @AuthenticationPrincipal CustomUserDetails userDetails,
       @PathVariable Long clienteId,
       @ModelAttribute Contacto contacto,
       RedirectAttributes redirectAttributes) {
+    Long empresaId = resolverEmpresaId(userDetails);
+
     try {
+      clienteService.obtenerPorIdYEmpresa(clienteId, empresaId);
       ClienteService.ResultadoContacto resultado =
           clienteService.agregarContacto(clienteId, contacto);
-
       if (resultado.credencialesPortal() != null) {
         redirectAttributes.addFlashAttribute("portalEmail", resultado.credencialesPortal().email());
         redirectAttributes.addFlashAttribute(
@@ -314,13 +325,16 @@ public class ClienteController {
 
   @PostMapping("/{clienteId}/contactos/{contactoId}/editar")
   public String editarContacto(
+      @AuthenticationPrincipal CustomUserDetails userDetails,
       @PathVariable Long clienteId,
       @PathVariable Long contactoId,
       @ModelAttribute Contacto contacto,
       RedirectAttributes redirectAttributes) {
 
-    try {
+    Long empresaId = resolverEmpresaId(userDetails);
 
+    try {
+      clienteService.obtenerPorIdYEmpresa(clienteId, empresaId);
       clienteService.actualizarContacto(clienteId, contactoId, contacto);
       redirectAttributes.addFlashAttribute("successMessage", "Contacto actualizado correctamente.");
 
@@ -335,11 +349,15 @@ public class ClienteController {
 
   @PostMapping("/{clienteId}/contactos/{contactoId}/principal")
   public String establecerPrincipal(
+      @AuthenticationPrincipal CustomUserDetails userDetails,
       @PathVariable Long clienteId,
       @PathVariable Long contactoId,
       RedirectAttributes redirectAttributes) {
 
+    Long empresaId = resolverEmpresaId(userDetails);
+
     try {
+      clienteService.obtenerPorIdYEmpresa(clienteId, empresaId);
       CuentaPortalService.CredencialesTemporales credenciales =
           clienteService.establecerContactoPrincipal(clienteId, contactoId);
 
@@ -360,11 +378,15 @@ public class ClienteController {
 
   @PostMapping("/{clienteId}/contactos/{contactoId}/desactivar")
   public String desactivarContacto(
+      @AuthenticationPrincipal CustomUserDetails userDetails,
       @PathVariable Long clienteId,
       @PathVariable Long contactoId,
       RedirectAttributes redirectAttributes) {
 
+    Long empresaId = resolverEmpresaId(userDetails);
+
     try {
+      clienteService.obtenerPorIdYEmpresa(clienteId, empresaId);
       clienteService.desactivarContacto(clienteId, contactoId);
       redirectAttributes.addFlashAttribute("successMessage", "Contacto desactivado correctamente.");
 
@@ -377,11 +399,15 @@ public class ClienteController {
 
   @PostMapping("/{clienteId}/contactos/{contactoId}/reactivar")
   public String reactivarContacto(
+      @AuthenticationPrincipal CustomUserDetails userDetails,
       @PathVariable Long clienteId,
       @PathVariable Long contactoId,
       RedirectAttributes redirectAttributes) {
 
+    Long empresaId = resolverEmpresaId(userDetails);
+
     try {
+      clienteService.obtenerPorIdYEmpresa(clienteId, empresaId);
       CuentaPortalService.CredencialesTemporales credenciales =
           clienteService.reactivarContacto(clienteId, contactoId);
 
@@ -401,14 +427,18 @@ public class ClienteController {
 
   @PostMapping("/{clienteId}/contactos/{contactoId}/portal/restablecer")
   public String restablecerCredencialesPortal(
+      @AuthenticationPrincipal CustomUserDetails userDetails,
       @PathVariable Long clienteId,
       @PathVariable Long contactoId,
       RedirectAttributes redirectAttributes) {
 
+    Long empresaId = resolverEmpresaId(userDetails);
+
     try {
+      clienteService.obtenerPorIdYEmpresa(clienteId, empresaId);
+
       CuentaPortalService.CredencialesTemporales credenciales =
           clienteService.restablecerCredencialesPortal(clienteId, contactoId);
-
       redirectAttributes.addFlashAttribute(
           "successMessage", "Se generó una nueva contraseña temporal para el Portal Cliente.");
       redirectAttributes.addFlashAttribute("portalEmail", credenciales.email());

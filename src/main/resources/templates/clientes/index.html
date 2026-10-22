@@ -1,256 +1,437 @@
-<!DOCTYPE html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{layout/base :: layout('Gestión de Clientes', 'clientes', ~{::section})}">
-<head>
-    <title>Gestión de Clientes - ServiClient</title>
-</head>
-<body>
-    <section>
-        <div class="page-header-row">
-            <div class="page-title-group">
-                <h1>Gestión de Clientes</h1>
-                <p>Administra y consulta la información de los clientes</p>
-            </div>
-            <div>
-                <a th:href="@{/clientes/nuevo}" class="btn btn-primary">
-                    <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-                    </svg>
-                    <span>Nuevo Cliente</span>
-                </a>
-            </div>
-        </div>
-
-        <!-- Flash messages -->
-        <div th:if="${successMessage}"
-             style="margin-bottom: 16px; padding: 14px 18px; border-radius: 10px; background: #D1FAE5; border: 1px solid #A7F3D0; color: #065F46; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 10px;">
-            <svg style="width:18px;height:18px;flex-shrink:0;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
-            <span th:text="${successMessage}"></span>
-        </div>
-        <div th:if="${errorMessage}"
-             style="margin-bottom: 16px; padding: 14px 18px; border-radius: 10px; background: #FEE2E2; border: 1px solid #FECACA; color: #DC2626; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 10px;">
-            <svg style="width:18px;height:18px;flex-shrink:0;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
-            </svg>
-            <span th:text="${errorMessage}"></span>
-        </div>
-
-        <!-- Metric Cards -->
-        <div class="metrics-grid">
-            <div class="metric-card">
-                <div class="metric-card-label">Total Clientes</div>
-                <div class="metric-card-value" th:text="${metricas.totalClientes}">0</div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-card-label">Saludables</div>
-                <div class="metric-card-value text-saludable" th:text="${metricas.saludables}">0</div>
-                <div class="metric-card-trend trend-up">
-                    <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18" />
-                    </svg>
-                    <span>HS ≥ 70</span>
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/base :: layout('Gestión de Clientes', 'clientes', ~{::section})}">
+    <head>
+        <title>Gestión de Clientes - ServiClient</title>
+    </head>
+    <body>
+        <section>
+            <div class="page-header-row">
+                <div class="page-title-group">
+                    <h1>Gestión de Clientes</h1>
+                    <p>Administra y consulta la información de los clientes</p>
                 </div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-card-label">En Observación</div>
-                <div class="metric-card-value text-observacion" th:text="${metricas.enObservacion}">0</div>
-                <div class="metric-card-trend trend-neutral">
-                    <span>HS 50–69</span>
-                </div>
-            </div>
-            <div class="metric-card card-risk">
-                <div class="metric-card-label">En Riesgo</div>
-                <div class="metric-card-value text-riesgo" th:text="${metricas.enRiesgo}">0</div>
-                <div class="metric-card-trend trend-risk">
-                    <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
-                    <span>HS &lt; 50</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Table Card -->
-        <div class="table-card">
-            <div class="table-toolbar">
-                <form th:action="@{/clientes}" method="get" class="table-search-group">
-                    <div style="position: relative;">
-                        <svg style="width: 16px; height: 16px; position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--color-text-sub);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                <div>
+                    <a th:href="@{/clientes/nuevo}" class="btn btn-primary">
+                        <svg style="width: 18px; height: 18px" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
                         </svg>
-                        <input type="text" name="busqueda" th:value="${busqueda}" class="input-search-table"
-                               placeholder="Buscar cliente..." onchange="this.form.submit()">
+                        <span>Nuevo Cliente</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Flash messages -->
+            <div
+                th:if="${successMessage}"
+                style="
+                    margin-bottom: 16px;
+                    padding: 14px 18px;
+                    border-radius: 10px;
+                    background: #d1fae5;
+                    border: 1px solid #a7f3d0;
+                    color: #065f46;
+                    font-size: 14px;
+                    font-weight: 600;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                ">
+                <svg
+                    style="width: 18px; height: 18px; flex-shrink: 0"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span th:text="${successMessage}"></span>
+            </div>
+            <div
+                th:if="${errorMessage}"
+                style="
+                    margin-bottom: 16px;
+                    padding: 14px 18px;
+                    border-radius: 10px;
+                    background: #fee2e2;
+                    border: 1px solid #fecaca;
+                    color: #dc2626;
+                    font-size: 14px;
+                    font-weight: 600;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                ">
+                <svg
+                    style="width: 18px; height: 18px; flex-shrink: 0"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    viewBox="0 0 24 24">
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                </svg>
+                <span th:text="${errorMessage}"></span>
+            </div>
+
+            <!-- Metric Cards -->
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-card-label">Total Clientes</div>
+                    <div class="metric-card-value" th:text="${metricas.totalClientes}">0</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-card-label">Saludables</div>
+                    <div class="metric-card-value text-saludable" th:text="${metricas.saludables}">0</div>
+                    <div class="metric-card-trend trend-up">
+                        <svg style="width: 14px; height: 14px" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                        </svg>
+                        <span>HS ≥ 80</span>
                     </div>
-                    <select name="estado" class="form-select" style="width: 180px; padding: 7px 12px; font-size: 13px;" onchange="this.form.submit()">
-                        <option value="">Todos los estados</option>
-                        <option th:each="est : ${estados}" th:value="${est}" th:text="${est.etiqueta}"
+                </div>
+                <div class="metric-card">
+                    <div class="metric-card-label">En Observación</div>
+                    <div class="metric-card-value text-observacion" th:text="${metricas.enObservacion}">0</div>
+                    <div class="metric-card-trend trend-neutral">
+                        <span>HS 50–79</span>
+                    </div>
+                </div>
+                <div class="metric-card card-risk">
+                    <div class="metric-card-label">En Riesgo</div>
+                    <div class="metric-card-value text-riesgo" th:text="${metricas.enRiesgo}">0</div>
+                    <div class="metric-card-trend trend-risk">
+                        <svg style="width: 14px; height: 14px" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                        <span>HS &lt; 50</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Table Card -->
+            <div class="table-card">
+                <div class="table-toolbar">
+                    <form th:action="@{/clientes}" method="get" class="table-search-group">
+                        <div style="position: relative">
+                            <svg
+                                style="
+                                    width: 16px;
+                                    height: 16px;
+                                    position: absolute;
+                                    left: 12px;
+                                    top: 50%;
+                                    transform: translateY(-50%);
+                                    color: var(--color-text-sub);
+                                "
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                            <input
+                                type="text"
+                                name="busqueda"
+                                th:value="${busqueda}"
+                                class="input-search-table"
+                                placeholder="Buscar cliente..."
+                                onchange="this.form.submit()" />
+                        </div>
+                        <select
+                            name="estado"
+                            class="form-select"
+                            style="width: 180px; padding: 7px 12px; font-size: 13px"
+                            onchange="this.form.submit()">
+                            <option value="">Todos los estados</option>
+                            <option
+                                th:each="est : ${estados}"
+                                th:value="${est}"
+                                th:text="${est.etiqueta}"
                                 th:selected="${est == estadoSeleccionado}"></option>
-                    </select>
-                </form>
-                <div style="font-size: 13px; color: var(--color-text-muted); font-weight: 600;">
-                    Ordenar por: Nombre
-                </div>
-            </div>
-
-            <table class="custom-table">
-                <thead>
-                    <tr>
-                        <th>Cliente</th>
-                        <th>Responsable</th>
-                        <th>Servicio Contratado</th>
-                        <th>Estado</th>
-                        <th>Health Score</th>
-                        <th>CSAT</th>
-                        <th>Próxima Renovación</th>
-                        <th style="text-align: right;">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:if="${clientesPage.content.isEmpty()}">
-                        <td colspan="8" style="text-align: center; padding: 40px; color: var(--color-text-muted);">
-                            <div style="display:flex;flex-direction:column;align-items:center;gap:12px;">
-                                <svg style="width:40px;height:40px;opacity:.3;" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
-                                </svg>
-                                <span>No se encontraron clientes con los filtros aplicados.</span>
-                                <a th:href="@{/clientes/nuevo}" class="btn btn-primary" style="padding: 8px 20px; font-size: 13px;">Crear primer cliente</a>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr th:each="cliente : ${clientesPage.content}">
-                        <td>
-                            <div style="display:flex;flex-direction:column;gap:2px;">
-                                <a th:href="@{/clientes/{id}(id=${cliente.id})}"
-                                   style="font-weight: 700; color: var(--color-text-main); text-decoration: none;"
-                                   th:text="${cliente.nombreComercial}">NovaTech</a>
-                                <span style="font-size:11.5px;color:var(--color-text-muted);" th:text="${cliente.ruc != null ? cliente.ruc : '—'}"></span>
-                            </div>
-                        </td>
-                        <td th:text="${cliente.responsable != null ? cliente.responsable.nombreCompleto : 'Sin asignar'}">Ana García</td>
-                        <td th:text="${cliente.servicioContratado}">SaaS Enterprise</td>
-                        <td>
-                            <span class="badge"
-                                  th:classappend="${cliente.estadoSalud.name() == 'SALUDABLE' ? 'badge-saludable' : (cliente.estadoSalud.name() == 'OBSERVACION' ? 'badge-observacion' : 'badge-riesgo')}"
-                                  th:text="${cliente.estadoSalud.etiqueta}">Saludable</span>
-                        </td>
-                        <td>
-                            <div class="health-score-cell">
-                                <span class="health-score-val"
-                                      th:text="${cliente.healthScore}"
-                                      th:style="${cliente.healthScore < 50 ? 'color:#DC2626;' : (cliente.healthScore < 70 ? 'color:#D97706;' : 'color:#059669;')}">80</span>
-                                <div class="health-bar-bg">
-                                    <div class="health-bar-fill"
-                                         th:style="'width: ' + ${cliente.healthScore} + '%;'"
-                                         th:classappend="${cliente.healthScore >= 70 ? 'fill-green' : (cliente.healthScore >= 50 ? 'fill-amber' : 'fill-red')}"></div>
-                                </div>
-                            </div>
-                        </td>
-                        <td style="font-weight: 600;" th:text="${cliente.csatPorcentaje + '%'}">90%</td>
-                        <td>
-                            <div style="font-weight: 600;" th:text="${#temporals.format(cliente.fechaRenovacion, 'dd MMM yyyy')}">12 Oct 2024</div>
-                            <div style="font-size: 11.5px; font-weight: 700; color: #DC2626;"
-                                 th:if="${cliente.diasParaRenovacion >= 0 and cliente.diasParaRenovacion <= 30}"
-                                 th:text="'⚠ Faltan ' + ${cliente.diasParaRenovacion} + ' días'"></div>
-                            <div style="font-size: 11.5px; color: var(--color-text-muted);"
-                                 th:if="${cliente.diasParaRenovacion > 30}"
-                                 th:text="'Faltan ' + ${cliente.diasParaRenovacion} + ' días'"></div>
-                        </td>
-                        <td style="text-align: right;">
-                            <div style="display:flex;justify-content:flex-end;gap:6px;align-items:center;">
-                                <!-- Ver 360° -->
-                                <a th:href="@{/clientes/{id}(id=${cliente.id})}"
-                                   class="btn btn-secondary"
-                                   style="padding: 5px 10px; font-size: 12px;"
-                                   title="Ver ficha 360°">
-                                    <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                                    </svg>
-                                    360°
-                                </a>
-                                <!-- Editar -->
-                                <a th:href="@{/clientes/{id}/editar(id=${cliente.id})}"
-                                   class="btn btn-secondary"
-                                   style="padding: 5px 10px; font-size: 12px; background: var(--color-primary-light, #EFF6FF); color: var(--color-primary, #2563EB); border-color: var(--color-primary-border, #BFDBFE);"
-                                   title="Editar cliente">
-                                    <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                                    </svg>
-                                    Editar
-                                </a>
-                                <!-- Eliminar -->
-                                <button type="button"
-                                        class="btn btn-secondary"
-                                        style="padding: 5px 10px; font-size: 12px; background: #FEF2F2; color: #DC2626; border-color: #FECACA; cursor: pointer;"
-                                        th:attr="onclick='confirmarEliminar(' + ${cliente.id} + ', \'' + ${#strings.escapeXml(cliente.nombreComercial)} + '\')'">
-                                    <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                    </svg>
-                                    Eliminar
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <div class="table-pagination">
-                <span th:text="'Mostrando ' + ${clientesPage.numberOfElements} + ' de ' + ${clientesPage.totalElements} + ' clientes'">Mostrando 0 de 0 clientes</span>
-                <div style="display: flex; gap: 8px;">
-                    <a th:if="${clientesPage.hasPrevious()}"
-                       th:href="@{/clientes(page=${clientesPage.number - 1}, busqueda=${busqueda}, estado=${estadoSeleccionado})}"
-                       class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;">← Anterior</a>
-                    <a th:if="${clientesPage.hasNext()}"
-                       th:href="@{/clientes(page=${clientesPage.number + 1}, busqueda=${busqueda}, estado=${estadoSeleccionado})}"
-                       class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;">Siguiente →</a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Modal de confirmación de eliminación -->
-        <div id="modalEliminar" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
-            <div style="background: var(--color-bg-card, #fff); border-radius: 16px; padding: 32px; max-width: 440px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3); text-align: center;">
-                <div style="width: 56px; height: 56px; background: #FEE2E2; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
-                    <svg style="width:28px;height:28px;color:#DC2626;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                    </svg>
-                </div>
-                <h3 style="font-size: 18px; font-weight: 700; color: var(--color-text-main); margin-bottom: 10px;">¿Eliminar cliente?</h3>
-                <p id="modalEliminarMsg" style="font-size: 14px; color: var(--color-text-sub); margin-bottom: 24px; line-height: 1.6;">
-                    Esta acción es irreversible. Se eliminarán todos los datos relacionados.
-                </p>
-                <div style="display: flex; gap: 12px; justify-content: center;">
-                    <button onclick="cerrarModal()" class="btn btn-secondary" style="padding: 10px 24px;">
-                        Cancelar
-                    </button>
-                    <form id="formEliminar" method="post">
-                        <button type="submit" class="btn btn-primary" style="padding: 10px 24px; background: #DC2626; border-color: #DC2626;">
-                            Sí, eliminar
-                        </button>
+                        </select>
                     </form>
+                    <div style="font-size: 13px; color: var(--color-text-muted); font-weight: 600">Ordenar por: Nombre</div>
+                </div>
+
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th>Cliente</th>
+                            <th>Responsable</th>
+                            <th>Servicio Contratado</th>
+                            <th>Estado</th>
+                            <th>Health Score</th>
+                            <th>CSAT</th>
+                            <th>Próxima Renovación</th>
+                            <th style="text-align: right">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${clientesPage.content.isEmpty()}">
+                            <td colspan="8" style="text-align: center; padding: 40px; color: var(--color-text-muted)">
+                                <div style="display: flex; flex-direction: column; align-items: center; gap: 12px">
+                                    <svg
+                                        style="width: 40px; height: 40px; opacity: 0.3"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        stroke-width="1.5"
+                                        viewBox="0 0 24 24">
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                                    </svg>
+                                    <span>No se encontraron clientes con los filtros aplicados.</span>
+                                    <a th:href="@{/clientes/nuevo}" class="btn btn-primary" style="padding: 8px 20px; font-size: 13px">
+                                        Crear primer cliente
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr th:each="cliente : ${clientesPage.content}">
+                            <td>
+                                <div style="display: flex; flex-direction: column; gap: 2px">
+                                    <a
+                                        th:href="@{/clientes/{id}(id=${cliente.id})}"
+                                        style="font-weight: 700; color: var(--color-text-main); text-decoration: none"
+                                        th:text="${cliente.nombreComercial}">
+                                        NovaTech
+                                    </a>
+                                    <span
+                                        style="font-size: 11.5px; color: var(--color-text-muted)"
+                                        th:text="${cliente.ruc != null ? cliente.ruc : '—'}"></span>
+                                </div>
+                            </td>
+                            <td th:text="${cliente.responsable != null ? cliente.responsable.nombreCompleto : 'Sin asignar'}">
+                                Ana García
+                            </td>
+                            <td th:text="${cliente.servicioContratado}">SaaS Enterprise</td>
+                            <td>
+                                <span
+                                    class="badge"
+                                    th:classappend="${cliente.estadoSalud.name() == 'SALUDABLE' ? 'badge-saludable' : (cliente.estadoSalud.name() == 'OBSERVACION' ? 'badge-observacion' : 'badge-riesgo')}"
+                                    th:text="${cliente.estadoSalud.etiqueta}">
+                                    Saludable
+                                </span>
+                            </td>
+                            <td>
+                                <div class="health-score-cell">
+                                    <span
+                                        class="health-score-val"
+                                        th:text="${cliente.healthScore}"
+                                        th:style="${cliente.healthScore < 50 ? 'color:#DC2626;' : (cliente.healthScore < 70 ? 'color:#D97706;' : 'color:#059669;')}">
+                                        80
+                                    </span>
+                                    <div class="health-bar-bg">
+                                        <div
+                                            class="health-bar-fill"
+                                            th:style="'width: ' + ${cliente.healthScore} + '%;'"
+                                            th:classappend="${cliente.healthScore >= 70 ? 'fill-green' : (cliente.healthScore >= 50 ? 'fill-amber' : 'fill-red')}"></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td style="font-weight: 600" th:text="${cliente.csatPorcentaje + '%'}">90%</td>
+                            <td>
+                                <div style="font-weight: 600" th:text="${#temporals.format(cliente.fechaRenovacion, 'dd MMM yyyy')}">
+                                    12 Oct 2024
+                                </div>
+                                <div
+                                    style="font-size: 11.5px; font-weight: 700; color: #dc2626"
+                                    th:if="${cliente.diasParaRenovacion >= 0 and cliente.diasParaRenovacion <= 30}"
+                                    th:text="'⚠ Faltan ' + ${cliente.diasParaRenovacion} + ' días'"></div>
+                                <div
+                                    style="font-size: 11.5px; color: var(--color-text-muted)"
+                                    th:if="${cliente.diasParaRenovacion > 30}"
+                                    th:text="'Faltan ' + ${cliente.diasParaRenovacion} + ' días'"></div>
+                            </td>
+                            <td style="text-align: right">
+                                <div style="display: flex; justify-content: flex-end; gap: 6px; align-items: center">
+                                    <!-- Ver 360° -->
+                                    <a
+                                        th:href="@{/clientes/{id}(id=${cliente.id})}"
+                                        class="btn btn-secondary"
+                                        style="padding: 5px 10px; font-size: 12px"
+                                        title="Ver ficha 360°">
+                                        <svg
+                                            style="width: 14px; height: 14px"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="2"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                        </svg>
+                                        360°
+                                    </a>
+                                    <!-- Editar -->
+                                    <a
+                                        th:href="@{/clientes/{id}/editar(id=${cliente.id})}"
+                                        class="btn btn-secondary"
+                                        style="
+                                            padding: 5px 10px;
+                                            font-size: 12px;
+                                            background: var(--color-primary-light, #eff6ff);
+                                            color: var(--color-primary, #2563eb);
+                                            border-color: var(--color-primary-border, #bfdbfe);
+                                        "
+                                        title="Editar cliente">
+                                        <svg
+                                            style="width: 14px; height: 14px"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="2"
+                                            viewBox="0 0 24 24">
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                        </svg>
+                                        Editar
+                                    </a>
+                                    <!-- Eliminar -->
+                                    <button
+                                        type="button"
+                                        class="btn btn-secondary"
+                                        style="
+                                            padding: 5px 10px;
+                                            font-size: 12px;
+                                            background: #fef2f2;
+                                            color: #dc2626;
+                                            border-color: #fecaca;
+                                            cursor: pointer;
+                                        "
+                                        th:attr="onclick='confirmarEliminar(' + ${cliente.id} + ', \'' + ${#strings.escapeXml(cliente.nombreComercial)} + '\')'">
+                                        <svg
+                                            style="width: 14px; height: 14px"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="2"
+                                            viewBox="0 0 24 24">
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                        Eliminar
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="table-pagination">
+                    <span th:text="'Mostrando ' + ${clientesPage.numberOfElements} + ' de ' + ${clientesPage.totalElements} + ' clientes'">
+                        Mostrando 0 de 0 clientes
+                    </span>
+                    <div style="display: flex; gap: 8px">
+                        <a
+                            th:if="${clientesPage.hasPrevious()}"
+                            th:href="@{/clientes(page=${clientesPage.number - 1}, busqueda=${busqueda}, estado=${estadoSeleccionado})}"
+                            class="btn btn-secondary"
+                            style="padding: 6px 12px; font-size: 12px">
+                            ← Anterior
+                        </a>
+                        <a
+                            th:if="${clientesPage.hasNext()}"
+                            th:href="@{/clientes(page=${clientesPage.number + 1}, busqueda=${busqueda}, estado=${estadoSeleccionado})}"
+                            class="btn btn-secondary"
+                            style="padding: 6px 12px; font-size: 12px">
+                            Siguiente →
+                        </a>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <script>
-            function confirmarEliminar(id, nombre) {
-                document.getElementById('modalEliminarMsg').textContent =
-                    'Vas a eliminar a "' + nombre + '". Esta acción es irreversible y eliminará todos sus datos.';
-                document.getElementById('formEliminar').action = '/clientes/' + id + '/eliminar';
-                const modal = document.getElementById('modalEliminar');
-                modal.style.display = 'flex';
-            }
-            function cerrarModal() {
-                document.getElementById('modalEliminar').style.display = 'none';
-            }
-            // Cerrar al hacer clic fuera del cuadro
-            document.getElementById('modalEliminar').addEventListener('click', function(e) {
-                if (e.target === this) cerrarModal();
-            });
-        </script>
+            <!-- Modal de confirmación de eliminación -->
+            <div
+                id="modalEliminar"
+                style="
+                    display: none;
+                    position: fixed;
+                    inset: 0;
+                    background: rgba(0, 0, 0, 0.5);
+                    z-index: 9999;
+                    align-items: center;
+                    justify-content: center;
+                ">
+                <div
+                    style="
+                        background: var(--color-bg-card, #fff);
+                        border-radius: 16px;
+                        padding: 32px;
+                        max-width: 440px;
+                        width: 90%;
+                        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+                        text-align: center;
+                    ">
+                    <div
+                        style="
+                            width: 56px;
+                            height: 56px;
+                            background: #fee2e2;
+                            border-radius: 50%;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            margin: 0 auto 16px;
+                        ">
+                        <svg
+                            style="width: 28px; height: 28px; color: #dc2626"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            viewBox="0 0 24 24">
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                    </div>
+                    <h3 style="font-size: 18px; font-weight: 700; color: var(--color-text-main); margin-bottom: 10px">
+                        ¿Eliminar cliente?
+                    </h3>
+                    <p id="modalEliminarMsg" style="font-size: 14px; color: var(--color-text-sub); margin-bottom: 24px; line-height: 1.6">
+                        Esta acción es irreversible. Se eliminarán todos los datos relacionados.
+                    </p>
+                    <div style="display: flex; gap: 12px; justify-content: center">
+                        <button onclick="cerrarModal()" class="btn btn-secondary" style="padding: 10px 24px">Cancelar</button>
+                        <form id="formEliminar" method="post">
+                            <button
+                                type="submit"
+                                class="btn btn-primary"
+                                style="padding: 10px 24px; background: #dc2626; border-color: #dc2626">
+                                Sí, eliminar
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
 
-    </section>
-</body>
+            <script>
+                function confirmarEliminar(id, nombre) {
+                    document.getElementById("modalEliminarMsg").textContent =
+                        'Vas a eliminar a "' + nombre + '". Esta acción es irreversible y eliminará todos sus datos.';
+                    document.getElementById("formEliminar").action = "/clientes/" + id + "/eliminar";
+                    const modal = document.getElementById("modalEliminar");
+                    modal.style.display = "flex";
+                }
+                function cerrarModal() {
+                    document.getElementById("modalEliminar").style.display = "none";
+                }
+                // Cerrar al hacer clic fuera del cuadro
+                document.getElementById("modalEliminar").addEventListener("click", function (e) {
+                    if (e.target === this) cerrarModal();
+                });
+            </script>
+        </section>
+    </body>
 </html>

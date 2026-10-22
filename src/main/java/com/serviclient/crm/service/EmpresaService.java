@@ -119,9 +119,27 @@ public class EmpresaService {
     configuracionSlaDAO.save(
         ConfiguracionSla.builder()
             .empresa(empresaGuardada)
+            .prioridad(PrioridadTicket.ALTA)
+            .tiempoRespuestaMinutos(Math.max(60, sla1ra / 2))
+            .tiempoResolucionMinutos(Math.max(480, slaResol / 2))
+            .estado("ACTIVO")
+            .build());
+
+    configuracionSlaDAO.save(
+        ConfiguracionSla.builder()
+            .empresa(empresaGuardada)
             .prioridad(PrioridadTicket.MEDIA)
             .tiempoRespuestaMinutos(sla1ra)
             .tiempoResolucionMinutos(slaResol)
+            .estado("ACTIVO")
+            .build());
+
+    configuracionSlaDAO.save(
+        ConfiguracionSla.builder()
+            .empresa(empresaGuardada)
+            .prioridad(PrioridadTicket.BAJA)
+            .tiempoRespuestaMinutos(sla1ra * 2)
+            .tiempoResolucionMinutos(slaResol * 2)
             .estado("ACTIVO")
             .build());
 
