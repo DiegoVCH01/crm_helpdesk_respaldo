@@ -14,12 +14,14 @@ import com.serviclient.crm.entity.enums.PrioridadTicket;
 import java.math.BigDecimal;
 import java.util.HashSet;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class EmpresaService {
 
   private final EmpresaDAO empresaDAO;
@@ -33,6 +35,8 @@ public class EmpresaService {
 
   @Transactional
   public Empresa registrarEmpresaCompleta(RegistroEmpresaDto dto) {
+
+    log.info("Iniciando registro de una nueva empresa");
     // --- INTEGRACIÓN GUAVA PRECONDITIONS
     Preconditions.checkNotNull(dto, "El formulario de registro de empresa no puede ser nulo");
     Preconditions.checkArgument(
@@ -47,6 +51,7 @@ public class EmpresaService {
     // --
 
     if (usuarioDAO.existsByEmail(dto.getAdminEmail())) {
+      log.warn("Registro de empresa rechazado: correo de administrador ya registrado");
       throw new IllegalArgumentException(
           "Ya existe un usuario registrado con el correo: " + dto.getAdminEmail());
     }
@@ -178,6 +183,10 @@ public class EmpresaService {
             .build();
 
     usuarioDAO.save(admin);
+
+    log.info(
+    "Empresa registrada correctamente. empresaId={}",
+    empresaGuardada.getId());
 
     return empresaGuardada;
   }

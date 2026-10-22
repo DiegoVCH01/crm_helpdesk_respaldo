@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -53,6 +54,7 @@ import org.springframework.web.server.ResponseStatusException;
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ClienteService {
 
   private final ClienteDAO clienteDAO;
@@ -172,7 +174,11 @@ public class ClienteService {
     return clienteDAO
         .findByIdAndEmpresaId(id, empresaId)
         .orElseThrow(
-            () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cliente no encontrado."));
+            () -> {
+              log.warn("Acceso rechazado a cliente. clienteId={}, empresaId={}", id, empresaId);
+
+              return new ResponseStatusException(HttpStatus.NOT_FOUND, "Cliente no encontrado.");
+            });
   }
 
   @Transactional(readOnly = true)
@@ -193,9 +199,22 @@ public class ClienteService {
   @Transactional
   public ResultadoCreacionCliente crearCliente(Long empresaId, ClienteDto dto) {
     Empresa empresa = empresaService.obtenerPorId(empresaId);
+    if (clienteDAO.findByEmpresaIdAndRuc(empresaId, dto.getRuc()).isPresent()) {
+      log.warn(
+          "Registro de cliente rechazado por RUC duplicado. empresaId={}, ruc={}",
+          empresaId,
+          dto.getRuc());
+
+      throw new IllegalArgumentException("Ya existe un cliente registrado con este RUC.");
+    }
     Usuario responsable = null;
     if (dto.getResponsableId() != null) {
       responsable = usuarioDAO.findById(dto.getResponsableId()).orElse(null);
+      if (responsable != null
+          && (responsable.getEmpresa() == null
+              || !empresaId.equals(responsable.getEmpresa().getId()))) {
+        throw new IllegalArgumentException("El responsable no pertenece a la empresa actual.");
+      }
     }
 
     Cliente cliente =
@@ -216,6 +235,8 @@ public class ClienteService {
             .build();
 
     Cliente guardado = clienteDAO.save(cliente);
+    log.info(
+        "Cliente creado correctamente. clienteId={}, empresaId={}", guardado.getId(), empresaId);
 
     // Crear o vincular Servicio
     String nombreServicio =
@@ -306,6 +327,11 @@ public class ClienteService {
     Usuario responsable = null;
     if (dto.getResponsableId() != null) {
       responsable = usuarioDAO.findById(dto.getResponsableId()).orElse(null);
+      if (responsable != null
+          && (responsable.getEmpresa() == null
+              || !empresaId.equals(responsable.getEmpresa().getId()))) {
+        throw new IllegalArgumentException("El responsable no pertenece a la empresa actual.");
+      }
     }
 
     cliente.setNombreComercial(dto.getNombreComercial());

@@ -14,6 +14,7 @@ import java.util.Random;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -48,6 +49,7 @@ import org.springframework.web.server.ResponseStatusException;
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class TicketService {
 
   private final TicketDAO ticketDAO;
@@ -159,7 +161,11 @@ public class TicketService {
     return ticketDAO
         .findByIdAndEmpresaId(id, empresaId)
         .orElseThrow(
-            () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Ticket no encontrado."));
+            () -> {
+              log.warn("Acceso rechazado a ticket. ticketId={}, empresaId={}", id, empresaId);
+
+              return new ResponseStatusException(HttpStatus.NOT_FOUND, "Ticket no encontrado.");
+            });
   }
 
   /**
@@ -274,6 +280,15 @@ public class TicketService {
             .build();
 
     Ticket guardado = ticketDAO.save(ticket);
+    log.info(
+        "Ticket creado correctamente. ticketId={}, empresaId={}, prioridad={}",
+        guardado.getId(),
+        empresaId,
+        prioridad);
+
+    if (prioridad == PrioridadTicket.CRITICA) {
+      log.warn("Ticket crítico registrado. ticketId={}, empresaId={}", guardado.getId(), empresaId);
+    }
 
     // Mensaje inicial en la conversación
     String remitenteNombre =
@@ -450,38 +465,18 @@ public class TicketService {
     ticketHistorialDAO.save(hist);
 
     if (Boolean.TRUE.equals(enviarCsat)) {
-      // Guardar en tabla encuestas_csat y respuestas_csat
       EncuestaCsat encuestaCsat =
           EncuestaCsat.builder()
               .empresa(ticket.getEmpresa())
               .cliente(ticket.getCliente())
               .contacto(ticket.getContacto())
               .ticket(ticket)
-              .estado(EstadoEncuestaCsat.RESPONDIDA)
+              .estado(EstadoEncuestaCsat.PENDIENTE)
               .fechaEnvio(ahora)
-              .fechaRespuesta(ahora)
+              .fechaRespuesta(null)
               .build();
-      encuestaCsat = encuestaCsatDAO.save(encuestaCsat);
 
-      RespuestaCsat respuesta =
-          RespuestaCsat.builder()
-              .encuesta(encuestaCsat)
-              .puntuacion(5)
-              .comentario("Excelente atención y resolución rápida.")
-              .build();
-      respuestaCsatDAO.save(respuesta);
-
-      // También guardar en modelo legacy si se utiliza
-      EncuestaSatisfaccion encuesta =
-          EncuestaSatisfaccion.builder()
-              .ticket(ticket)
-              .cliente(ticket.getCliente())
-              .contacto(ticket.getContacto())
-              .puntuacion(5)
-              .comentario("Excelente atención y resolución rápida.")
-              .fechaCreacion(ahora)
-              .build();
-      encuestaSatisfaccionDAO.save(encuesta);
+      encuestaCsatDAO.save(encuestaCsat);
     }
 
     healthScoreService.recalcularYActualizarHealthScore(ticket.getCliente());

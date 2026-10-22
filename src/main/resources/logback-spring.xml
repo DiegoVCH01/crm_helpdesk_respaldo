@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration>
+
+    <property name="LOG_DIR" value="logs" />
+
+    <property
+        name="LOG_PATTERN"
+        value="%d{yyyy-MM-dd HH:mm:ss} %-5level [%logger{35}] - %msg%n" />
+
+    <!-- ========================================== -->
+    <!-- CONSOLA                                    -->
+    <!-- ========================================== -->
+
+    <appender name="CONSOLE"
+        class="ch.qos.logback.core.ConsoleAppender">
+
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+
+    </appender>
+
+    <!-- ========================================== -->
+    <!-- LOG PROPIO DE SERVICLIENT                  -->
+    <!-- ========================================== -->
+
+    <appender name="SERVICLIENT_FILE"
+        class="ch.qos.logback.core.rolling.RollingFileAppender">
+
+        <file>${LOG_DIR}/serviclient.log</file>
+
+        <rollingPolicy
+            class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+
+            <fileNamePattern>
+                ${LOG_DIR}/archived/serviclient-%d{yyyy-MM-dd}.%i.log.gz
+            </fileNamePattern>
+
+            <maxFileSize>10MB</maxFileSize>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>500MB</totalSizeCap>
+
+        </rollingPolicy>
+
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+
+    </appender>
+
+    <!-- ========================================== -->
+    <!-- ERRORES DEL SISTEMA                        -->
+    <!-- ========================================== -->
+
+    <appender name="ERROR_FILE"
+        class="ch.qos.logback.core.rolling.RollingFileAppender">
+
+        <file>${LOG_DIR}/serviclient-error.log</file>
+
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>ERROR</level>
+        </filter>
+
+        <rollingPolicy
+            class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+
+            <fileNamePattern>
+                ${LOG_DIR}/archived/serviclient-error-%d{yyyy-MM-dd}.%i.log.gz
+            </fileNamePattern>
+
+            <maxFileSize>10MB</maxFileSize>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>200MB</totalSizeCap>
+
+        </rollingPolicy>
+
+        <encoder>
+            <pattern>
+                %d{yyyy-MM-dd HH:mm:ss} %-5level [%logger{35}] - %msg%n%nopex
+            </pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+
+    </appender>
+
+    <!-- ========================================== -->
+    <!-- SOLO LOS LOGS DE NUESTRO PROYECTO          -->
+    <!-- ========================================== -->
+
+    <logger name="com.serviclient.crm"
+        level="INFO"
+        additivity="false">
+
+        <appender-ref ref="CONSOLE" />
+        <appender-ref ref="SERVICLIENT_FILE" />
+        <appender-ref ref="ERROR_FILE" />
+
+    </logger>
+
+    <!-- ========================================== -->
+    <!-- LIBRERÍAS EXTERNAS                         -->
+    <!-- Solo WARN y ERROR                           -->
+    <!-- ========================================== -->
+
+    <root level="WARN">
+        <appender-ref ref="CONSOLE" />
+        <appender-ref ref="ERROR_FILE" />
+    </root>
+
+</configuration>

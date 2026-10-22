@@ -114,8 +114,13 @@ public class RenovacionService {
 
   @Transactional
   public RenovacionSeguimiento registrarSeguimiento(
-      TicketMensajeDto.RegistrarSeguimientoRenovacion dto, Usuario usuario) {
+      TicketMensajeDto.RegistrarSeguimientoRenovacion dto, Usuario usuario, Long empresaId) {
+
     Renovacion renovacion = obtenerPorId(dto.getRenovacionId());
+
+    if (renovacion.getEmpresa() == null || !empresaId.equals(renovacion.getEmpresa().getId())) {
+      throw new IllegalArgumentException("La renovación no pertenece a la empresa actual.");
+    }
 
     RenovacionSeguimiento seguimiento =
         RenovacionSeguimiento.builder()

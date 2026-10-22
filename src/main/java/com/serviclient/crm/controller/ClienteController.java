@@ -150,12 +150,28 @@ public class ClienteController {
             "portalPasswordTemporal", resultado.credencialesPortal().passwordTemporal());
       }
       return "redirect:/clientes/" + guardado.getId();
-    } catch (Exception ex) {
-      log.error("Error al crear cliente", ex);
-      model.addAttribute("errorMessage", "Error al crear cliente: " + ex.getMessage());
+    } catch (IllegalArgumentException ex) {
+      log.warn("No se pudo registrar el cliente: {}", ex.getMessage());
+
+      model.addAttribute("errorMessage", ex.getMessage());
+
       model.addAttribute("usuarios", usuarioService.obtenerTodosPorEmpresa(empresaId));
+
       model.addAttribute("modoEdicion", false);
       model.addAttribute("activeMenu", "clientes");
+
+      return "clientes/form";
+
+    } catch (Exception ex) {
+      log.error("Error inesperado al crear cliente", ex);
+
+      model.addAttribute("errorMessage", "Ocurrió un error inesperado al registrar el cliente.");
+
+      model.addAttribute("usuarios", usuarioService.obtenerTodosPorEmpresa(empresaId));
+
+      model.addAttribute("modoEdicion", false);
+      model.addAttribute("activeMenu", "clientes");
+
       return "clientes/form";
     }
   }

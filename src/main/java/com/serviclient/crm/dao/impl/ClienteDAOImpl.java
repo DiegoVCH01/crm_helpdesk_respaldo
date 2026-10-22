@@ -44,6 +44,23 @@ public class ClienteDAOImpl implements ClienteDAO {
   }
 
   @Override
+  public Optional<Cliente> findByEmpresaIdAndRuc(Long empresaId, String ruc) {
+    if (empresaId == null || ruc == null || ruc.isBlank()) {
+      return Optional.empty();
+    }
+
+    return entityManager
+        .createQuery(
+            "SELECT c FROM Cliente c " + "WHERE c.empresa.id = :empresaId " + "AND c.ruc = :ruc",
+            Cliente.class)
+        .setParameter("empresaId", empresaId)
+        .setParameter("ruc", ruc.trim())
+        .setMaxResults(1)
+        .getResultStream()
+        .findFirst();
+  }
+
+  @Override
   public List<Cliente> findByEmpresaId(Long empresaId) {
     TypedQuery<Cliente> query =
         entityManager.createQuery(

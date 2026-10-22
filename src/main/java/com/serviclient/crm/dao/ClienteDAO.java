@@ -9,6 +9,7 @@ import org.springframework.data.domain.Pageable;
 public interface ClienteDAO {
   Optional<Cliente> findById(Long id);
   Optional<Cliente> findByIdAndEmpresaId(Long id, Long empresaId);
+  Optional<Cliente> findByEmpresaIdAndRuc(Long empresaId, String ruc);
   List<Cliente> findByEmpresaId(Long empresaId);
   long countByEmpresaId(Long empresaId);
   Page<Cliente> buscarConFiltros(Long empresaId, String busqueda, Pageable pageable);
