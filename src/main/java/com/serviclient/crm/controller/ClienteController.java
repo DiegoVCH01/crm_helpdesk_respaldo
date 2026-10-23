@@ -23,6 +23,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -99,6 +102,34 @@ public class ClienteController {
     model.addAttribute("activeMenu", "clientes");
 
     return "clientes/index";
+  }
+
+  @Operation(summary = "Exportar clientes a Excel", description = "Descarga la lista de clientes en formato .xlsx aplicando los filtros actuales.")
+  @GetMapping("/exportar")
+  public ResponseEntity<byte[]> exportarClientesExcel(
+          @AuthenticationPrincipal CustomUserDetails userDetails,
+          @RequestParam(value = "busqueda", required = false) String busqueda,
+          @RequestParam(value = "estado", required = false) EstadoCliente estado) {
+
+      Long empresaId = resolverEmpresaId(userDetails);
+
+      try {
+          // Obtiene los bytes del archivo Excel desde el servicio
+          byte[] excelContent = clienteService.exportarClientesExcel(empresaId, busqueda, estado);
+
+          // Prepara las cabeceras HTTP para forzar la descarga del archivo
+          HttpHeaders headers = new HttpHeaders();
+          headers.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+          headers.setContentDispositionFormData("attachment", "clientes_serviclient.xlsx");
+          headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
+
+          return ResponseEntity.ok()
+                  .headers(headers)
+                  .body(excelContent);
+      } catch (Exception e) {
+          log.error("Error al exportar la lista de clientes a Excel", e);
+          return ResponseEntity.internalServerError().build();
+      }
   }
 
   // ─────────────────────────────────────────────────────────────────────────

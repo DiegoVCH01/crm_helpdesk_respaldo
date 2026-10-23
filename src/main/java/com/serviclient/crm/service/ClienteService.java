@@ -14,17 +14,25 @@ import com.serviclient.crm.entity.enums.EstadoSaludCliente;
 import com.serviclient.crm.entity.enums.EstadoServicioCliente;
 import com.serviclient.crm.entity.enums.EstadoTicket;
 import com.serviclient.crm.entity.enums.PrioridadTicket;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
+
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -155,6 +163,57 @@ public class ClienteService {
       return new PageImpl<>(filtered, pageable, filtered.size());
     }
     return page;
+  }
+
+  // --- APACHE POI (Exportar Excel) ---
+  @Transactional(readOnly = true)
+  public byte[] exportarClientesExcel(Long empresaId, String busqueda, EstadoCliente estado) {
+
+      Pageable pageable = PageRequest.of(0, Integer.MAX_VALUE, Sort.by("nombreComercial").ascending());
+      List<Cliente> clientes = listarClientes(empresaId, busqueda, estado, pageable).getContent();
+
+      try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+          Sheet sheet = workbook.createSheet("Clientes");
+
+          CellStyle headerStyle = workbook.createCellStyle();
+          Font headerFont = workbook.createFont();
+          headerFont.setBold(true);
+          headerStyle.setFont(headerFont);
+          headerStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
+          headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+          String[] columnas = {"Nombre Comercial", "Razón Social", "RUC", "Industria", "Responsable", "Servicio Contratado", "Estado Salud", "Health Score"};
+          Row headerRow = sheet.createRow(0);
+          for (int i = 0; i < columnas.length; i++) {
+              Cell cell = headerRow.createCell(i);
+              cell.setCellValue(columnas[i]);
+              cell.setCellStyle(headerStyle);
+          }
+
+          int rowIdx = 1;
+          for (Cliente cliente : clientes) {
+              Row row = sheet.createRow(rowIdx++);
+              row.createCell(0).setCellValue(cliente.getNombreComercial() != null ? cliente.getNombreComercial() : "");
+              row.createCell(1).setCellValue(cliente.getRazonSocial() != null ? cliente.getRazonSocial() : "");
+              row.createCell(2).setCellValue(cliente.getRuc() != null ? cliente.getRuc() : "");
+              row.createCell(3).setCellValue(cliente.getIndustria() != null ? cliente.getIndustria() : "");
+              row.createCell(4).setCellValue(cliente.getResponsable() != null ? cliente.getResponsable().getNombreCompleto() : "Sin asignar");
+              row.createCell(5).setCellValue(cliente.getServicioContratado() != null ? cliente.getServicioContratado() : "");
+              row.createCell(6).setCellValue(cliente.getEstadoSalud() != null ? cliente.getEstadoSalud().getEtiqueta() : "");
+              row.createCell(7).setCellValue(cliente.getHealthScore() != null ? cliente.getHealthScore() : 0);
+          }
+
+          for (int i = 0; i < columnas.length; i++) {
+              sheet.autoSizeColumn(i);
+          }
+
+          workbook.write(out);
+          return out.toByteArray();
+          
+      } catch (IOException e) {
+          log.error("Error al generar el archivo Excel de clientes", e);
+          throw new RuntimeException("No se pudo generar el archivo Excel.");
+      }
   }
 
   @Transactional(readOnly = true)
