@@ -68,11 +68,19 @@ public class OpenApiConfig {
                         new Tag().name("Autenticación")
                                 .description("Registro de empresa (wizard 3 pasos) e inicio/cierre de sesión"),
                         new Tag().name("Clientes")
-                                .description("Gestión de clientes B2B: listado, vista 360°, contactos y Health Score"),
-                        new Tag().name("Helpdesk / Tickets")
-                                .description("Mesa de ayuda: creación, mensajería, asignación, control de SLA y CSAT"),
+                                .description("Gestión de clientes B2B: listado, vista 360°, contactos, Health Score y exportación Excel"),
+                        new Tag().name("Mesa de Ayuda (Tickets)")
+                                .description("Ciclo de vida de tickets: creación, asignación, mensajería, gestión de SLA y resolución"),
                         new Tag().name("Renovaciones")
-                                .description("Panel de renovaciones de contratos con alertas y seguimientos"),
+                                .description("Control de contratos próximos a vencer, retención de ARR y registro de seguimientos comerciales"),
+                        new Tag().name("Dashboard")
+                                .description("Panel principal interactivo con KPIs de clientes, tickets, SLA, CSAT y renovaciones"),
+                        new Tag().name("Agentes")
+                                .description("Gestión del equipo de agentes y supervisores: alta, edición, activación/desactivación y restablecimiento de contraseña"),
+                        new Tag().name("Portal de Clientes")
+                                .description("Acceso externo para que los clientes finales creen incidencias y consulten el estado de sus tickets"),
+                        new Tag().name("Perfil de Usuario")
+                                .description("Operaciones de perfil: cambio de contraseña temporal tras el primer inicio de sesión"),
                         new Tag().name("Actuator")
                                 .description("Endpoints de monitoreo y salud de la aplicación (Spring Actuator)")
                 ));
@@ -101,12 +109,16 @@ public class OpenApiConfig {
                         ---
                         
                         ### Módulos disponibles
-                        | Módulo            | Ruta base         |
-                        |-------------------|-------------------|
-                        | Autenticación     | `/login`, `/registro` |
-                        | Clientes          | `/clientes`       |
-                        | Helpdesk/Tickets  | `/tickets`        |
-                        | Renovaciones      | `/renovaciones`   |
+                        | Módulo               | Ruta base                  |
+                        |----------------------|----------------------------|
+                        | Autenticación        | `/login`, `/registro`      |
+                        | Clientes             | `/clientes`                |
+                        | Helpdesk / Tickets   | `/tickets`                 |
+                        | Renovaciones         | `/renovaciones`            |
+                        | Dashboard            | `/dashboard`               |
+                        | Agentes              | `/agentes`                 |
+                        | Portal de Clientes   | `/portal/tickets`          |
+                        | Perfil de Usuario    | `/cambiar-password`        |
                         
                         ### Autenticación
                         Esta API utiliza **sesiones HTTP** gestionadas por Spring Security.
