@@ -5,7 +5,7 @@ import com.serviclient.crm.dto.AgenteDto;
 import com.serviclient.crm.dto.CredencialTemporalDto;
 import com.serviclient.crm.entity.Usuario;
 import com.serviclient.crm.entity.enums.Rol;
-import com.serviclient.crm.service.UsuarioService;
+import com.serviclient.crm.service.IUsuarioService;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +21,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @RequiredArgsConstructor
 public class AgenteController {
 
-    private final UsuarioService usuarioService;
+    private final IUsuarioService usuarioService;
 
     @GetMapping
     public String listar(

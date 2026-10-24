@@ -1,6 +1,6 @@
 package com.serviclient.crm.service;
 
-import com.serviclient.crm.dao.TicketAdjuntoDAO;
+import com.serviclient.crm.repository.TicketAdjuntoRepository;
 import com.serviclient.crm.dto.PortalTicketDto;
 import com.serviclient.crm.dto.TicketDto;
 import com.serviclient.crm.entity.CuentaPortal;
@@ -18,7 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
-public class PortalTicketService {
+public class PortalTicketService implements IPortalTicketService {
 
   private static final long MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 
@@ -26,7 +26,7 @@ public class PortalTicketService {
       Set.of("png", "jpg", "jpeg", "pdf", "txt");
 
   private final TicketService ticketService;
-  private final TicketAdjuntoDAO ticketAdjuntoDAO;
+  private final TicketAdjuntoRepository ticketAdjuntoRepository;
 
   @Transactional
   public Ticket crearTicketDesdePortal(
@@ -110,7 +110,7 @@ public class PortalTicketService {
               .tamano(archivo.getSize())
               .build();
 
-      ticketAdjuntoDAO.save(adjunto);
+      ticketAdjuntoRepository.save(adjunto);
     }
   }
 

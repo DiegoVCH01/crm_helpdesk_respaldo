@@ -1,12 +1,14 @@
 package com.serviclient.crm.service;
 
-import com.serviclient.crm.dao.ClienteDAO;
-import com.serviclient.crm.dao.ClienteServicioDAO;
-import com.serviclient.crm.dao.ContactoDAO;
-import com.serviclient.crm.dao.HealthScoreHistorialDAO;
-import com.serviclient.crm.dao.ServicioDAO;
-import com.serviclient.crm.dao.TicketDAO;
-import com.serviclient.crm.dao.UsuarioDAO;
+import com.serviclient.crm.repository.ClienteRepository;
+import com.serviclient.crm.repository.ClienteServicioRepository;
+import com.serviclient.crm.repository.ContactoRepository;
+import com.serviclient.crm.repository.EncuestaSatisfaccionRepository;
+import com.serviclient.crm.repository.HealthScoreHistorialRepository;
+import com.serviclient.crm.repository.RenovacionRepository;
+import com.serviclient.crm.repository.ServicioRepository;
+import com.serviclient.crm.repository.TicketRepository;
+import com.serviclient.crm.repository.UsuarioRepository;
 import com.serviclient.crm.dto.ClienteDto;
 import com.serviclient.crm.entity.*;
 import com.serviclient.crm.entity.enums.EstadoCliente;
@@ -63,68 +65,25 @@ import org.springframework.web.server.ResponseStatusException;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class ClienteService {
+public class ClienteService implements IClienteService {
 
-  private final ClienteDAO clienteDAO;
-  private final ContactoDAO contactoDAO;
-  private final ServicioDAO servicioDAO;
-  private final ClienteServicioDAO clienteServicioDAO;
-  private final HealthScoreHistorialDAO healthScoreHistorialDAO;
-  private final UsuarioDAO usuarioDAO;
-  private final TicketDAO ticketDAO;
+  private final ClienteRepository clienteRepository;
+  private final ContactoRepository contactoRepository;
+  private final ServicioRepository servicioRepository;
+  private final ClienteServicioRepository clienteServicioRepository;
+  private final HealthScoreHistorialRepository healthScoreHistorialRepository;
+  private final UsuarioRepository usuarioRepository;
+  private final TicketRepository ticketRepository;
+  private final EncuestaSatisfaccionRepository encuestaSatisfaccionRepository;
+  private final RenovacionRepository renovacionRepository;
   private final EmpresaService empresaService;
   private final HealthScoreService healthScoreService;
   private final CuentaPortalService cuentaPortalService;
 
-  /** DTO inmutable con las métricas del panel de clientes. */
-  @Getter
-  @Builder
-  public static class MetricasClientes {
-    /** Número total de clientes activos de la empresa. */
-    private long totalClientes;
-
-    /** Clientes con Health Score &ge; 70 (estado {@code SALUDABLE}). */
-    private long saludables;
-
-    /** Clientes con Health Score entre 50 y 69 (estado {@code OBSERVACION}). */
-    private long enObservacion;
-
-    /** Clientes con Health Score &lt; 50 (estado {@code EN_RIESGO}). */
-    private long enRiesgo;
-  }
-
-  /** DTO inmutable con los KPIs de la Vista 360° de un cliente. */
-  @Getter
-  @Builder
-  public static class KpisCliente360 {
-    /** CSAT promedio del cliente (escala 1-5). */
-    private double csat;
-
-    /** Tickets activos (no cerrados ni resueltos). */
-    private long ticketsAbiertos;
-
-    /** Tickets con prioridad {@code CRITICA} no cerrados. */
-    private long ticketsCriticos;
-
-    /** Días restantes hasta la próxima renovación de contrato. */
-    private long diasParaRenovacion;
-  }
-
-  /**
-   * Calcula las métricas agregadas del panel de clientes para la empresa indicada.
-   *
-   * @param empresaId identificador de la empresa
-   * @return {@link MetricasClientes} con conteos por estado de salud
-   */
-  public record ResultadoCreacionCliente(
-      Cliente cliente, CuentaPortalService.CredencialesTemporales credencialesPortal) {}
-
-  public record ResultadoContacto(
-      Contacto contacto, CuentaPortalService.CredencialesTemporales credencialesPortal) {}
 
   @Transactional(readOnly = true)
   public MetricasClientes obtenerMetricas(Long empresaId) {
-    List<Cliente> todos = clienteDAO.findByEmpresaId(empresaId);
+    List<Cliente> todos = clienteRepository.findByEmpresaId(empresaId);
     long total = todos.size();
     long saludables =
         todos.stream().filter(c -> c.getEstadoSalud() == EstadoCliente.SALUDABLE).count();
@@ -154,7 +113,7 @@ public class ClienteService {
   @Transactional(readOnly = true)
   public Page<Cliente> listarClientes(
       Long empresaId, String busqueda, EstadoCliente estado, Pageable pageable) {
-    Page<Cliente> page = clienteDAO.buscarConFiltros(empresaId, busqueda, pageable);
+    Page<Cliente> page = clienteRepository.buscarConFiltros(empresaId, busqueda, pageable);
     if (estado != null) {
       List<Cliente> filtered =
           page.getContent().stream()
@@ -218,19 +177,19 @@ public class ClienteService {
 
   @Transactional(readOnly = true)
   public List<Cliente> listarTodosPorEmpresa(Long empresaId) {
-    return clienteDAO.findByEmpresaId(empresaId);
+    return clienteRepository.findByEmpresaId(empresaId);
   }
 
   @Transactional(readOnly = true)
   public Cliente obtenerPorId(Long id) {
-    return clienteDAO
+    return clienteRepository
         .findById(id)
         .orElseThrow(() -> new IllegalArgumentException("Cliente no encontrado con id: " + id));
   }
 
   @Transactional(readOnly = true)
   public Cliente obtenerPorIdYEmpresa(Long id, Long empresaId) {
-    return clienteDAO
+    return clienteRepository
         .findByIdAndEmpresaId(id, empresaId)
         .orElseThrow(
             () -> {
@@ -242,9 +201,9 @@ public class ClienteService {
 
   @Transactional(readOnly = true)
   public KpisCliente360 obtenerKpisCliente360(Cliente cliente) {
-    long abiertos = ticketDAO.countByClienteIdAndEstadoNot(cliente.getId(), EstadoTicket.CERRADO);
+    long abiertos = ticketRepository.countByClienteIdAndEstadoNot(cliente.getId(), EstadoTicket.CERRADO);
     long criticos =
-        ticketDAO.countByClienteIdAndPrioridadAndEstadoNot(
+        ticketRepository.countByClienteIdAndPrioridadAndEstadoNot(
             cliente.getId(), PrioridadTicket.CRITICA, EstadoTicket.CERRADO);
 
     return KpisCliente360.builder()
@@ -258,7 +217,7 @@ public class ClienteService {
   @Transactional
   public ResultadoCreacionCliente crearCliente(Long empresaId, ClienteDto dto) {
     Empresa empresa = empresaService.obtenerPorId(empresaId);
-    if (clienteDAO.findByEmpresaIdAndRuc(empresaId, dto.getRuc()).isPresent()) {
+    if (clienteRepository.findByEmpresaIdAndRuc(empresaId, dto.getRuc()).isPresent()) {
       log.warn(
           "Registro de cliente rechazado por RUC duplicado. empresaId={}, ruc={}",
           empresaId,
@@ -268,7 +227,7 @@ public class ClienteService {
     }
     Usuario responsable = null;
     if (dto.getResponsableId() != null) {
-      responsable = usuarioDAO.findById(dto.getResponsableId()).orElse(null);
+      responsable = usuarioRepository.findById(dto.getResponsableId()).orElse(null);
       if (responsable != null
           && (responsable.getEmpresa() == null
               || !empresaId.equals(responsable.getEmpresa().getId()))) {
@@ -293,7 +252,7 @@ public class ClienteService {
             .logoUrl(dto.getLogoUrl())
             .build();
 
-    Cliente guardado = clienteDAO.save(cliente);
+    Cliente guardado = clienteRepository.save(cliente);
     log.info(
         "Cliente creado correctamente. clienteId={}, empresaId={}", guardado.getId(), empresaId);
 
@@ -304,12 +263,12 @@ public class ClienteService {
             : "Plan SaaS Cloud";
 
     Servicio servicio =
-        servicioDAO.findByEmpresaId(empresaId).stream()
+        servicioRepository.findByEmpresaId(empresaId).stream()
             .filter(s -> s.getNombre().equalsIgnoreCase(nombreServicio))
             .findFirst()
             .orElseGet(
                 () ->
-                    servicioDAO.save(
+                    servicioRepository.save(
                         Servicio.builder()
                             .empresa(empresa)
                             .nombre(nombreServicio)
@@ -330,7 +289,7 @@ public class ClienteService {
             .fechaFin(fechaFin)
             .estado(EstadoServicioCliente.ACTIVO)
             .build();
-    clienteServicioDAO.save(cs);
+    clienteServicioRepository.save(cs);
 
     CuentaPortalService.CredencialesTemporales credencialesPortal = null;
 
@@ -350,7 +309,7 @@ public class ClienteService {
               .esContactoPrincipal(true)
               .estado("ACTIVO")
               .build();
-      contactoDAO.save(contacto);
+      contactoRepository.save(contacto);
       guardado.getContactos().add(contacto);
       credencialesPortal = cuentaPortalService.activarOCrearCuenta(contacto);
     }
@@ -372,7 +331,7 @@ public class ClienteService {
             .puntajeActividad(new BigDecimal("15.00"))
             .puntajeRenovacion(new BigDecimal("25.00"))
             .build();
-    healthScoreHistorialDAO.save(hsh);
+    healthScoreHistorialRepository.save(hsh);
 
     healthScoreService.recalcularYActualizarHealthScore(guardado);
 
@@ -385,7 +344,7 @@ public class ClienteService {
 
     Usuario responsable = null;
     if (dto.getResponsableId() != null) {
-      responsable = usuarioDAO.findById(dto.getResponsableId()).orElse(null);
+      responsable = usuarioRepository.findById(dto.getResponsableId()).orElse(null);
       if (responsable != null
           && (responsable.getEmpresa() == null
               || !empresaId.equals(responsable.getEmpresa().getId()))) {
@@ -412,12 +371,12 @@ public class ClienteService {
       String nombreServicio = dto.getServicioContratado();
 
       Servicio servicio =
-          servicioDAO.findByEmpresaId(empresaId).stream()
+          servicioRepository.findByEmpresaId(empresaId).stream()
               .filter(s -> s.getNombre().equalsIgnoreCase(nombreServicio))
               .findFirst()
               .orElseGet(
                   () ->
-                      servicioDAO.save(
+                      servicioRepository.save(
                           Servicio.builder()
                               .empresa(empresa)
                               .nombre(nombreServicio)
@@ -427,13 +386,13 @@ public class ClienteService {
                               .build()));
 
       // Actualizar o crear ClienteServicio
-      List<ClienteServicio> serviciosActuales = clienteServicioDAO.findByClienteId(id);
+      List<ClienteServicio> serviciosActuales = clienteServicioRepository.findByClienteId(id);
       if (!serviciosActuales.isEmpty()) {
         ClienteServicio cs = serviciosActuales.get(0);
         cs.setServicio(servicio);
         if (dto.getFechaInicio() != null) cs.setFechaInicio(dto.getFechaInicio());
         if (dto.getFechaRenovacion() != null) cs.setFechaFin(dto.getFechaRenovacion());
-        clienteServicioDAO.save(cs);
+        clienteServicioRepository.save(cs);
       } else {
         LocalDate fechaIni = dto.getFechaInicio() != null ? dto.getFechaInicio() : LocalDate.now();
         LocalDate fechaFin =
@@ -448,17 +407,17 @@ public class ClienteService {
                 .fechaFin(fechaFin)
                 .estado(EstadoServicioCliente.ACTIVO)
                 .build();
-        clienteServicioDAO.save(cs);
+        clienteServicioRepository.save(cs);
       }
     }
 
-    return clienteDAO.save(cliente);
+    return clienteRepository.save(cliente);
   }
 
   @Transactional
   public void eliminarCliente(Long id, Long empresaId) {
     Cliente cliente = obtenerPorIdYEmpresa(id, empresaId);
-    clienteDAO.delete(cliente);
+    clienteRepository.delete(cliente);
   }
 
   @Transactional(readOnly = true)
@@ -487,7 +446,7 @@ public class ClienteService {
 
   @Transactional(readOnly = true)
   public List<ClienteServicio> obtenerServiciosPorCliente(Long clienteId) {
-    return clienteServicioDAO.findByClienteId(clienteId);
+    return clienteServicioRepository.findByClienteId(clienteId);
   }
 
   @Transactional
@@ -497,7 +456,7 @@ public class ClienteService {
     Cliente cliente = obtenerPorId(clienteId);
 
     List<Contacto> activos =
-        contactoDAO.findByClienteId(clienteId).stream()
+        contactoRepository.findByClienteId(clienteId).stream()
             .filter(c -> "ACTIVO".equalsIgnoreCase(c.getEstado()))
             .toList();
 
@@ -511,7 +470,7 @@ public class ClienteService {
 
     contacto.setEsContactoPrincipal(seraPrincipal);
 
-    Contacto guardado = contactoDAO.save(contacto);
+    Contacto guardado = contactoRepository.save(contacto);
 
     CuentaPortalService.CredencialesTemporales credenciales = null;
 
@@ -526,7 +485,7 @@ public class ClienteService {
   public Contacto actualizarContacto(Long clienteId, Long contactoId, Contacto datosContacto) {
 
     Contacto contacto =
-        contactoDAO
+        contactoRepository
             .findById(contactoId)
             .orElseThrow(() -> new IllegalArgumentException("Contacto no encontrado."));
 
@@ -557,7 +516,7 @@ public class ClienteService {
     contacto.setTelefono(
         datosContacto.getTelefono() != null ? datosContacto.getTelefono().trim() : null);
 
-    Contacto actualizado = contactoDAO.save(contacto);
+    Contacto actualizado = contactoRepository.save(contacto);
 
     /*
      * Si este contacto alguna vez tuvo una CuentaPortal,
@@ -575,14 +534,14 @@ public class ClienteService {
 
   @Transactional(readOnly = true)
   public List<Contacto> obtenerContactosActivos(Long clienteId) {
-    return contactoDAO.findByClienteId(clienteId).stream()
+    return contactoRepository.findByClienteId(clienteId).stream()
         .filter(c -> "ACTIVO".equalsIgnoreCase(c.getEstado()))
         .toList();
   }
 
   @Transactional(readOnly = true)
   public List<Contacto> obtenerContactosInactivos(Long clienteId) {
-    return contactoDAO.findByClienteId(clienteId).stream()
+    return contactoRepository.findByClienteId(clienteId).stream()
         .filter(c -> "INACTIVO".equalsIgnoreCase(c.getEstado()))
         .toList();
   }
@@ -591,7 +550,7 @@ public class ClienteService {
   public CuentaPortalService.CredencialesTemporales establecerContactoPrincipal(
       Long clienteId, Long contactoId) {
 
-    List<Contacto> contactos = contactoDAO.findByClienteId(clienteId);
+    List<Contacto> contactos = contactoRepository.findByClienteId(clienteId);
 
     Contacto nuevoPrincipal =
         contactos.stream()
@@ -619,7 +578,7 @@ public class ClienteService {
       }
 
       contacto.setEsContactoPrincipal(seraPrincipal);
-      contactoDAO.save(contacto);
+      contactoRepository.save(contacto);
     }
 
     return cuentaPortalService.activarOCrearCuenta(nuevoPrincipal);
@@ -628,7 +587,7 @@ public class ClienteService {
   @Transactional
   public void desactivarContacto(Long clienteId, Long contactoId) {
     Contacto contacto =
-        contactoDAO
+        contactoRepository
             .findById(contactoId)
             .orElseThrow(() -> new IllegalArgumentException("Contacto no encontrado."));
 
@@ -641,7 +600,7 @@ public class ClienteService {
     }
 
     List<Contacto> otrosActivos =
-        contactoDAO.findByClienteId(clienteId).stream()
+        contactoRepository.findByClienteId(clienteId).stream()
             .filter(c -> "ACTIVO".equalsIgnoreCase(c.getEstado()))
             .filter(c -> !c.getId().equals(contactoId))
             .toList();
@@ -659,7 +618,7 @@ public class ClienteService {
     contacto.setEstado("INACTIVO");
     contacto.setEsContactoPrincipal(false);
 
-    contactoDAO.save(contacto);
+    contactoRepository.save(contacto);
     cuentaPortalService.desactivarCuenta(contactoId);
   }
 
@@ -668,7 +627,7 @@ public class ClienteService {
       Long clienteId, Long contactoId) {
 
     Contacto contacto =
-        contactoDAO
+        contactoRepository
             .findById(contactoId)
             .orElseThrow(() -> new IllegalArgumentException("Contacto no encontrado."));
 
@@ -677,7 +636,7 @@ public class ClienteService {
     }
 
     boolean existePrincipal =
-        contactoDAO.findByClienteId(clienteId).stream()
+        contactoRepository.findByClienteId(clienteId).stream()
             .filter(c -> !c.getId().equals(contactoId))
             .filter(c -> "ACTIVO".equalsIgnoreCase(c.getEstado()))
             .anyMatch(c -> Boolean.TRUE.equals(c.getEsPrincipal()));
@@ -688,7 +647,7 @@ public class ClienteService {
 
     contacto.setEsContactoPrincipal(seraPrincipal);
 
-    contactoDAO.save(contacto);
+    contactoRepository.save(contacto);
 
     if (seraPrincipal) {
       return cuentaPortalService.activarOCrearCuenta(contacto);
@@ -702,7 +661,7 @@ public class ClienteService {
       Long clienteId, Long contactoId) {
 
     Contacto contacto =
-        contactoDAO
+        contactoRepository
             .findById(contactoId)
             .orElseThrow(() -> new IllegalArgumentException("Contacto no encontrado."));
 
@@ -720,5 +679,17 @@ public class ClienteService {
     }
 
     return cuentaPortalService.activarOCrearCuenta(contacto);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<EncuestaSatisfaccion> obtenerEncuestasPorCliente(Long clienteId) {
+    return encuestaSatisfaccionRepository.findByClienteId(clienteId);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<Renovacion> obtenerRenovacionesPorCliente(Long clienteId) {
+    return renovacionRepository.findByClienteId(clienteId);
   }
 }

@@ -1,12 +1,12 @@
 package com.serviclient.crm.service;
 
 import com.google.common.base.Preconditions;
-import com.serviclient.crm.dao.ConfiguracionCsatDAO;
-import com.serviclient.crm.dao.ConfiguracionHealthScoreDAO;
-import com.serviclient.crm.dao.ConfiguracionSlaDAO;
-import com.serviclient.crm.dao.EmpresaDAO;
-import com.serviclient.crm.dao.RolDAO;
-import com.serviclient.crm.dao.UsuarioDAO;
+import com.serviclient.crm.repository.ConfiguracionCsatRepository;
+import com.serviclient.crm.repository.ConfiguracionHealthScoreRepository;
+import com.serviclient.crm.repository.ConfiguracionSlaRepository;
+import com.serviclient.crm.repository.EmpresaRepository;
+import com.serviclient.crm.repository.RolRepository;
+import com.serviclient.crm.repository.UsuarioRepository;
 import com.serviclient.crm.dto.RegistroEmpresaDto;
 import com.serviclient.crm.entity.*;
 import com.serviclient.crm.entity.enums.PrioridadTicket;
@@ -20,14 +20,14 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class EmpresaService {
+public class EmpresaService implements IEmpresaService {
 
-  private final EmpresaDAO empresaDAO;
-  private final RolDAO rolDAO;
-  private final UsuarioDAO usuarioDAO;
-  private final ConfiguracionSlaDAO configuracionSlaDAO;
-  private final ConfiguracionCsatDAO configuracionCsatDAO;
-  private final ConfiguracionHealthScoreDAO configuracionHealthScoreDAO;
+  private final EmpresaRepository empresaRepository;
+  private final RolRepository rolRepository;
+  private final UsuarioRepository usuarioRepository;
+  private final ConfiguracionSlaRepository configuracionSlaRepository;
+  private final ConfiguracionCsatRepository configuracionCsatRepository;
+  private final ConfiguracionHealthScoreRepository configuracionHealthScoreRepository;
   private final PasswordEncoder passwordEncoder;
 
   @Transactional
@@ -47,7 +47,7 @@ public class EmpresaService {
         "La contraseña del administrador es obligatoria");
 
 
-    if (usuarioDAO.existsByEmail(dto.getAdminEmail())) {
+    if (usuarioRepository.existsByEmail(dto.getAdminEmail())) {
       log.warn("Registro de empresa rechazado: correo de administrador ya registrado");
       throw new IllegalArgumentException(
           "Ya existe un usuario registrado con el correo: " + dto.getAdminEmail());
@@ -70,11 +70,11 @@ public class EmpresaService {
             .estado("ACTIVA")
             .build();
 
-    Empresa empresaGuardada = empresaDAO.save(empresa);
+    Empresa empresaGuardada = empresaRepository.save(empresa);
 
     // 2. Obtener el rol global Administrador
     RolEntity rolAdmin =
-        rolDAO
+        rolRepository
             .findByNombre("Administrador")
             .orElseThrow(
                 () ->
@@ -86,7 +86,7 @@ public class EmpresaService {
         dto.getSlaPrimerRespuestaHoras() != null ? dto.getSlaPrimerRespuestaHoras() * 60 : 120;
     int slaResol = dto.getSlaResolucionHoras() != null ? dto.getSlaResolucionHoras() * 60 : 1440;
 
-    configuracionSlaDAO.save(
+    configuracionSlaRepository.save(
         ConfiguracionSla.builder()
             .empresa(empresaGuardada)
             .prioridad(PrioridadTicket.CRITICA)
@@ -95,7 +95,7 @@ public class EmpresaService {
             .estado("ACTIVO")
             .build());
 
-    configuracionSlaDAO.save(
+    configuracionSlaRepository.save(
         ConfiguracionSla.builder()
             .empresa(empresaGuardada)
             .prioridad(PrioridadTicket.ALTA)
@@ -104,7 +104,7 @@ public class EmpresaService {
             .estado("ACTIVO")
             .build());
 
-    configuracionSlaDAO.save(
+    configuracionSlaRepository.save(
         ConfiguracionSla.builder()
             .empresa(empresaGuardada)
             .prioridad(PrioridadTicket.MEDIA)
@@ -113,7 +113,7 @@ public class EmpresaService {
             .estado("ACTIVO")
             .build());
 
-    configuracionSlaDAO.save(
+    configuracionSlaRepository.save(
         ConfiguracionSla.builder()
             .empresa(empresaGuardada)
             .prioridad(PrioridadTicket.BAJA)
@@ -122,7 +122,7 @@ public class EmpresaService {
             .estado("ACTIVO")
             .build());
 
-    configuracionCsatDAO.save(
+    configuracionCsatRepository.save(
         ConfiguracionCsat.builder()
             .empresa(empresaGuardada)
             .activo(dto.getActivarCsat() != null ? dto.getActivarCsat() : true)
@@ -131,7 +131,7 @@ public class EmpresaService {
             .pregunta("¿Qué tan satisfecho estás con la atención recibida?")
             .build());
 
-    configuracionHealthScoreDAO.save(
+    configuracionHealthScoreRepository.save(
         ConfiguracionHealthScore.builder()
             .empresa(empresaGuardada)
             .pesoTickets(new BigDecimal("30.00"))
@@ -157,7 +157,7 @@ public class EmpresaService {
             .estado("ACTIVO")
             .build();
 
-    usuarioDAO.save(admin);
+    usuarioRepository.save(admin);
 
     log.info(
     "Empresa registrada correctamente. empresaId={}",
@@ -166,10 +166,18 @@ public class EmpresaService {
     return empresaGuardada;
   }
 
+  @Override
   @Transactional(readOnly = true)
   public Empresa obtenerPorId(Long id) {
-    return empresaDAO
+    return empresaRepository
         .findById(id)
         .orElseThrow(() -> new IllegalArgumentException("Empresa no encontrada con id: " + id));
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Empresa obtenerPrimera() {
+    return empresaRepository.findFirstByOrderByIdAsc()
+        .orElseThrow(() -> new IllegalStateException("No existe ninguna empresa registrada."));
   }
 }

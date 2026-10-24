@@ -4,7 +4,7 @@ import com.serviclient.crm.dto.PortalTicketDto;
 import com.serviclient.crm.entity.Ticket;
 import com.serviclient.crm.entity.enums.CategoriaTicket;
 import com.serviclient.crm.entity.enums.PrioridadTicket;
-import com.serviclient.crm.service.TicketService;
+import com.serviclient.crm.service.ITicketService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequiredArgsConstructor
 public class PortalTicketController {
 
-  private final TicketService ticketService;
+  private final ITicketService ticketService;
 
   @GetMapping("/nuevo")
   public String nuevaIncidencia(Model model) {

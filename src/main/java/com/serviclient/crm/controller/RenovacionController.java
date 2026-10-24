@@ -5,8 +5,9 @@ import com.serviclient.crm.dto.TicketMensajeDto;
 import com.serviclient.crm.entity.Renovacion;
 import com.serviclient.crm.entity.Usuario;
 import com.serviclient.crm.entity.enums.EstadoRenovacion;
-import com.serviclient.crm.service.RenovacionService;
-import com.serviclient.crm.service.UsuarioService;
+import com.serviclient.crm.service.IRenovacionService;
+import com.serviclient.crm.service.IRenovacionService.MetricasRenovaciones;
+import com.serviclient.crm.service.IUsuarioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -41,7 +42,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
  *
  * @author ServiClient Dev Team
  * @version 1.0.0
- * @see com.serviclient.crm.service.RenovacionService
+ * @see com.serviclient.crm.service.IRenovacionService
  */
 @Controller
 @RequestMapping("/renovaciones")
@@ -54,8 +55,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
             + " comerciales")
 public class RenovacionController {
 
-  private final RenovacionService renovacionService;
-  private final UsuarioService usuarioService;
+  private final IRenovacionService renovacionService;
+  private final IUsuarioService usuarioService;
 
   /**
    * Muestra el panel de renovaciones con métricas, listado de renovaciones próximas a vencer y el
@@ -82,7 +83,7 @@ public class RenovacionController {
 
     Long empresaId = resolverEmpresaId(userDetails);
 
-    RenovacionService.MetricasRenovaciones metricas = renovacionService.obtenerMetricas(empresaId);
+    MetricasRenovaciones metricas = renovacionService.obtenerMetricas(empresaId);
 
     List<Renovacion> renovaciones =
         renovacionService.listarProximasRenovaciones(empresaId, busqueda, estado);

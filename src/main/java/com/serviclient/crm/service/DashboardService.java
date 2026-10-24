@@ -1,11 +1,11 @@
 package com.serviclient.crm.service;
 
-import com.serviclient.crm.dao.ClienteDAO;
-import com.serviclient.crm.dao.EncuestaCsatDAO;
-import com.serviclient.crm.dao.RenovacionDAO;
-import com.serviclient.crm.dao.TicketDAO;
-import com.serviclient.crm.dao.AuditoriaDAO;
-import com.serviclient.crm.dao.TicketHistorialDAO;
+import com.serviclient.crm.repository.ClienteRepository;
+import com.serviclient.crm.repository.EncuestaCsatRepository;
+import com.serviclient.crm.repository.RenovacionRepository;
+import com.serviclient.crm.repository.TicketRepository;
+import com.serviclient.crm.repository.AuditoriaRepository;
+import com.serviclient.crm.repository.TicketHistorialRepository;
 import com.serviclient.crm.dto.DashboardDto;
 import com.serviclient.crm.dto.DashboardDto.ActividadItemDto;
 import com.serviclient.crm.dto.DashboardDto.AlertaItemDto;
@@ -41,14 +41,14 @@ import java.util.Locale;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class DashboardService {
+public class DashboardService implements IDashboardService {
 
-    private final ClienteDAO clienteDAO;
-    private final TicketDAO ticketDAO;
-    private final RenovacionDAO renovacionDAO;
-    private final EncuestaCsatDAO encuestaCsatDAO;
-    private final AuditoriaDAO auditoriaDAO;
-    private final TicketHistorialDAO ticketHistorialDAO;
+    private final ClienteRepository clienteRepository;
+    private final TicketRepository ticketRepository;
+    private final RenovacionRepository renovacionRepository;
+    private final EncuestaCsatRepository encuestaCsatRepository;
+    private final AuditoriaRepository auditoriaRepository;
+    private final TicketHistorialRepository ticketHistorialRepository;
 
     /**
      * Obtiene el DTO completo con todas las métricas del Dashboard para una empresa.
@@ -71,7 +71,7 @@ public class DashboardService {
         LocalDateTime ahora = LocalDateTime.now();
 
         // 1. Clientes y Salud
-        List<Cliente> clientes = clienteDAO.findByEmpresaId(empresaId);
+        List<Cliente> clientes = clienteRepository.findByEmpresaId(empresaId);
         long totalClientes = clientes.size();
         
         long saludables = 0;
@@ -109,7 +109,7 @@ public class DashboardService {
         double riesgoPct = totalClientes > 0 ? (enRiesgo * 100.0 / totalClientes) : 0.0;
 
         // 2. Tickets y Estados
-        List<Ticket> tickets = ticketDAO.findByEmpresaId(empresaId);
+        List<Ticket> tickets = ticketRepository.findByEmpresaId(empresaId);
         long ticketsAbiertos = 0;
         long ticketsEnProceso = 0;
         long ticketsPendientes = 0;
@@ -145,7 +145,7 @@ public class DashboardService {
         }
 
         // 3. Satisfacción CSAT
-        List<EncuestaCsat> encuestas = encuestaCsatDAO.findByEmpresaId(empresaId);
+        List<EncuestaCsat> encuestas = encuestaCsatRepository.findByEmpresaId(empresaId);
         long encuestasRespondidas = 0;
         long encuestasPendientes = 0;
         long bajaSatisfaccionCount = 0;
@@ -184,7 +184,7 @@ public class DashboardService {
                                    csatPromedio >= 3.0 ? "Calificación aceptable" : "Requiere atención";
 
         // 4. Renovaciones
-        List<Renovacion> renovaciones = renovacionDAO.findByEmpresaIdOrderByFechaVencimientoAsc(empresaId);
+        List<Renovacion> renovaciones = renovacionRepository.findByEmpresaIdOrderByFechaVencimientoAsc(empresaId);
         
         long menor30 = 0;
         long entre31y90 = 0;
@@ -365,7 +365,7 @@ public class DashboardService {
 
         // 6. Actividad Reciente
         List<ActividadItemDto> actividad = new ArrayList<>();
-        List<Auditoria> logs = auditoriaDAO.findByEmpresaIdOrderByCreatedAtDesc(empresaId);
+        List<Auditoria> logs = auditoriaRepository.findByEmpresaIdOrderByCreatedAtDesc(empresaId);
         
         if (!logs.isEmpty()) {
             for (int i = 0; i < Math.min(logs.size(), 5); i++) {

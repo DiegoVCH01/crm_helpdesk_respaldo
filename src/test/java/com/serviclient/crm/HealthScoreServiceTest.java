@@ -4,10 +4,10 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-import com.serviclient.crm.dao.ClienteDAO;
-import com.serviclient.crm.dao.EncuestaSatisfaccionDAO;
-import com.serviclient.crm.dao.HealthScoreHistorialDAO;
-import com.serviclient.crm.dao.TicketDAO;
+import com.serviclient.crm.repository.ClienteRepository;
+import com.serviclient.crm.repository.EncuestaSatisfaccionRepository;
+import com.serviclient.crm.repository.HealthScoreHistorialRepository;
+import com.serviclient.crm.repository.TicketRepository;
 import com.serviclient.crm.entity.Cliente;
 import com.serviclient.crm.entity.Empresa;
 import com.serviclient.crm.entity.enums.EstadoCliente;
@@ -26,13 +26,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class HealthScoreServiceTest {
 
-  @Mock private TicketDAO ticketDAO;
+  @Mock private TicketRepository ticketRepository;
 
-  @Mock private ClienteDAO clienteDAO;
+  @Mock private ClienteRepository clienteRepository;
 
-  @Mock private EncuestaSatisfaccionDAO encuestaSatisfaccionDAO;
+  @Mock private EncuestaSatisfaccionRepository encuestaSatisfaccionRepository;
 
-  @Mock private HealthScoreHistorialDAO healthScoreHistorialDAO;
+  @Mock private HealthScoreHistorialRepository healthScoreHistorialRepository;
 
   @InjectMocks private HealthScoreService healthScoreService;
 
@@ -60,12 +60,12 @@ class HealthScoreServiceTest {
   @Test
   void testRecalcularHealthScoreEnRiesgo() {
     // Mock: 3 tickets abiertos, 2 de ellos críticos
-    when(ticketDAO.countByClienteIdAndEstadoNot(eq(10L), eq(EstadoTicket.CERRADO))).thenReturn(3L);
-    when(ticketDAO.countByClienteIdAndPrioridadAndEstadoNot(
+    when(ticketRepository.countByClienteIdAndEstadoNot(eq(10L), eq(EstadoTicket.CERRADO))).thenReturn(3L);
+    when(ticketRepository.countByClienteIdAndPrioridadAndEstadoNot(
             eq(10L), eq(PrioridadTicket.CRITICA), eq(EstadoTicket.CERRADO)))
         .thenReturn(2L);
     // Mock: CSAT bajo de 2.5
-    when(encuestaSatisfaccionDAO.obtenerPromedioCsatPorCliente(10L))
+    when(encuestaSatisfaccionRepository.obtenerPromedioCsatPorCliente(10L))
         .thenReturn(2.5);
 
     int score = healthScoreService.recalcularYActualizarHealthScore(cliente);
@@ -77,7 +77,7 @@ class HealthScoreServiceTest {
 
   @Test
   void testFactoresDeRiesgoDetectados() {
-    when(ticketDAO.countByClienteIdAndPrioridadAndEstadoNot(
+    when(ticketRepository.countByClienteIdAndPrioridadAndEstadoNot(
             eq(10L), eq(PrioridadTicket.CRITICA), eq(EstadoTicket.CERRADO)))
         .thenReturn(1L);
 

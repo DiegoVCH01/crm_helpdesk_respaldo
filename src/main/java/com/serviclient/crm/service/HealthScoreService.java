@@ -1,9 +1,9 @@
 package com.serviclient.crm.service;
 
-import com.serviclient.crm.dao.ClienteDAO;
-import com.serviclient.crm.dao.EncuestaSatisfaccionDAO;
-import com.serviclient.crm.dao.HealthScoreHistorialDAO;
-import com.serviclient.crm.dao.TicketDAO;
+import com.serviclient.crm.repository.ClienteRepository;
+import com.serviclient.crm.repository.EncuestaSatisfaccionRepository;
+import com.serviclient.crm.repository.HealthScoreHistorialRepository;
+import com.serviclient.crm.repository.TicketRepository;
 import com.serviclient.crm.entity.Cliente;
 import com.serviclient.crm.entity.HealthScoreHistorial;
 import com.serviclient.crm.entity.enums.EstadoSaludCliente;
@@ -23,12 +23,12 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class HealthScoreService {
+public class HealthScoreService implements IHealthScoreService {
 
-  private final ClienteDAO clienteDAO;
-  private final TicketDAO ticketDAO;
-  private final EncuestaSatisfaccionDAO encuestaSatisfaccionDAO;
-  private final HealthScoreHistorialDAO healthScoreHistorialDAO;
+  private final ClienteRepository clienteRepository;
+  private final TicketRepository ticketRepository;
+  private final EncuestaSatisfaccionRepository encuestaSatisfaccionRepository;
+  private final HealthScoreHistorialRepository healthScoreHistorialRepository;
 
   @Getter
   @Builder
@@ -46,21 +46,21 @@ public class HealthScoreService {
 
     // 1. Descuento por tickets abiertos
     long ticketsAbiertos =
-        ticketDAO.countByClienteIdAndEstadoNot(cliente.getId(), EstadoTicket.CERRADO);
+        ticketRepository.countByClienteIdAndEstadoNot(cliente.getId(), EstadoTicket.CERRADO);
     if (ticketsAbiertos > 0) {
       puntaje -= (int) (ticketsAbiertos * 5);
     }
 
     // 2. Descuento por tickets críticos
     long ticketsCriticos =
-        ticketDAO.countByClienteIdAndPrioridadAndEstadoNot(
+        ticketRepository.countByClienteIdAndPrioridadAndEstadoNot(
             cliente.getId(), PrioridadTicket.CRITICA, EstadoTicket.CERRADO);
     if (ticketsCriticos > 0) {
       puntaje -= (int) (ticketsCriticos * 15);
     }
 
     // 3. Ajuste por CSAT
-    Double csatPromedio = encuestaSatisfaccionDAO.obtenerPromedioCsatPorCliente(cliente.getId());
+    Double csatPromedio = encuestaSatisfaccionRepository.obtenerPromedioCsatPorCliente(cliente.getId());
     if (csatPromedio != null) {
       if (csatPromedio < 3.0) {
         puntaje -= 20;
@@ -86,19 +86,20 @@ public class HealthScoreService {
             .fechaCalculo(LocalDateTime.now())
             .build();
 
-    healthScoreHistorialDAO.save(historial);
+    healthScoreHistorialRepository.save(historial);
     cliente.setHealthScore(puntaje);
-    clienteDAO.save(cliente);
+    clienteRepository.save(cliente);
 
     return puntaje;
   }
 
+  @Override
   @Transactional(readOnly = true)
-  public List<FactorSalud> obtenerFactoresRiesgo(Cliente cliente) {
+  public List<FactorSalud> obtenerFactoresSalud(Cliente cliente) {
     List<FactorSalud> factores = new ArrayList<>();
 
     long ticketsCriticos =
-        ticketDAO.countByClienteIdAndPrioridadAndEstadoNot(
+        ticketRepository.countByClienteIdAndPrioridadAndEstadoNot(
             cliente.getId(), PrioridadTicket.CRITICA, EstadoTicket.CERRADO);
 
     if (ticketsCriticos > 0) {

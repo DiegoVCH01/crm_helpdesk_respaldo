@@ -1,6 +1,6 @@
 package com.serviclient.crm.service;
 
-import com.serviclient.crm.dao.CuentaPortalDAO;
+import com.serviclient.crm.repository.CuentaPortalRepository;
 import com.serviclient.crm.entity.Contacto;
 import com.serviclient.crm.entity.CuentaPortal;
 import java.security.SecureRandom;
@@ -14,9 +14,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class CuentaPortalService {
+public class CuentaPortalService implements ICuentaPortalService {
 
-  private final CuentaPortalDAO cuentaPortalDAO;
+  private final CuentaPortalRepository cuentaPortalRepository;
   private final PasswordEncoder passwordEncoder;
 
   private static final SecureRandom RANDOM = new SecureRandom();
@@ -35,7 +35,7 @@ public class CuentaPortalService {
     }
 
     // Evitar que otro contacto utilice el mismo usuario del portal.
-    cuentaPortalDAO
+    cuentaPortalRepository
         .findByEmail(contacto.getEmail())
         .filter(cuenta -> !cuenta.getContacto().getId().equals(contacto.getId()))
         .ifPresent(
@@ -47,7 +47,7 @@ public class CuentaPortalService {
     String passwordTemporal = generarPasswordTemporal();
 
     CuentaPortal cuenta =
-        cuentaPortalDAO
+        cuentaPortalRepository
             .findByContactoId(contacto.getId())
             .orElseGet(() -> CuentaPortal.builder().contacto(contacto).build());
 
@@ -56,7 +56,7 @@ public class CuentaPortalService {
     cuenta.setEstado("ACTIVO");
     cuenta.setRequiereCambioPassword(true);
 
-    cuentaPortalDAO.save(cuenta);
+    cuentaPortalRepository.save(cuenta);
 
     return new CredencialesTemporales(contacto.getEmail(), passwordTemporal);
   }
@@ -64,12 +64,12 @@ public class CuentaPortalService {
   @Transactional
   public void desactivarCuenta(Long contactoId) {
 
-    cuentaPortalDAO
+    cuentaPortalRepository
         .findByContactoId(contactoId)
         .ifPresent(
             cuenta -> {
               cuenta.setEstado("INACTIVO");
-              cuentaPortalDAO.save(cuenta);
+              cuentaPortalRepository.save(cuenta);
             });
   }
 
@@ -84,14 +84,14 @@ public class CuentaPortalService {
       throw new IllegalArgumentException("El correo del contacto no puede estar vacío.");
     }
 
-    cuentaPortalDAO
+    cuentaPortalRepository
         .findByContactoId(contacto.getId())
         .ifPresent(
             cuenta -> {
 
               // Verificar que el nuevo correo no pertenezca
               // a otra cuenta del portal.
-              cuentaPortalDAO
+              cuentaPortalRepository
                   .findByEmail(contacto.getEmail())
                   .filter(otraCuenta -> !otraCuenta.getId().equals(cuenta.getId()))
                   .ifPresent(
@@ -107,7 +107,7 @@ public class CuentaPortalService {
                * cambiar el correo NO cambia la contraseña
                * ni obliga a generar una nueva.
                */
-              cuentaPortalDAO.save(cuenta);
+              cuentaPortalRepository.save(cuenta);
             });
   }
 

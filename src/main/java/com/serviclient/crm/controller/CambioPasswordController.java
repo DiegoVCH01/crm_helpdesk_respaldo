@@ -1,7 +1,7 @@
 package com.serviclient.crm.controller;
 
 import com.serviclient.crm.config.security.CustomUserDetails;
-import com.serviclient.crm.service.UsuarioService;
+import com.serviclient.crm.service.IUsuarioService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
@@ -12,7 +12,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @RequiredArgsConstructor
 public class CambioPasswordController {
 
-  private final UsuarioService usuarioService;
+  private final IUsuarioService usuarioService;
 
   @GetMapping("/cambiar-password")
   public String redirigirLogin() {

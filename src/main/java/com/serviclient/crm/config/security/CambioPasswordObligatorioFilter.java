@@ -1,6 +1,6 @@
 package com.serviclient.crm.config.security;
 
-import com.serviclient.crm.dao.UsuarioDAO;
+import com.serviclient.crm.repository.UsuarioRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,10 +12,10 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 public class CambioPasswordObligatorioFilter extends OncePerRequestFilter {
 
-  private final UsuarioDAO usuarioDAO;
+  private final UsuarioRepository usuarioRepository;
 
-  public CambioPasswordObligatorioFilter(UsuarioDAO usuarioDAO) {
-    this.usuarioDAO = usuarioDAO;
+  public CambioPasswordObligatorioFilter(UsuarioRepository usuarioRepository) {
+    this.usuarioRepository = usuarioRepository;
   }
 
   @Override
@@ -30,7 +30,7 @@ public class CambioPasswordObligatorioFilter extends OncePerRequestFilter {
         && auth.getPrincipal() instanceof CustomUserDetails user) {
 
       boolean debeCambiar =
-          usuarioDAO
+          usuarioRepository
               .findById(user.getId())
               .map(u -> Boolean.TRUE.equals(u.getDebeCambiarPassword()))
               .orElse(false);

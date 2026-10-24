@@ -14,7 +14,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.http.HttpMethod;
-import com.serviclient.crm.dao.UsuarioDAO;
+import com.serviclient.crm.repository.UsuarioRepository;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
@@ -45,7 +45,7 @@ public class SecurityConfig {
   }
 
   @Bean
-  public SecurityFilterChain filterChain(HttpSecurity http, UsuarioDAO usuarioDAO) throws Exception {
+  public SecurityFilterChain filterChain(HttpSecurity http, UsuarioRepository usuarioRepository) throws Exception {
     http.csrf(csrf -> csrf.ignoringRequestMatchers("/h2-console/**"))
         .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.sameOrigin()))
         .authorizeHttpRequests(
@@ -121,7 +121,7 @@ public class SecurityConfig {
     http.authenticationProvider(authenticationProvider());
 
     http.addFilterAfter(
-        new CambioPasswordObligatorioFilter(usuarioDAO),
+        new CambioPasswordObligatorioFilter(usuarioRepository),
         UsernamePasswordAuthenticationFilter.class);
 
     return http.build();

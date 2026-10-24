@@ -9,9 +9,10 @@ import com.serviclient.crm.entity.Usuario;
 import com.serviclient.crm.entity.enums.CategoriaTicket;
 import com.serviclient.crm.entity.enums.EstadoTicket;
 import com.serviclient.crm.entity.enums.PrioridadTicket;
-import com.serviclient.crm.service.ClienteService;
-import com.serviclient.crm.service.TicketService;
-import com.serviclient.crm.service.UsuarioService;
+import com.serviclient.crm.service.IClienteService;
+import com.serviclient.crm.service.ITicketService;
+import com.serviclient.crm.service.ITicketService.MetricasTickets;
+import com.serviclient.crm.service.IUsuarioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -56,7 +57,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
  *
  * @author ServiClient Dev Team
  * @version 1.0.0
- * @see com.serviclient.crm.service.TicketService
+ * @see com.serviclient.crm.service.ITicketService
  */
 @Controller
 @RequestMapping("/tickets")
@@ -68,9 +69,9 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
         "Ciclo de vida de tickets: creación, asignación, mensajería, gestión de SLA y resolución")
 public class TicketController {
 
-  private final TicketService ticketService;
-  private final ClienteService clienteService;
-  private final UsuarioService usuarioService;
+  private final ITicketService ticketService;
+  private final IClienteService clienteService;
+  private final IUsuarioService usuarioService;
 
   /**
    * Lista los tickets de la empresa con soporte de búsqueda y filtros múltiples. Calcula KPIs de la
@@ -127,7 +128,7 @@ public class TicketController {
     Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
     Page<Ticket> ticketsPage =
         ticketService.listarTickets(empresaId, busqueda, estado, prioridad, categoria, pageable);
-    TicketService.MetricasTickets metricas = ticketService.obtenerMetricas(empresaId);
+    MetricasTickets metricas = ticketService.obtenerMetricas(empresaId);
 
     model.addAttribute("ticketsPage", ticketsPage);
     model.addAttribute("metricas", metricas);

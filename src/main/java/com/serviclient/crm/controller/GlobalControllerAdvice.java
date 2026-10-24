@@ -2,9 +2,7 @@ package com.serviclient.crm.controller;
 
 import com.serviclient.crm.config.security.CustomUserDetails;
 import com.serviclient.crm.entity.Empresa;
-import com.serviclient.crm.entity.Usuario;
-import com.serviclient.crm.dao.EmpresaDAO;
-import com.serviclient.crm.dao.UsuarioDAO;
+import com.serviclient.crm.service.IEmpresaService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -15,8 +13,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 @RequiredArgsConstructor
 public class GlobalControllerAdvice {
 
-    private final UsuarioDAO usuarioDAO;
-    private final EmpresaDAO empresaDAO;
+    private final IEmpresaService empresaService;
 
     @ModelAttribute("currentUser")
     public CustomUserDetails getCurrentUser(Authentication authentication) {
@@ -29,9 +26,9 @@ public class GlobalControllerAdvice {
     @ModelAttribute("currentEmpresa")
     public Empresa getCurrentEmpresa(Authentication authentication) {
         if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails userDetails && userDetails.getEmpresaId() != null) {
-            return empresaDAO.findById(userDetails.getEmpresaId()).orElse(null);
+            return empresaService.obtenerPorId(userDetails.getEmpresaId());
         }
-        return empresaDAO.findFirstByOrderByIdAsc().orElse(null);
+        return empresaService.obtenerPrimera();
     }
 
     @ModelAttribute("currentUri")

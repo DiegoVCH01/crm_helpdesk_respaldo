@@ -1,8 +1,6 @@
 package com.serviclient.crm.controller;
 
 import com.serviclient.crm.config.security.CustomUserDetails;
-import com.serviclient.crm.dao.EncuestaSatisfaccionDAO;
-import com.serviclient.crm.dao.RenovacionDAO;
 import com.serviclient.crm.dto.ClienteDto;
 import com.serviclient.crm.entity.Cliente;
 import com.serviclient.crm.entity.Contacto;
@@ -11,10 +9,15 @@ import com.serviclient.crm.entity.Renovacion;
 import com.serviclient.crm.entity.Usuario;
 import com.serviclient.crm.entity.enums.EstadoCliente;
 import com.serviclient.crm.entity.enums.Rol;
-import com.serviclient.crm.service.ClienteService;
-import com.serviclient.crm.service.CuentaPortalService;
-import com.serviclient.crm.service.HealthScoreService;
-import com.serviclient.crm.service.UsuarioService;
+import com.serviclient.crm.service.CuentaPortalService.CredencialesTemporales;
+import com.serviclient.crm.service.HealthScoreService.FactorSalud;
+import com.serviclient.crm.service.IClienteService;
+import com.serviclient.crm.service.IClienteService.KpisCliente360;
+import com.serviclient.crm.service.IClienteService.MetricasClientes;
+import com.serviclient.crm.service.IClienteService.ResultadoContacto;
+import com.serviclient.crm.service.IClienteService.ResultadoCreacionCliente;
+import com.serviclient.crm.service.IHealthScoreService;
+import com.serviclient.crm.service.IUsuarioService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -59,8 +62,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
  *
  * @author ServiClient Dev Team
  * @version 1.1.0
- * @see com.serviclient.crm.service.ClienteService
- * @see com.serviclient.crm.service.HealthScoreService
+ * @see com.serviclient.crm.service.IClienteService
+ * @see com.serviclient.crm.service.IHealthScoreService
  */
 @Controller
 @RequestMapping("/clientes")
@@ -68,11 +71,9 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @Slf4j
 public class ClienteController {
 
-  private final ClienteService clienteService;
-  private final HealthScoreService healthScoreService;
-  private final UsuarioService usuarioService;
-  private final EncuestaSatisfaccionDAO encuestaSatisfaccionDAO;
-  private final RenovacionDAO renovacionDAO;
+  private final IClienteService clienteService;
+  private final IHealthScoreService healthScoreService;
+  private final IUsuarioService usuarioService;
 
   // ─────────────────────────────────────────────────────────────────────────
   //  LISTADO
@@ -96,7 +97,7 @@ public class ClienteController {
     Pageable pageable = PageRequest.of(page, size, Sort.by("nombreComercial").ascending());
     Page<Cliente> clientesPage =
         clienteService.listarClientes(empresaId, busqueda, estado, pageable);
-    ClienteService.MetricasClientes metricas = clienteService.obtenerMetricas(empresaId);
+    MetricasClientes metricas = clienteService.obtenerMetricas(empresaId);
 
     model.addAttribute("clientesPage", clientesPage);
     model.addAttribute("metricas", metricas);
@@ -175,7 +176,7 @@ public class ClienteController {
     }
 
     try {
-      ClienteService.ResultadoCreacionCliente resultado =
+      ResultadoCreacionCliente resultado =
           clienteService.crearCliente(empresaId, dto);
       Cliente guardado = resultado.cliente();
       redirectAttributes.addFlashAttribute(
@@ -327,11 +328,11 @@ public class ClienteController {
     Long empresaId = resolverEmpresaId(userDetails);
     validarAccesoTabCliente360(userDetails, tab);
     Cliente cliente = clienteService.obtenerPorIdYEmpresa(id, empresaId);
-    ClienteService.KpisCliente360 kpis = clienteService.obtenerKpisCliente360(cliente);
-    List<HealthScoreService.FactorSalud> factores =
+    KpisCliente360 kpis = clienteService.obtenerKpisCliente360(cliente);
+    List<FactorSalud> factores =
         healthScoreService.obtenerFactoresRiesgo(cliente);
-    List<EncuestaSatisfaccion> encuestas = encuestaSatisfaccionDAO.findByClienteId(id);
-    List<Renovacion> renovaciones = renovacionDAO.findByClienteId(id);
+    List<EncuestaSatisfaccion> encuestas = clienteService.obtenerEncuestasPorCliente(id);
+    List<Renovacion> renovaciones = clienteService.obtenerRenovacionesPorCliente(id);
     List<Contacto> contactosActivos = clienteService.obtenerContactosActivos(id);
     List<Contacto> contactosInactivos = clienteService.obtenerContactosInactivos(id);
 
@@ -363,7 +364,7 @@ public class ClienteController {
 
     try {
       clienteService.obtenerPorIdYEmpresa(clienteId, empresaId);
-      ClienteService.ResultadoContacto resultado =
+      ResultadoContacto resultado =
           clienteService.agregarContacto(clienteId, contacto);
       if (resultado.credencialesPortal() != null) {
         redirectAttributes.addFlashAttribute("portalEmail", resultado.credencialesPortal().email());
@@ -413,7 +414,7 @@ public class ClienteController {
 
     try {
       clienteService.obtenerPorIdYEmpresa(clienteId, empresaId);
-      CuentaPortalService.CredencialesTemporales credenciales =
+      CredencialesTemporales credenciales =
           clienteService.establecerContactoPrincipal(clienteId, contactoId);
 
       if (credenciales != null) {
@@ -463,7 +464,7 @@ public class ClienteController {
 
     try {
       clienteService.obtenerPorIdYEmpresa(clienteId, empresaId);
-      CuentaPortalService.CredencialesTemporales credenciales =
+      CredencialesTemporales credenciales =
           clienteService.reactivarContacto(clienteId, contactoId);
 
       if (credenciales != null) {
@@ -492,7 +493,7 @@ public class ClienteController {
     try {
       clienteService.obtenerPorIdYEmpresa(clienteId, empresaId);
 
-      CuentaPortalService.CredencialesTemporales credenciales =
+      CredencialesTemporales credenciales =
           clienteService.restablecerCredencialesPortal(clienteId, contactoId);
       redirectAttributes.addFlashAttribute(
           "successMessage", "Se generó una nueva contraseña temporal para el Portal Cliente.");

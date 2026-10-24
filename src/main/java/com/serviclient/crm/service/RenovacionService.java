@@ -1,7 +1,7 @@
 package com.serviclient.crm.service;
 
-import com.serviclient.crm.dao.RenovacionDAO;
-import com.serviclient.crm.dao.RenovacionSeguimientoDAO;
+import com.serviclient.crm.repository.RenovacionRepository;
+import com.serviclient.crm.repository.RenovacionSeguimientoRepository;
 import com.serviclient.crm.dto.TicketMensajeDto;
 import com.serviclient.crm.entity.Renovacion;
 import com.serviclient.crm.entity.RenovacionSeguimiento;
@@ -18,25 +18,15 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class RenovacionService {
+public class RenovacionService implements IRenovacionService {
 
-  private final RenovacionDAO renovacionDAO;
-  private final RenovacionSeguimientoDAO seguimientoDAO;
+  private final RenovacionRepository renovacionRepository;
+  private final RenovacionSeguimientoRepository seguimientoRepository;
   private final HealthScoreService healthScoreService;
 
-  @Getter
-  @Builder
-  public static class MetricasRenovaciones {
-    private long menosDe30Dias;
-    private long de31a90Dias;
-    private long masDe90Dias;
-    private long completadas;
-    private long noRealizadas;
-    private long clientesEnRiesgoProximos;
-  }
 
   public List<Renovacion> obtenerProximasRenovaciones() {
-    return renovacionDAO.findAll();
+    return renovacionRepository.findAll();
   }
 
   @Transactional(readOnly = true)
@@ -45,19 +35,16 @@ public class RenovacionService {
       return List.of();
     }
     // Usamos el nuevo método del DAO dinámico
-    return renovacionDAO.buscarConFiltros(empresaId, busqueda, estado);
+    return renovacionRepository.buscarConFiltros(empresaId, busqueda, estado);
   }
 
+  @Override
   @Transactional(readOnly = true)
-  public MetricasRenovaciones obtenerMetricas(Long empresaId) {
-    return calcularMetricas(empresaId);
-  }
-
-  private MetricasRenovaciones calcularMetricas(Long empresaId) {
+  public MetricasRenovaciones calcularMetricas(Long empresaId) {
     LocalDate hoy = LocalDate.now();
 
     List<Renovacion> todas =
-        empresaId != null ? renovacionDAO.findByEmpresaId(empresaId) : List.of();
+        empresaId != null ? renovacionRepository.findByEmpresaId(empresaId) : List.of();
 
     long menos30 =
         todas.stream()
@@ -101,15 +88,32 @@ public class RenovacionService {
         .build();
   }
 
+  @Override
   public Renovacion obtenerPorId(Long id) {
-    return renovacionDAO
+    return renovacionRepository
         .findById(id)
         .orElseThrow(() -> new RuntimeException("Renovación no encontrada con ID: " + id));
   }
 
   @Transactional
-  public Renovacion guardar(Renovacion renovacion) {
-    return renovacionDAO.save(renovacion);
+  public Renovacion actualizarEstado(Long id, EstadoRenovacion nuevoEstado, Usuario responsable) {
+    Renovacion renovacion = obtenerPorId(id);
+    renovacion.setEstado(nuevoEstado);
+    return renovacionRepository.save(renovacion);
+  }
+
+  @Override
+  @Transactional
+  public RenovacionSeguimiento agregarSeguimiento(Long renovacionId, String nota, Usuario responsable) {
+    Renovacion renovacion = obtenerPorId(renovacionId);
+    RenovacionSeguimiento seguimiento = RenovacionSeguimiento.builder()
+        .renovacion(renovacion)
+        .comentario(nota)
+        .usuario(responsable)
+        .estado(renovacion.getEstado())
+        .fecha(java.time.LocalDateTime.now())
+        .build();
+    return seguimientoRepository.save(seguimiento);
   }
 
   @Transactional
@@ -124,7 +128,7 @@ public class RenovacionService {
 
     if (dto.getEstado() != null) {
         renovacion.setEstado(dto.getEstado());
-        renovacionDAO.save(renovacion);
+        renovacionRepository.save(renovacion);
     }
 
     RenovacionSeguimiento seguimiento =
@@ -136,10 +140,10 @@ public class RenovacionService {
             .fecha(LocalDateTime.now())
             .build();
 
-    return seguimientoDAO.save(seguimiento);
+    return seguimientoRepository.save(seguimiento);
   }
 
   public List<RenovacionSeguimiento> obtenerSeguimientos(Long renovacionId) {
-    return seguimientoDAO.findByRenovacionIdOrderByFechaDesc(renovacionId);
+    return seguimientoRepository.findByRenovacionIdOrderByFechaDesc(renovacionId);
   }
 }

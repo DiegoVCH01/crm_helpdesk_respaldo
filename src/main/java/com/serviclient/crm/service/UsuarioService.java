@@ -1,9 +1,9 @@
 package com.serviclient.crm.service;
 
 import com.serviclient.crm.config.security.CustomUserDetails;
-import com.serviclient.crm.dao.EmpresaDAO;
-import com.serviclient.crm.dao.RolDAO;
-import com.serviclient.crm.dao.UsuarioDAO;
+import com.serviclient.crm.repository.EmpresaRepository;
+import com.serviclient.crm.repository.RolRepository;
+import com.serviclient.crm.repository.UsuarioRepository;
 import com.serviclient.crm.dto.AgenteDto;
 import com.serviclient.crm.dto.CredencialTemporalDto;
 import com.serviclient.crm.entity.Empresa;
@@ -22,11 +22,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class UsuarioService {
+public class UsuarioService implements IUsuarioService {
 
-    private final UsuarioDAO usuarioDAO;
-    private final EmpresaDAO empresaDAO;
-    private final RolDAO rolDAO;
+    private final UsuarioRepository usuarioRepository;
+    private final EmpresaRepository empresaRepository;
+    private final RolRepository rolRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Transactional(readOnly = true)
@@ -36,31 +36,34 @@ public class UsuarioService {
             return Optional.empty();
         }
         if (auth.getPrincipal() instanceof CustomUserDetails userDetails) {
-            return usuarioDAO.findById(userDetails.getId());
+            return usuarioRepository.findById(userDetails.getId());
         }
-        return usuarioDAO.findByEmail(auth.getName());
+        return usuarioRepository.findByEmail(auth.getName());
     }
 
     @Transactional(readOnly = true)
     public List<Usuario> obtenerAgentesYAdminsPorEmpresa(Long empresaId) {
-        return usuarioDAO.findByEmpresaId(empresaId);
+        return usuarioRepository.findByEmpresaId(empresaId);
     }
 
+    @Override
     @Transactional(readOnly = true)
     public List<Usuario> obtenerTodosPorEmpresa(Long empresaId) {
-        return usuarioDAO.findByEmpresaId(empresaId);
+        return usuarioRepository.findByEmpresaId(empresaId);
     }
 
+    @Override
     @Transactional(readOnly = true)
     public Usuario obtenerPorId(Long id) {
-    return usuarioDAO
+    return usuarioRepository
         .findById(id)
         .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado con id: " + id));
     }
 
+    @Override
     @Transactional(readOnly = true)
     public List<Usuario> listarAgentesPorEmpresa(Long empresaId) {
-        return usuarioDAO.findByEmpresaId(empresaId).stream()
+        return usuarioRepository.findByEmpresaId(empresaId).stream()
             .filter(usuario -> usuario.getRol() != Rol.ADMIN)
             .toList();
     }
@@ -68,7 +71,7 @@ public class UsuarioService {
     @Transactional(readOnly = true)
     public Usuario obtenerAgentePorEmpresa(Long id, Long empresaId) {
         Usuario usuario =
-            usuarioDAO
+            usuarioRepository
                 .findByIdAndEmpresaId(id, empresaId)
                 .orElseThrow(
                     () ->
@@ -90,15 +93,15 @@ public class UsuarioService {
 
         String email = dto.getEmail().trim().toLowerCase();
 
-        if (usuarioDAO.existsByEmail(email)) {
+        if (usuarioRepository.existsByEmail(email)) {
             throw new IllegalArgumentException("Ya existe un usuario registrado con ese correo.");
         }
 
-        Empresa empresa = empresaDAO
+        Empresa empresa = empresaRepository
                 .findById(empresaId)
                 .orElseThrow(() -> new IllegalArgumentException("Empresa no encontrada."));
 
-        RolEntity rolEntity = rolDAO
+        RolEntity rolEntity = rolRepository
                 .findByNombre(nombreRol(dto.getRol()))
                 .orElseThrow(() -> new IllegalStateException("No se encontró el rol solicitado."));
 
@@ -116,7 +119,7 @@ public class UsuarioService {
                 .estado("ACTIVO")
                 .build();
 
-        Usuario usuarioGuardado = usuarioDAO.save(usuario);
+        Usuario usuarioGuardado = usuarioRepository.save(usuario);
 
         return new CredencialTemporalDto(usuarioGuardado, passwordTemporal);
     }
@@ -128,14 +131,14 @@ public class UsuarioService {
 
         Usuario usuario = obtenerAgentePorEmpresa(id, empresaId);
 
-        Optional<Usuario> existente = usuarioDAO.findByEmail(dto.getEmail().trim());
+        Optional<Usuario> existente = usuarioRepository.findByEmail(dto.getEmail().trim());
 
         if (existente.isPresent() && !existente.get().getId().equals(usuario.getId())) {
         throw new IllegalArgumentException("Ya existe un usuario registrado con ese correo.");
         }
 
         RolEntity rolEntity =
-            rolDAO
+            rolRepository
                 .findByNombre(nombreRol(dto.getRol()))
                 .orElseThrow(() -> new IllegalStateException("No se encontró el rol solicitado."));
 
@@ -145,7 +148,7 @@ public class UsuarioService {
         usuario.setTelefono(dto.getTelefono() != null ? dto.getTelefono().trim() : null);
         usuario.setRolEntity(rolEntity);
 
-        return usuarioDAO.save(usuario);
+        return usuarioRepository.save(usuario);
     }
 
     @Transactional
@@ -155,7 +158,7 @@ public class UsuarioService {
 
         usuario.setActivo(!Boolean.TRUE.equals(usuario.getActivo()));
 
-        usuarioDAO.save(usuario);
+        usuarioRepository.save(usuario);
     }
 
     private void validarRolGestionable(Rol rol) {
@@ -183,7 +186,7 @@ public class UsuarioService {
         usuario.setPassword(passwordEncoder.encode(passwordTemporal));
         usuario.setDebeCambiarPassword(true);
 
-        usuarioDAO.save(usuario);
+        usuarioRepository.save(usuario);
 
         return passwordTemporal;
     }
@@ -200,7 +203,7 @@ public class UsuarioService {
             throw new IllegalArgumentException("Las contraseñas no coinciden.");
         }
 
-        Usuario usuario = usuarioDAO
+        Usuario usuario = usuarioRepository
                 .findById(usuarioId)
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado."));
 
@@ -215,7 +218,7 @@ public class UsuarioService {
         usuario.setPassword(passwordEncoder.encode(nuevaPassword));
         usuario.setDebeCambiarPassword(false);
 
-        usuarioDAO.save(usuario);
+        usuarioRepository.save(usuario);
     }
 
     private String generarPasswordTemporal() {

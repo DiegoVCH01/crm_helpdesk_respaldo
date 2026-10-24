@@ -1,9 +1,9 @@
 package com.serviclient.crm.controller;
 
 import com.serviclient.crm.dto.RegistroEmpresaDto;
-import com.serviclient.crm.service.EmpresaService;
+import com.serviclient.crm.service.IEmpresaService;
 import com.serviclient.crm.config.security.CustomUserDetails;
-import com.serviclient.crm.service.UsuarioService;
+import com.serviclient.crm.service.IUsuarioService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -50,7 +50,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
  * @author ServiClient Dev Team
  * @version 1.0.0
  * @see
- *     com.serviclient.crm.service.EmpresaService#registrarEmpresaCompleta(com.serviclient.crm.dto.RegistroEmpresaDto)
+ *     com.serviclient.crm.service.IEmpresaService#registrarEmpresaCompleta(com.serviclient.crm.dto.RegistroEmpresaDto)
  * @see com.serviclient.crm.dto.RegistroEmpresaDto
  */
 @Controller
@@ -62,8 +62,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
     description = "Inicio de sesión, cierre de sesión y wizard de registro de empresa en 3 pasos")
 public class AuthController {
 
-  private final EmpresaService empresaService;
-  private final UsuarioService usuarioService;
+  private final IEmpresaService empresaService;
+  private final IUsuarioService usuarioService;
 
   /**
    * Inicializa el DTO de registro en la sesión si aún no existe. Spring lo reutiliza entre los 3
