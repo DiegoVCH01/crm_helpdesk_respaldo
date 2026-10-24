@@ -10,6 +10,7 @@ import com.serviclient.crm.entity.EncuestaSatisfaccion;
 import com.serviclient.crm.entity.Renovacion;
 import com.serviclient.crm.entity.Usuario;
 import com.serviclient.crm.entity.enums.EstadoCliente;
+import com.serviclient.crm.entity.enums.Rol;
 import com.serviclient.crm.service.ClienteService;
 import com.serviclient.crm.service.CuentaPortalService;
 import com.serviclient.crm.service.HealthScoreService;
@@ -26,6 +27,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -104,32 +106,35 @@ public class ClienteController {
     return "clientes/index";
   }
 
-  @Operation(summary = "Exportar clientes a Excel", description = "Descarga la lista de clientes en formato .xlsx aplicando los filtros actuales.")
+  @Operation(
+      summary = "Exportar clientes a Excel",
+      description =
+          "Descarga la lista de clientes en formato .xlsx aplicando los filtros actuales.")
   @GetMapping("/exportar")
   public ResponseEntity<byte[]> exportarClientesExcel(
-          @AuthenticationPrincipal CustomUserDetails userDetails,
-          @RequestParam(value = "busqueda", required = false) String busqueda,
-          @RequestParam(value = "estado", required = false) EstadoCliente estado) {
+      @AuthenticationPrincipal CustomUserDetails userDetails,
+      @RequestParam(value = "busqueda", required = false) String busqueda,
+      @RequestParam(value = "estado", required = false) EstadoCliente estado) {
 
-      Long empresaId = resolverEmpresaId(userDetails);
+    Long empresaId = resolverEmpresaId(userDetails);
 
-      try {
-          // Obtiene los bytes del archivo Excel desde el servicio
-          byte[] excelContent = clienteService.exportarClientesExcel(empresaId, busqueda, estado);
+    try {
+      // Obtiene los bytes del archivo Excel desde el servicio
+      byte[] excelContent = clienteService.exportarClientesExcel(empresaId, busqueda, estado);
 
-          // Prepara las cabeceras HTTP para forzar la descarga del archivo
-          HttpHeaders headers = new HttpHeaders();
-          headers.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
-          headers.setContentDispositionFormData("attachment", "clientes_serviclient.xlsx");
-          headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
+      // Prepara las cabeceras HTTP para forzar la descarga del archivo
+      HttpHeaders headers = new HttpHeaders();
+      headers.setContentType(
+          MediaType.parseMediaType(
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+      headers.setContentDispositionFormData("attachment", "clientes_serviclient.xlsx");
+      headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
 
-          return ResponseEntity.ok()
-                  .headers(headers)
-                  .body(excelContent);
-      } catch (Exception e) {
-          log.error("Error al exportar la lista de clientes a Excel", e);
-          return ResponseEntity.internalServerError().build();
-      }
+      return ResponseEntity.ok().headers(headers).body(excelContent);
+    } catch (Exception e) {
+      log.error("Error al exportar la lista de clientes a Excel", e);
+      return ResponseEntity.internalServerError().build();
+    }
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -318,6 +323,7 @@ public class ClienteController {
       Model model) {
 
     Long empresaId = resolverEmpresaId(userDetails);
+    validarAccesoTabCliente360(userDetails, tab);
     Cliente cliente = clienteService.obtenerPorIdYEmpresa(id, empresaId);
     ClienteService.KpisCliente360 kpis = clienteService.obtenerKpisCliente360(cliente);
     List<HealthScoreService.FactorSalud> factores =
@@ -498,6 +504,24 @@ public class ClienteController {
     }
 
     return "redirect:/clientes/" + clienteId + "?tab=contactos";
+  }
+
+  private void validarAccesoTabCliente360(CustomUserDetails userDetails, String tab) {
+
+    Rol rol = userDetails.getRol();
+
+    boolean permitido =
+        switch (tab) {
+          case "resumen" -> true;
+          case "contactos" -> rol == Rol.ADMIN;
+          case "tickets" -> rol == Rol.ADMIN || rol == Rol.AGENTE;
+          case "actividad" -> rol == Rol.ADMIN || rol == Rol.AGENTE || rol == Rol.SUPERVISOR;
+          case "renovacion", "csat" -> rol == Rol.ADMIN || rol == Rol.SUPERVISOR;
+          default -> false;
+        };
+    if (!permitido) {
+      throw new AccessDeniedException("No tienes permisos para acceder a esta sección.");
+    }
   }
 
   // ─────────────────────────────────────────────────────────────────────────

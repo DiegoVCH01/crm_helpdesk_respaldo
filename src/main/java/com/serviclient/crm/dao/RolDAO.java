@@ -11,7 +11,5 @@ public interface RolDAO {
 
     RolEntity save(RolEntity rol);
 
-    List<RolEntity> findByEmpresaId(Long empresaId);
-
-    Optional<RolEntity> findByEmpresaIdAndNombre(Long empresaId, String nombre);
+    Optional<RolEntity> findByNombre(String nombre);
 }

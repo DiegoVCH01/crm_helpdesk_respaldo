@@ -5,14 +5,12 @@ import com.serviclient.crm.dao.ConfiguracionCsatDAO;
 import com.serviclient.crm.dao.ConfiguracionHealthScoreDAO;
 import com.serviclient.crm.dao.ConfiguracionSlaDAO;
 import com.serviclient.crm.dao.EmpresaDAO;
-import com.serviclient.crm.dao.PermisoDAO;
 import com.serviclient.crm.dao.RolDAO;
 import com.serviclient.crm.dao.UsuarioDAO;
 import com.serviclient.crm.dto.RegistroEmpresaDto;
 import com.serviclient.crm.entity.*;
 import com.serviclient.crm.entity.enums.PrioridadTicket;
 import java.math.BigDecimal;
-import java.util.HashSet;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -26,7 +24,6 @@ public class EmpresaService {
 
   private final EmpresaDAO empresaDAO;
   private final RolDAO rolDAO;
-  private final PermisoDAO permisoDAO;
   private final UsuarioDAO usuarioDAO;
   private final ConfiguracionSlaDAO configuracionSlaDAO;
   private final ConfiguracionCsatDAO configuracionCsatDAO;
@@ -75,37 +72,14 @@ public class EmpresaService {
 
     Empresa empresaGuardada = empresaDAO.save(empresa);
 
-    // 2. Crear Roles para la empresa
-    var permisos = new HashSet<>(permisoDAO.findAll());
+    // 2. Obtener el rol global Administrador
     RolEntity rolAdmin =
-        RolEntity.builder()
-            .empresa(empresaGuardada)
-            .nombre("Administrador")
-            .descripcion("Acceso total y configuración del sistema")
-            .estado("ACTIVO")
-            .permisos(permisos)
-            .build();
-    rolAdmin = rolDAO.save(rolAdmin);
-
-    RolEntity rolAgente =
-        RolEntity.builder()
-            .empresa(empresaGuardada)
-            .nombre("Agente de Soporte")
-            .descripcion("Atención y resolución de tickets")
-            .estado("ACTIVO")
-            .permisos(permisos)
-            .build();
-    rolDAO.save(rolAgente);
-
-    RolEntity rolSupervisor =
-        RolEntity.builder()
-            .empresa(empresaGuardada)
-            .nombre("Supervisor Customer Success")
-            .descripcion("Gestión de clientes y renovaciones")
-            .estado("ACTIVO")
-            .permisos(permisos)
-            .build();
-    rolDAO.save(rolSupervisor);
+        rolDAO
+            .findByNombre("Administrador")
+            .orElseThrow(
+                () ->
+                    new IllegalStateException(
+                        "No se encontró el rol global Administrador."));
 
     // 3. Crear Configuraciones de SLA, CSAT y Health Score
     int sla1ra =
@@ -179,6 +153,7 @@ public class EmpresaService {
             .email(dto.getAdminEmail())
             .telefono(dto.getAdminTelefono())
             .password(passwordEncoder.encode(dto.getAdminPassword()))
+            .debeCambiarPassword(false)
             .estado("ACTIVO")
             .build();
 

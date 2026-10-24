@@ -13,12 +13,22 @@ VALUES (1, 'ServiClient', 'ServiClient Cloud Solutions S.A.C.', '20601234567', '
 ON DUPLICATE KEY UPDATE nombre_comercial = VALUES(nombre_comercial);
 
 -- 2. Roles
-INSERT INTO roles (id, empresa_id, nombre, descripcion, estado, created_at, updated_at)
-VALUES 
-(1, 1, 'Administrador', 'Acceso total y configuración del sistema', 'ACTIVO', NOW(), NOW()),
-(2, 1, 'Agente de Soporte', 'Atención y resolución de tickets e incidencias', 'ACTIVO', NOW(), NOW()),
-(3, 1, 'Supervisor Customer Success', 'Gestión de salud de clientes, CSAT y renovaciones', 'ACTIVO', NOW(), NOW())
-ON DUPLICATE KEY UPDATE nombre = VALUES(nombre);
+INSERT INTO roles
+    (id, nombre, descripcion, estado, created_at, updated_at)
+VALUES
+    (1, 'Administrador',
+     'Acceso total y configuración del sistema',
+     'ACTIVO', NOW(), NOW()),
+
+    (2, 'Agente de Soporte',
+     'Atención y resolución de tickets e incidencias',
+     'ACTIVO', NOW(), NOW()),
+
+    (3, 'Supervisor Customer Success',
+     'Gestión de salud de clientes, CSAT y renovaciones',
+     'ACTIVO', NOW(), NOW())
+ON DUPLICATE KEY UPDATE
+    descripcion = VALUES(descripcion);
 
 -- 3. Usuarios Demo (Contraseña común: admin123 -> $2a$10$M922F8Iuclyofh3F4UE52Omx3bJVY06uzHZoOBdAFLsCmcwYHRG92)
 INSERT INTO usuarios (id, empresa_id, rol_id, nombre, apellido, email, password_hash, telefono, estado, created_at, updated_at)

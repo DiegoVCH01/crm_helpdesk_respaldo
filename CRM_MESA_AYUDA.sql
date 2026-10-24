@@ -47,7 +47,6 @@ CREATE TABLE empresas (
 
 CREATE TABLE roles (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    empresa_id BIGINT UNSIGNED NOT NULL,
     nombre VARCHAR(80) NOT NULL,
     descripcion VARCHAR(255),
     estado ENUM('ACTIVO', 'INACTIVO')
@@ -57,13 +56,9 @@ CREATE TABLE roles (
     updated_at TIMESTAMP
         NOT NULL DEFAULT CURRENT_TIMESTAMP
         ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT uq_rol_empresa
-        UNIQUE (empresa_id, nombre),
-    CONSTRAINT fk_roles_empresa
-        FOREIGN KEY (empresa_id)
-        REFERENCES empresas(id)
-        ON DELETE RESTRICT
-        ON UPDATE CASCADE
+
+    CONSTRAINT uq_rol_nombre
+        UNIQUE (nombre)
 );
 
 
@@ -82,6 +77,7 @@ CREATE TABLE usuarios (
     password_hash VARCHAR(255) NOT NULL,
     telefono VARCHAR(30),
     avatar_url VARCHAR(500),
+    debe_cambiar_password BOOLEAN NOT NULL DEFAULT FALSE,
     estado ENUM('ACTIVO', 'INACTIVO', 'BLOQUEADO')
         NOT NULL DEFAULT 'ACTIVO',
     ultimo_acceso DATETIME NULL,

@@ -1,5 +1,9 @@
 <!doctype html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/base :: layout('Gestión de Clientes', 'clientes', ~{::section})}">
+<html
+    lang="es"
+    xmlns:th="http://www.thymeleaf.org"
+    xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+    th:replace="~{layout/base :: layout('Gestión de Clientes', 'clientes', ~{::section})}">
     <head>
         <title>Gestión de Clientes - ServiClient</title>
     </head>
@@ -11,26 +15,28 @@
                     <p>Administra y consulta la información de los clientes</p>
                 </div>
 
-                <div style="display: flex; gap: 12px; align-items: center;">
-
+                <div style="display: flex; gap: 12px; align-items: center">
                     <!-- Botón Exportar a Excel -->
-                    <a th:href="@{/clientes/exportar(busqueda=${busqueda}, estado=${estadoSeleccionado})}" 
-                       class="btn btn-secondary" 
-                       style="background-color: #10B981; color: white; border-color: #059669;">
+                    <a
+                        th:href="@{/clientes/exportar(busqueda=${busqueda}, estado=${estadoSeleccionado})}"
+                        class="btn btn-secondary"
+                        style="background-color: #10b981; color: white; border-color: #059669">
                         <svg style="width: 18px; height: 18px" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                         </svg>
                         <span>Exportar Excel</span>
                     </a>
 
-                    <a th:href="@{/clientes/nuevo}" class="btn btn-primary">
+                    <a sec:authorize="hasRole('ADMIN')" th:href="@{/clientes/nuevo}" class="btn btn-primary">
                         <svg style="width: 18px; height: 18px" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
                         </svg>
                         <span>Nuevo Cliente</span>
                     </a>
                 </div>
-                
             </div>
 
             <!-- Flash messages -->
@@ -286,6 +292,7 @@
                                     </a>
                                     <!-- Editar -->
                                     <a
+                                        sec:authorize="hasRole('ADMIN')"
                                         th:href="@{/clientes/{id}/editar(id=${cliente.id})}"
                                         class="btn btn-secondary"
                                         style="
@@ -311,6 +318,7 @@
                                     </a>
                                     <!-- Eliminar -->
                                     <button
+                                        sec:authorize="hasRole('ADMIN')"
                                         type="button"
                                         class="btn btn-secondary"
                                         style="

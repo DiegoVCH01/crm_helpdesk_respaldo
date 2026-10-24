@@ -25,6 +25,23 @@ public class UsuarioDAOImpl implements UsuarioDAO {
     }
 
     @Override
+    public Optional<Usuario> findByIdAndEmpresaId(Long id, Long empresaId) {
+    if (id == null || empresaId == null) {
+        return Optional.empty();
+    }
+
+    return entityManager
+        .createQuery(
+            "SELECT u FROM Usuario u "
+                + "WHERE u.id = :id AND u.empresa.id = :empresaId",
+            Usuario.class)
+        .setParameter("id", id)
+        .setParameter("empresaId", empresaId)
+        .getResultStream()
+        .findFirst();
+    }
+
+    @Override
     public Optional<Usuario> findByEmail(String email) {
         TypedQuery<Usuario> query = entityManager.createQuery(
                 "SELECT u FROM Usuario u WHERE u.email = :email", Usuario.class);

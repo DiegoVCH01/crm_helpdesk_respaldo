@@ -2,6 +2,9 @@ package com.serviclient.crm.controller;
 
 import com.serviclient.crm.dto.RegistroEmpresaDto;
 import com.serviclient.crm.service.EmpresaService;
+import com.serviclient.crm.config.security.CustomUserDetails;
+import com.serviclient.crm.service.UsuarioService;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -60,6 +63,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class AuthController {
 
   private final EmpresaService empresaService;
+  private final UsuarioService usuarioService;
 
   /**
    * Inicializa el DTO de registro en la sesión si aún no existe. Spring lo reutiliza entre los 3
@@ -109,6 +113,7 @@ public class AuthController {
       @RequestParam(value = "error", required = false) String error,
       @RequestParam(value = "logout", required = false) String logout,
       @RequestParam(value = "registered", required = false) String registered,
+      @AuthenticationPrincipal CustomUserDetails userDetails,
       Model model) {
     if (error != null) {
       model.addAttribute(
@@ -121,6 +126,19 @@ public class AuthController {
       model.addAttribute(
           "successMessage",
           "¡Empresa y administrador registrados exitosamente! Inicie sesión a continuación.");
+    }
+
+    if (userDetails != null) {
+
+      boolean debeCambiar = Boolean.TRUE.equals(
+          usuarioService.obtenerPorId(userDetails.getId())
+              .getDebeCambiarPassword());
+
+      model.addAttribute("debeCambiarPassword", debeCambiar);
+
+      if (!debeCambiar) {
+        return "redirect:/dashboard";
+      }
     }
     return "auth/login";
   }

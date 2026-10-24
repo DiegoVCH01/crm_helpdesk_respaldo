@@ -1,150 +1,145 @@
 <!doctype html>
-<html
-    lang="es"
-    xmlns:th="http://www.thymeleaf.org"
-    xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
     th:fragment="layout(pageTitle, currentActiveMenu, mainContent)">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title th:text="${pageTitle != null ? pageTitle + ' - ServiClient' : 'ServiClient - CRM &amp; Helpdesk'}">ServiClient</title>
-        <link rel="stylesheet" th:href="@{/css/styles.css}" />
-        <link
-            rel="icon"
-            type="image/svg+xml"
-            href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236366F1'><path d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/></svg>" />
-    </head>
 
-    <body>
-        <div class="app-container">
-            <!-- Sidebar -->
-            <aside class="app-sidebar">
-                <div class="sidebar-header">
-                    <div class="brand-icon">
-                        <img th:src="@{/img/logo-icono.png}" alt="ServiClient" />
-                    </div>
-                    <div>
-                        <div class="brand-title">ServiClient</div>
-                        <div
-                            class="brand-subtitle"
-                            th:text="${currentEmpresa != null ? currentEmpresa.nombreComercial : 'Enterprise SaaS'}">
-                            Enterprise SaaS
-                        </div>
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title th:text="${pageTitle != null ? pageTitle + ' - ServiClient' : 'ServiClient - CRM &amp; Helpdesk'}">
+        ServiClient</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}" />
+    <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236366F1'><path d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/></svg>" />
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="app-sidebar">
+            <div class="sidebar-header">
+                <div class="brand-icon">
+                    <img th:src="@{/img/logo-icono.png}" alt="ServiClient" />
+                </div>
+                <div>
+                    <div class="brand-title">ServiClient</div>
+                    <div class="brand-subtitle"
+                        th:text="${currentEmpresa != null ? currentEmpresa.nombreComercial : 'Enterprise SaaS'}">
+                        Enterprise SaaS
                     </div>
                 </div>
+            </div>
 
-                <nav class="sidebar-nav">
-                    <a th:href="@{/dashboard}" class="nav-link" th:classappend="${currentActiveMenu == 'dashboard' ? 'active' : ''}">
+            <nav class="sidebar-nav">
+                <a th:href="@{/dashboard}" class="nav-link"
+                    th:classappend="${currentActiveMenu == 'dashboard' ? 'active' : ''}">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                    </svg>
+                    <span>Dashboard</span>
+                </a>
+
+                <a sec:authorize="hasAnyRole('ADMIN','AGENTE','SUPERVISOR')" th:href="@{/clientes}" class="nav-link"
+                    th:classappend="${currentActiveMenu == 'clientes' ? 'active' : ''}">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                    <span>Clientes</span>
+                </a>
+
+                <a sec:authorize="hasAnyRole('ADMIN','AGENTE')" th:href="@{/tickets}" class="nav-link"
+                    th:classappend="${currentActiveMenu == 'tickets' ? 'active' : ''}">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
+                    </svg>
+                    <span>Tickets</span>
+                </a>
+
+                <a sec:authorize="hasAnyRole('ADMIN','SUPERVISOR')" th:href="@{/renovaciones}" class="nav-link"
+                    th:classappend="${currentActiveMenu == 'renovaciones' ? 'active' : ''}">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    <span>Renovaciones</span>
+                </a>
+
+                <a sec:authorize="hasRole('ADMIN')" th:href="@{/agentes}" class="nav-link"
+                    th:classappend="${currentActiveMenu == 'agentes' ? 'active' : ''}">
+
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2
+                                   M9 11a4 4 0 100-8 4 4 0 000 8
+                                   M22 21v-2a4 4 0 00-3-3.87
+                                   M16 3.13a4 4 0 010 7.75" />
+                    </svg>
+
+                    <span>Agentes</span>
+                </a>
+            </nav>
+
+            <div style="padding: 16px; border-top: 1px solid #1e293b">
+                <form th:action="@{/logout}" method="post">
+                    <button type="submit" class="nav-link"
+                        style="width: 100%; border: none; background: transparent; cursor: pointer; text-align: left">
                         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                         </svg>
-                        <span>Dashboard</span>
-                    </a>
+                        <span>Cerrar Sesión</span>
+                    </button>
+                </form>
+            </div>
+        </aside>
 
-                    <a th:href="@{/clientes}" class="nav-link" th:classappend="${currentActiveMenu == 'clientes' ? 'active' : ''}">
+        <!-- Main Content -->
+        <div class="app-main">
+            <!-- Top Navbar -->
+            <header class="app-header">
+                <div class="breadcrumbs">
+                    <a th:href="@{/dashboard}">Inicio</a>
+                    <span>&rsaquo;</span>
+                    <span class="current" th:text="${pageTitle != null ? pageTitle : 'Dashboard'}">Dashboard</span>
+                </div>
+
+                <div class="header-actions">
+                    <div class="search-bar-header">
                         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
-                        <span>Clientes</span>
-                    </a>
+                        <input type="text" placeholder="Buscar clientes, contactos, tickets..." />
+                    </div>
 
-                    <a th:href="@{/tickets}" class="nav-link" th:classappend="${currentActiveMenu == 'tickets' ? 'active' : ''}">
-                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
-                        </svg>
-                        <span>Tickets</span>
-                    </a>
-
-                    <a th:href="@{/renovaciones}" class="nav-link" th:classappend="${currentActiveMenu == 'renovaciones' ? 'active' : ''}">
-                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                        </svg>
-                        <span>Renovaciones</span>
-                    </a>
-                </nav>
-
-                <div style="padding: 16px; border-top: 1px solid #1e293b">
-                    <form th:action="@{/logout}" method="post">
-                        <button
-                            type="submit"
-                            class="nav-link"
-                            style="width: 100%; border: none; background: transparent; cursor: pointer; text-align: left">
-                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    <div style="position: relative; display: flex; align-items: center; gap: 14px">
+                        <button style="background: none; border: none; cursor: pointer; color: var(--color-text-muted)">
+                            <svg style="width: 20px; height: 20px" fill="none" stroke="currentColor" stroke-width="2"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                             </svg>
-                            <span>Cerrar Sesión</span>
                         </button>
-                    </form>
+
+                        <div class="user-profile-menu">
+                            <div class="avatar-circle" th:text="${currentUser != null ? currentUser.iniciales : 'AD'}">
+                                AD</div>
+                            <span class="user-name-text"
+                                th:text="${currentUser != null ? currentUser.nombreCompleto : 'User Name'}">
+                                Juan Pérez
+                            </span>
+                        </div>
+                    </div>
                 </div>
-            </aside>
+            </header>
 
-            <!-- Main Content -->
-            <div class="app-main">
-                <!-- Top Navbar -->
-                <header class="app-header">
-                    <div class="breadcrumbs">
-                        <a th:href="@{/dashboard}">Inicio</a>
-                        <span>&rsaquo;</span>
-                        <span class="current" th:text="${pageTitle != null ? pageTitle : 'Dashboard'}">Dashboard</span>
-                    </div>
-
-                    <div class="header-actions">
-                        <div class="search-bar-header">
-                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                            <input type="text" placeholder="Buscar clientes, contactos, tickets..." />
-                        </div>
-
-                        <div style="position: relative; display: flex; align-items: center; gap: 14px">
-                            <button style="background: none; border: none; cursor: pointer; color: var(--color-text-muted)">
-                                <svg
-                                    style="width: 20px; height: 20px"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    stroke-width="2"
-                                    viewBox="0 0 24 24">
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                                </svg>
-                            </button>
-
-                            <div class="user-profile-menu">
-                                <div class="avatar-circle" th:text="${currentUser != null ? currentUser.iniciales : 'AD'}">AD</div>
-                                <span class="user-name-text" th:text="${currentUser != null ? currentUser.nombreCompleto : 'User Name'}">
-                                    Juan Pérez
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </header>
-
-                <!-- Alerts Banner -->
-                <div
-                    style="padding: 20px 32px 0 32px"
-                    th:if="${successMessage != null
+            <!-- Alerts Banner -->
+            <div style="padding: 20px 32px 0 32px" th:if="${successMessage != null
                     or errorMessage != null
                     or portalPasswordTemporal != null}">
-                    <div
-                        th:if="${successMessage != null}"
-                        style="
+                <div th:if="${successMessage != null}" style="
                             background-color: #ecfdf5;
                             border: 1px solid #a7f3d0;
                             color: #065f46;
@@ -154,11 +149,9 @@
                             font-size: 14px;
                             margin-bottom: 12px;
                         ">
-                        <span th:text="${successMessage}"></span>
-                    </div>
-                    <div
-                        th:if="${errorMessage != null}"
-                        style="
+                    <span th:text="${successMessage}"></span>
+                </div>
+                <div th:if="${errorMessage != null}" style="
                             background-color: #fef2f2;
                             border: 1px solid #fecaca;
                             color: #991b1b;
@@ -168,11 +161,9 @@
                             font-size: 14px;
                             margin-bottom: 12px;
                         ">
-                        <span th:text="${errorMessage}"></span>
-                    </div>
-                    <div
-                        th:if="${portalPasswordTemporal != null}"
-                        style="
+                    <span th:text="${errorMessage}"></span>
+                </div>
+                <div th:if="${portalPasswordTemporal != null}" style="
                             background-color: #eef2ff;
                             border: 1px solid #c7d2fe;
                             color: #312e81;
@@ -180,37 +171,39 @@
                             border-radius: 8px;
                             margin-bottom: 12px;
                         ">
-                        <div style="font-weight: 800; font-size: 14px; margin-bottom: 10px">Credenciales temporales del Portal Cliente</div>
+                    <div style="font-weight: 800; font-size: 14px; margin-bottom: 10px">Credenciales temporales del
+                        Portal Cliente</div>
 
-                        <div style="font-size: 13.5px; margin-bottom: 6px">
-                            <strong>Usuario:</strong>
-                            <span th:text="${portalEmail}">cliente@empresa.com</span>
-                        </div>
+                    <div style="font-size: 13.5px; margin-bottom: 6px">
+                        <strong>Usuario:</strong>
+                        <span th:text="${portalEmail}">cliente@empresa.com</span>
+                    </div>
 
-                        <div style="font-size: 13.5px; margin-bottom: 10px">
-                            <strong>Contraseña temporal:</strong>
+                    <div style="font-size: 13.5px; margin-bottom: 10px">
+                        <strong>Contraseña temporal:</strong>
 
-                            <code
-                                th:text="${portalPasswordTemporal}"
-                                style="background: #ffffff; padding: 4px 8px; border-radius: 5px; font-weight: 700">
+                        <code th:text="${portalPasswordTemporal}"
+                            style="background: #ffffff; padding: 4px 8px; border-radius: 5px; font-weight: 700">
                                 Temporal123
                             </code>
-                        </div>
+                    </div>
 
-                        <div style="font-size: 12px; color: #6366f1">
-                            Entrega estas credenciales al contacto principal. Si pierde la contraseña, puedes generar una nueva desde la
-                            pestaña Contactos.
-                        </div>
+                    <div style="font-size: 12px; color: #6366f1">
+                        Entrega estas credenciales al contacto principal. Si pierde la contraseña, puedes generar una
+                        nueva desde la
+                        pestaña Contactos.
                     </div>
                 </div>
-
-                <!-- Page Body Injected Here -->
-                <main class="page-content">
-                    <th:block th:replace="${mainContent}" />
-                </main>
             </div>
-        </div>
 
-        <script th:src="@{/js/app.js}"></script>
-    </body>
+            <!-- Page Body Injected Here -->
+            <main class="page-content">
+                <th:block th:replace="${mainContent}" />
+            </main>
+        </div>
+    </div>
+
+    <script th:src="@{/js/app.js}"></script>
+</body>
+
 </html>

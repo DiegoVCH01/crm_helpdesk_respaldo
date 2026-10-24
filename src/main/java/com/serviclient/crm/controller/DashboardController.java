@@ -64,7 +64,6 @@ public class DashboardController {
         } else {
             empresaId = empresaDAO.findFirstByOrderByIdAsc().map(Empresa::getId).orElse(1L);
         }
-
         DashboardDto dashboard = dashboardService.obtenerDashboard(empresaId, periodo, tabRenovacion);
         model.addAttribute("dashboard", dashboard);
         model.addAttribute("periodo", periodo);

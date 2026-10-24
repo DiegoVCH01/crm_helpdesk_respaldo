@@ -97,38 +97,29 @@ public class DataInitializer implements CommandLineRunner {
             todosPermisos.addAll(permisoDAO.findAll());
         }
 
-        RolEntity rolAdmin = rolDAO.findAll().stream()
-                .filter(r -> r.getNombre() != null && r.getNombre().toUpperCase().contains("ADMIN"))
-                .findFirst()
+        RolEntity rolAdmin =rolDAO.findByNombre("Administrador")
                 .orElseGet(() -> rolDAO.save(RolEntity.builder()
-                        .empresa(empresa)
-                        .nombre("Administrador")
-                        .descripcion("Acceso total y configuración del sistema")
-                        .estado("ACTIVO")
-                        .permisos(todosPermisos)
-                        .build()));
+                                .nombre("Administrador")
+                                .descripcion("Acceso total y configuración del sistema")
+                                .estado("ACTIVO")
+                                .permisos(todosPermisos)
+                                .build()));
 
-        RolEntity rolAgente = rolDAO.findAll().stream()
-                .filter(r -> r.getNombre() != null && r.getNombre().toUpperCase().contains("AGENTE"))
-                .findFirst()
-                .orElseGet(() -> rolDAO.save(RolEntity.builder()
-                        .empresa(empresa)
-                        .nombre("Agente de Soporte")
-                        .descripcion("Atención y resolución de tickets e incidencias")
-                        .estado("ACTIVO")
-                        .permisos(todosPermisos)
-                        .build()));
+        RolEntity rolAgente =rolDAO.findByNombre("Agente de Soporte")
+                .orElseGet(() ->rolDAO.save(RolEntity.builder()
+                                .nombre("Agente de Soporte")
+                                .descripcion("Atención y resolución de tickets e incidencias")
+                                .estado("ACTIVO")
+                                .permisos(todosPermisos)
+                                .build()));
 
-        RolEntity rolSupervisor = rolDAO.findAll().stream()
-                .filter(r -> r.getNombre() != null && r.getNombre().toUpperCase().contains("SUPERVISOR"))
-                .findFirst()
-                .orElseGet(() -> rolDAO.save(RolEntity.builder()
-                        .empresa(empresa)
-                        .nombre("Supervisor Customer Success")
-                        .descripcion("Gestión de salud de clientes, CSAT y renovaciones")
-                        .estado("ACTIVO")
-                        .permisos(todosPermisos)
-                        .build()));
+        RolEntity rolSupervisor =rolDAO.findByNombre("Supervisor Customer Success")
+                .orElseGet(() ->rolDAO.save(RolEntity.builder()
+                                .nombre("Supervisor Customer Success")
+                                .descripcion("Gestión de salud de clientes, CSAT y renovaciones")
+                                .estado("ACTIVO")
+                                .permisos(todosPermisos)
+                                .build()));
 
         // 3. Usuarios de prueba
         Usuario admin = usuarioDAO.findByEmail("admin@serviclient.com").map(u -> {

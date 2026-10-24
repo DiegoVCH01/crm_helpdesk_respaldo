@@ -8,6 +8,7 @@ import java.util.Optional;
 
 public interface UsuarioDAO {
     Optional<Usuario> findById(Long id);
+    Optional<Usuario> findByIdAndEmpresaId(Long id, Long empresaId);
     Optional<Usuario> findByEmail(String email);
     boolean existsByEmail(String email);
     List<Usuario> findByEmpresaId(Long empresaId);

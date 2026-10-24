@@ -1,5 +1,9 @@
 <!doctype html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/base :: layout('Cliente 360°', 'clientes', ~{::section})}">
+<html
+    lang="es"
+    xmlns:th="http://www.thymeleaf.org"
+    xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+    th:replace="~{layout/base :: layout('Cliente 360°', 'clientes', ~{::section})}">
     <head>
         <title>Cliente 360° - ServiClient</title>
     </head>
@@ -121,30 +125,35 @@
                     Resumen
                 </a>
                 <a
+                    sec:authorize="hasRole('ADMIN')"
                     th:href="@{/clientes/{id}(id=${cliente.id}, tab='contactos')}"
                     style="padding-bottom: 12px; font-size: 15px; font-weight: 700; text-decoration: none"
                     th:styleappend="${activeTab == 'contactos' ? 'color: var(--color-primary); border-bottom: 3px solid var(--color-primary); margin-bottom: -2px;' : 'color: var(--color-text-muted);'}">
                     Contactos
                 </a>
                 <a
+                    sec:authorize="hasAnyRole('ADMIN','AGENTE')"
                     th:href="@{/clientes/{id}(id=${cliente.id}, tab='tickets')}"
                     style="padding-bottom: 12px; font-size: 15px; font-weight: 700; text-decoration: none"
                     th:styleappend="${activeTab == 'tickets' ? 'color: var(--color-primary); border-bottom: 3px solid var(--color-primary); margin-bottom: -2px;' : 'color: var(--color-text-muted);'}">
                     Tickets
                 </a>
                 <a
+                    sec:authorize="hasAnyRole('ADMIN','SUPERVISOR')"
                     th:href="@{/clientes/{id}(id=${cliente.id}, tab='renovacion')}"
                     style="padding-bottom: 12px; font-size: 15px; font-weight: 700; text-decoration: none"
                     th:styleappend="${activeTab == 'renovacion' ? 'color: var(--color-primary); border-bottom: 3px solid var(--color-primary); margin-bottom: -2px;' : 'color: var(--color-text-muted);'}">
                     Renovación
                 </a>
                 <a
+                    sec:authorize="hasAnyRole('ADMIN','AGENTE','SUPERVISOR')"
                     th:href="@{/clientes/{id}(id=${cliente.id}, tab='actividad')}"
                     style="padding-bottom: 12px; font-size: 15px; font-weight: 700; text-decoration: none"
                     th:styleappend="${activeTab == 'actividad' ? 'color: var(--color-primary); border-bottom: 3px solid var(--color-primary); margin-bottom: -2px;' : 'color: var(--color-text-muted);'}">
                     Actividad
                 </a>
                 <a
+                    sec:authorize="hasAnyRole('ADMIN','SUPERVISOR')"
                     th:href="@{/clientes/{id}(id=${cliente.id}, tab='csat')}"
                     style="padding-bottom: 12px; font-size: 15px; font-weight: 700; text-decoration: none"
                     th:styleappend="${activeTab == 'csat' ? 'color: var(--color-primary); border-bottom: 3px solid var(--color-primary); margin-bottom: -2px;' : 'color: var(--color-text-muted);'}">

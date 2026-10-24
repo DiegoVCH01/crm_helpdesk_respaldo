@@ -13,6 +13,9 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.http.HttpMethod;
+import com.serviclient.crm.dao.UsuarioDAO;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -42,7 +45,7 @@ public class SecurityConfig {
   }
 
   @Bean
-  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+  public SecurityFilterChain filterChain(HttpSecurity http, UsuarioDAO usuarioDAO) throws Exception {
     http.csrf(csrf -> csrf.ignoringRequestMatchers("/h2-console/**"))
         .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.sameOrigin()))
         .authorizeHttpRequests(
@@ -64,6 +67,37 @@ public class SecurityConfig {
                         "/v3/api-docs/**",
                         "/v3/api-docs.yaml")
                     .permitAll()
+
+                    // CONTROL DE ACCESO POR ROLES
+                    .requestMatchers("/clientes/*/contactos/**")
+                    .hasRole("ADMIN")
+
+                    .requestMatchers(HttpMethod.GET, "/clientes/exportar")
+                    .hasAnyRole("ADMIN", "SUPERVISOR")
+
+                    .requestMatchers("/clientes/nuevo")
+                    .hasRole("ADMIN")
+
+                    .requestMatchers(HttpMethod.POST, "/clientes")
+                    .hasRole("ADMIN")
+
+                    .requestMatchers("/clientes/*/editar")
+                    .hasRole("ADMIN")
+
+                    .requestMatchers("/clientes/*/eliminar")
+                    .hasRole("ADMIN")
+
+                    .requestMatchers(HttpMethod.GET, "/clientes", "/clientes/*")
+                    .hasAnyRole("ADMIN", "AGENTE", "SUPERVISOR")
+
+                    .requestMatchers("/clientes/**")
+                    .hasRole("ADMIN")
+
+                    .requestMatchers("/tickets/**")
+                    .hasAnyRole("ADMIN", "AGENTE")
+
+                    .requestMatchers("/agentes/**")
+                    .hasRole("ADMIN")
                     .anyRequest()
                     .authenticated())
         .formLogin(
@@ -85,6 +119,10 @@ public class SecurityConfig {
                     .permitAll());
 
     http.authenticationProvider(authenticationProvider());
+
+    http.addFilterAfter(
+        new CambioPasswordObligatorioFilter(usuarioDAO),
+        UsernamePasswordAuthenticationFilter.class);
 
     return http.build();
   }

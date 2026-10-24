@@ -71,7 +71,6 @@ class JpaRepositoriesTest {
         empresa = entityManager.persistAndFlush(empresa);
 
         rolAdmin = RolEntity.builder()
-                .empresa(empresa)
                 .nombre("Administrador")
                 .descripcion("Admin rol")
                 .estado("ACTIVO")

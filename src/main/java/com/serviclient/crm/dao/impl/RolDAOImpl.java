@@ -32,21 +32,18 @@ public class RolDAOImpl implements RolDAO {
   }
 
   @Override
-  public List<RolEntity> findByEmpresaId(Long empresaId) {
-    return entityManager.createQuery(
-        "SELECT r FROM RolEntity r WHERE r.empresa.id = :empresaId", RolEntity.class)
-        .setParameter("empresaId", empresaId)
-        .getResultList();
-  }
+  public Optional<RolEntity> findByNombre(String nombre) {
+    if (nombre == null || nombre.isBlank()) {
+      return Optional.empty();
+    }
 
-  @Override
-  public Optional<RolEntity> findByEmpresaIdAndNombre(Long empresaId, String nombre) {
-    List<RolEntity> result = entityManager.createQuery(
-        "SELECT r FROM RolEntity r WHERE r.empresa.id = :empresaId AND r.nombre = :nombre", RolEntity.class)
-        .setParameter("empresaId", empresaId)
+    return entityManager
+        .createQuery(
+            "SELECT r FROM RolEntity r WHERE r.nombre = :nombre",
+            RolEntity.class)
         .setParameter("nombre", nombre)
         .setMaxResults(1)
-        .getResultList();
-    return result.stream().findFirst();
+        .getResultStream()
+        .findFirst();
   }
 }
