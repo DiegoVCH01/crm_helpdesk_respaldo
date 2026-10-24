@@ -71,22 +71,29 @@ public class RenovacionController {
   @ApiResponses({
     @ApiResponse(responseCode = "200", description = "Panel de renovaciones cargado exitosamente")
   })
+
   @GetMapping
   public String listarRenovaciones(
-      @AuthenticationPrincipal CustomUserDetails userDetails, Model model) {
-    Long empresaId =
-        (userDetails != null && userDetails.getEmpresaId() != null)
-            ? userDetails.getEmpresaId()
-            : 1L;
+      @AuthenticationPrincipal CustomUserDetails userDetails, 
+      @RequestParam(value = "busqueda", required = false) String busqueda,
+      @RequestParam(value = "estado", required = false) EstadoRenovacion estado,
+      Model model) {
+      
+    Long empresaId = (userDetails != null && userDetails.getEmpresaId() != null) ? userDetails.getEmpresaId() : 1L;
 
     RenovacionService.MetricasRenovaciones metricas = renovacionService.obtenerMetricas(empresaId);
-    List<Renovacion> renovaciones = renovacionService.listarProximasRenovaciones(empresaId);
+    
+    List<Renovacion> renovaciones = renovacionService.listarProximasRenovaciones(empresaId, busqueda, estado);
     List<Usuario> agentes = usuarioService.obtenerAgentesYAdminsPorEmpresa(empresaId);
 
     model.addAttribute("metricas", metricas);
     model.addAttribute("renovaciones", renovaciones);
     model.addAttribute("agentes", agentes);
     model.addAttribute("estadosRenovacion", EstadoRenovacion.values());
+    
+    model.addAttribute("busqueda", busqueda);
+    model.addAttribute("estadoSeleccionado", estado);
+    
     model.addAttribute("nuevoSeguimiento", new TicketMensajeDto.RegistrarSeguimientoRenovacion());
     model.addAttribute("fechaHoy", LocalDate.now());
     model.addAttribute("activeMenu", "renovaciones");

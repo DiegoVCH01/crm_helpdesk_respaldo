@@ -79,4 +79,5 @@ public class EncuestaCsatDAOImpl implements EncuestaCsatDAO {
                 .getSingleResult();
         return count > 0;
     }
+
 }

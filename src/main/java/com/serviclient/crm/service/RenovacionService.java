@@ -40,12 +40,12 @@ public class RenovacionService {
   }
 
   @Transactional(readOnly = true)
-  public List<Renovacion> listarProximasRenovaciones(Long empresaId) {
+  public List<Renovacion> listarProximasRenovaciones(Long empresaId, String busqueda, EstadoRenovacion estado) {
     if (empresaId == null) {
       return List.of();
     }
-
-    return renovacionDAO.findByEmpresaIdOrderByFechaVencimientoAsc(empresaId);
+    // Usamos el nuevo método del DAO dinámico
+    return renovacionDAO.buscarConFiltros(empresaId, busqueda, estado);
   }
 
   @Transactional(readOnly = true)

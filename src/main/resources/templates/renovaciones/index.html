@@ -84,14 +84,26 @@
         <div class="table-card">
             <div class="table-toolbar">
                 <h2 style="font-size: 16px; font-weight: 800;">Próximas renovaciones</h2>
-                <div style="display: flex; gap: 10px;">
-                    <button class="btn btn-secondary" style="padding: 6px 14px; font-size: 13px;">
+                <form th:action="@{/renovaciones}" method="get" style="display: flex; gap: 10px; align-items: center;">
+                    
+                    <input type="text" name="busqueda" th:value="${busqueda}" class="form-input" 
+                           placeholder="Buscar cliente..." style="padding: 6px 12px; font-size: 13px; max-width: 200px;">
+                    
+                    <select name="estado" class="form-select" style="padding: 6px 12px; font-size: 13px; max-width: 180px;" onchange="this.form.submit()">
+                        <option value="">Todos los estados</option>
+                        <option th:each="est : ${estadosRenovacion}" 
+                                th:value="${est}" 
+                                th:text="${est.etiqueta}"
+                                th:selected="${est == estadoSeleccionado}"></option>
+                    </select>
+
+                    <button type="submit" class="btn btn-secondary" style="padding: 6px 14px; font-size: 13px;">
                         <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
                         </svg>
                         <span>Filtrar</span>
                     </button>
-                </div>
+                </form>
             </div>
 
             <table class="custom-table">

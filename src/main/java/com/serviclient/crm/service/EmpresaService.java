@@ -37,6 +37,17 @@ public class EmpresaService {
   public Empresa registrarEmpresaCompleta(RegistroEmpresaDto dto) {
 
     log.info("Iniciando registro de una nueva empresa");
+    // --- GUAVA PRECONDITIONS
+    Preconditions.checkNotNull(dto, "El formulario de registro de empresa no puede ser nulo");
+    Preconditions.checkArgument(
+        dto.getNombreComercial() != null && !dto.getNombreComercial().isBlank(),
+        "El nombre comercial es obligatorio");
+    Preconditions.checkArgument(
+        dto.getAdminEmail() != null && !dto.getAdminEmail().isBlank(),
+        "El correo del administrador es obligatorio");
+    Preconditions.checkArgument(
+        dto.getAdminPassword() != null && !dto.getAdminPassword().isBlank(),
+        "La contraseña del administrador es obligatoria");
    
 
     if (usuarioDAO.existsByEmail(dto.getAdminEmail())) {
