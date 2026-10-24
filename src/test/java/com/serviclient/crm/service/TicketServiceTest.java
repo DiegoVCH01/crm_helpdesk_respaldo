@@ -4,8 +4,6 @@ import com.serviclient.crm.dao.*;
 import com.serviclient.crm.dto.TicketDto;
 import com.serviclient.crm.entity.*;
 import com.serviclient.crm.entity.enums.*;
-import com.serviclient.crm.repository.ContactoRepository;
-import com.serviclient.crm.repository.RespuestaCsatRepository;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

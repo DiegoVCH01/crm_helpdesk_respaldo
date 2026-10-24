@@ -40,12 +40,12 @@ public class RenovacionService {
   }
 
   @Transactional(readOnly = true)
-  public List<Renovacion> listarProximasRenovaciones(Long empresaId) {
+  public List<Renovacion> listarProximasRenovaciones(Long empresaId, String busqueda, EstadoRenovacion estado) {
     if (empresaId == null) {
       return List.of();
     }
-
-    return renovacionDAO.findByEmpresaIdOrderByFechaVencimientoAsc(empresaId);
+    // Usamos el nuevo método del DAO dinámico
+    return renovacionDAO.buscarConFiltros(empresaId, busqueda, estado);
   }
 
   @Transactional(readOnly = true)
@@ -122,11 +122,17 @@ public class RenovacionService {
       throw new IllegalArgumentException("La renovación no pertenece a la empresa actual.");
     }
 
+    if (dto.getEstado() != null) {
+        renovacion.setEstado(dto.getEstado());
+        renovacionDAO.save(renovacion);
+    }
+
     RenovacionSeguimiento seguimiento =
         RenovacionSeguimiento.builder()
             .renovacion(renovacion)
             .comentario(dto.getComentario())
             .usuario(usuario)
+            .estado(dto.getEstado())
             .fecha(LocalDateTime.now())
             .build();
 

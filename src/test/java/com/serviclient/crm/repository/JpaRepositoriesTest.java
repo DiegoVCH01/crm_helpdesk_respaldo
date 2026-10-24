@@ -2,7 +2,12 @@ package com.serviclient.crm.repository;
 
 import com.serviclient.crm.dao.*;
 import com.serviclient.crm.entity.*;
+import com.serviclient.crm.dao.impl.EmpresaDAOImpl;
 import com.serviclient.crm.dao.impl.UsuarioDAOImpl;
+import com.serviclient.crm.dao.impl.ClienteDAOImpl;
+import com.serviclient.crm.dao.impl.TicketDAOImpl;
+import com.serviclient.crm.dao.impl.EncuestaSatisfaccionDAOImpl;
+import com.serviclient.crm.dao.impl.RenovacionDAOImpl;
 import org.springframework.context.annotation.Import;
 import com.serviclient.crm.entity.enums.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,29 +30,36 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
 @ActiveProfiles("dev")
-@Import(UsuarioDAOImpl.class)
+@Import({
+    EmpresaDAOImpl.class,
+    UsuarioDAOImpl.class,
+    ClienteDAOImpl.class,
+    TicketDAOImpl.class,
+    EncuestaSatisfaccionDAOImpl.class,
+    RenovacionDAOImpl.class
+})
 class JpaRepositoriesTest {
 
     @Autowired
     private TestEntityManager entityManager;
 
     @Autowired
-    private EmpresaRepository empresaRepository;
+    private EmpresaDAO empresaDAO;
 
     @Autowired
     private UsuarioDAO usuarioDAO;
 
     @Autowired
-    private ClienteRepository clienteRepository;
+    private ClienteDAO clienteDAO;
 
     @Autowired
-    private TicketRepository ticketRepository;
+    private TicketDAO ticketDAO;
 
     @Autowired
-    private EncuestaSatisfaccionRepository encuestaRepository;
+    private EncuestaSatisfaccionDAO encuestaDAO;
 
     @Autowired
-    private RenovacionRepository renovacionRepository;
+    private RenovacionDAO renovacionDAO;
 
     private Empresa empresa;
     private RolEntity rolAdmin;
@@ -127,7 +139,7 @@ class JpaRepositoriesTest {
     @Test
     @DisplayName("Debe persistir y buscar empresa por ID y usuario por email")
     void testEmpresaYUsuarioRepository() {
-        Optional<Empresa> empresaEncontrada = empresaRepository.findById(empresa.getId());
+        Optional<Empresa> empresaEncontrada = empresaDAO.findById(empresa.getId());
         assertTrue(empresaEncontrada.isPresent());
         assertEquals("Test Corp", empresaEncontrada.get().getNombreComercial());
 
@@ -140,7 +152,7 @@ class JpaRepositoriesTest {
     @Test
     @DisplayName("Debe buscar clientes por empresa y aplicar filtros de búsqueda")
     void testClienteRepositoryFiltros() {
-        Page<Cliente> resultado = clienteRepository.buscarConFiltros(
+        Page<Cliente> resultado = clienteDAO.buscarConFiltros(
                 empresa.getId(),
                 "Alpha",
                 PageRequest.of(0, 10)
@@ -150,7 +162,7 @@ class JpaRepositoriesTest {
         assertEquals(1, resultado.getTotalElements());
         assertEquals("Cliente Alpha", resultado.getContent().get(0).getNombreComercial());
 
-        long total = clienteRepository.countByEmpresaId(empresa.getId());
+        long total = clienteDAO.countByEmpresaId(empresa.getId());
         assertEquals(1, total);
     }
 
@@ -174,14 +186,14 @@ class JpaRepositoriesTest {
                 .build();
         entityManager.persistAndFlush(ticket);
 
-        long criticosAbiertos = ticketRepository.countByClienteIdAndPrioridadAndEstadoNot(
+        long criticosAbiertos = ticketDAO.countByClienteIdAndPrioridadAndEstadoNot(
                 cliente.getId(),
                 PrioridadTicket.CRITICA,
                 EstadoTicket.CERRADO
         );
         assertEquals(1, criticosAbiertos);
 
-        long countPorEstado = ticketRepository.countByEmpresaIdAndEstado(empresa.getId(), EstadoTicket.ABIERTO);
+        long countPorEstado = ticketDAO.countByEmpresaIdAndEstado(empresa.getId(), EstadoTicket.ABIERTO);
         assertEquals(1, countPorEstado);
     }
 
@@ -210,7 +222,7 @@ class JpaRepositoriesTest {
                 .build();
         entityManager.persistAndFlush(encuesta1);
 
-        Double promedio = encuestaRepository.obtenerPromedioCsatPorCliente(cliente.getId());
+        Double promedio = encuestaDAO.obtenerPromedioCsatPorCliente(cliente.getId());
         assertNotNull(promedio);
         assertEquals(5.0, promedio);
     }
@@ -228,7 +240,7 @@ class JpaRepositoriesTest {
                 .build();
         entityManager.persistAndFlush(renovacion);
 
-        List<Renovacion> lista = renovacionRepository.findByEmpresaIdOrderByFechaVencimientoAsc(empresa.getId());
+        List<Renovacion> lista = renovacionDAO.findByEmpresaIdOrderByFechaVencimientoAsc(empresa.getId());
         assertFalse(lista.isEmpty());
         assertEquals(1, lista.size());
         assertEquals(EstadoRenovacion.EN_NEGOCIACION, lista.get(0).getEstado());

@@ -125,4 +125,29 @@ public class RenovacionDAOImpl implements RenovacionDAO {
             entityManager.remove(toRemove);
         }
     }
+
+    @Override
+    public List<Renovacion> buscarConFiltros(Long empresaId, String busqueda, EstadoRenovacion estado) {
+        StringBuilder jpql = new StringBuilder("SELECT r FROM Renovacion r WHERE r.empresa.id = :empresaId");
+
+        if (busqueda != null && !busqueda.trim().isEmpty()) {
+            jpql.append(" AND LOWER(r.cliente.nombreComercial) LIKE LOWER(:busqueda)");
+        }
+        if (estado != null) {
+            jpql.append(" AND r.estado = :estado");
+        }
+        jpql.append(" ORDER BY r.fechaVencimiento ASC");
+
+        TypedQuery<Renovacion> query = entityManager.createQuery(jpql.toString(), Renovacion.class);
+        query.setParameter("empresaId", empresaId);
+
+        if (busqueda != null && !busqueda.trim().isEmpty()) {
+            query.setParameter("busqueda", "%" + busqueda.trim() + "%");
+        }
+        if (estado != null) {
+            query.setParameter("estado", estado);
+        }
+
+        return query.getResultList();
+    }
 }

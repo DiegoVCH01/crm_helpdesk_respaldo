@@ -16,4 +16,5 @@ public interface EncuestaCsatDAO {
     // Cálculos (promedios)
     Double findAverageScoreByClienteId(Long clienteId);
     Double findAverageScoreByEmpresaId(Long empresaId);
+    boolean existsByTicketId(Long ticketId);
 }

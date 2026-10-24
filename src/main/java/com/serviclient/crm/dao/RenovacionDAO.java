@@ -20,4 +20,5 @@ public interface RenovacionDAO {
     List<Renovacion> findAll();
     void deleteById(Long id);
     void delete(Renovacion renovacion);
+    List<Renovacion> buscarConFiltros(Long empresaId, String busqueda, EstadoRenovacion estado);
 }
