@@ -7,7 +7,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface EncuestaSatisfaccionRepository extends JpaRepository<EncuestaSatisfaccion, Long> {
@@ -16,9 +15,9 @@ public interface EncuestaSatisfaccionRepository extends JpaRepository<EncuestaSa
 
     List<EncuestaSatisfaccion> findByTicketId(Long ticketId);
 
-    @Query("SELECT AVG(e.puntuacion) FROM EncuestaSatisfaccion e WHERE e.cliente.id = :clienteId")
+    @Query("SELECT COALESCE(AVG(e.puntuacion), 0.0) FROM EncuestaSatisfaccion e WHERE e.cliente.id = :clienteId")
     Double obtenerPromedioCsatPorCliente(@Param("clienteId") Long clienteId);
 
-    @Query("SELECT AVG(e.puntuacion) FROM EncuestaSatisfaccion e WHERE e.cliente.empresa.id = :empresaId")
+    @Query("SELECT COALESCE(AVG(e.puntuacion), 0.0) FROM EncuestaSatisfaccion e WHERE e.cliente.empresa.id = :empresaId")
     Double obtenerPromedioCsatPorEmpresa(@Param("empresaId") Long empresaId);
 }

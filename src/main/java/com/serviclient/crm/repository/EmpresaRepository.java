@@ -8,6 +8,6 @@ import java.util.Optional;
 
 @Repository
 public interface EmpresaRepository extends JpaRepository<Empresa, Long> {
-    Optional<Empresa> findByRuc(String ruc);
     Optional<Empresa> findFirstByOrderByIdAsc();
+    Optional<Empresa> findByRuc(String ruc);
 }

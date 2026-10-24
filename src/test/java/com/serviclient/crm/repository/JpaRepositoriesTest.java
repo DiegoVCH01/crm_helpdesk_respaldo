@@ -1,6 +1,7 @@
 package com.serviclient.crm.repository;
 
 import com.serviclient.crm.entity.*;
+import org.springframework.context.annotation.Import;
 import com.serviclient.crm.entity.enums.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -40,7 +41,7 @@ class JpaRepositoriesTest {
     private TicketRepository ticketRepository;
 
     @Autowired
-    private EncuestaSatisfaccionRepository encuestaRepository;
+    private EncuestaSatisfaccionRepository encuestaSatisfaccionRepository;
 
     @Autowired
     private RenovacionRepository renovacionRepository;
@@ -67,7 +68,6 @@ class JpaRepositoriesTest {
         empresa = entityManager.persistAndFlush(empresa);
 
         rolAdmin = RolEntity.builder()
-                .empresa(empresa)
                 .nombre("Administrador")
                 .descripcion("Admin rol")
                 .estado("ACTIVO")
@@ -207,7 +207,7 @@ class JpaRepositoriesTest {
                 .build();
         entityManager.persistAndFlush(encuesta1);
 
-        Double promedio = encuestaRepository.obtenerPromedioCsatPorCliente(cliente.getId());
+        Double promedio = encuestaSatisfaccionRepository.obtenerPromedioCsatPorCliente(cliente.getId());
         assertNotNull(promedio);
         assertEquals(5.0, promedio);
     }

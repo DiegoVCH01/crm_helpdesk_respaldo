@@ -9,9 +9,14 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ClienteRepository extends JpaRepository<Cliente, Long> {
+
+    Optional<Cliente> findByIdAndEmpresaId(Long id, Long empresaId);
+
+    Optional<Cliente> findByEmpresaIdAndRuc(Long empresaId, String ruc);
 
     List<Cliente> findByEmpresaId(Long empresaId);
 

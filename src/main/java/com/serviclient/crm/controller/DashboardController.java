@@ -3,8 +3,8 @@ package com.serviclient.crm.controller;
 import com.serviclient.crm.config.security.CustomUserDetails;
 import com.serviclient.crm.dto.DashboardDto;
 import com.serviclient.crm.entity.Empresa;
-import com.serviclient.crm.repository.EmpresaRepository;
-import com.serviclient.crm.service.DashboardService;
+import com.serviclient.crm.service.IDashboardService;
+import com.serviclient.crm.service.IEmpresaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.RequestParam;
  *
  * @author ServiClient Dev Team
  * @version 1.0.0
- * @see com.serviclient.crm.service.DashboardService
+ * @see com.serviclient.crm.service.IDashboardService
  * @see com.serviclient.crm.dto.DashboardDto
  */
 @Controller
@@ -36,8 +36,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 @Tag(name = "Dashboard", description = "Panel principal interactivo con KPIs de clientes, tickets, SLA, CSAT y renovaciones")
 public class DashboardController {
 
-    private final DashboardService dashboardService;
-    private final EmpresaRepository empresaRepository;
+    private final IDashboardService dashboardService;
+    private final IEmpresaService empresaService;
 
     /**
      * Renderiza la vista principal del Dashboard con datos actualizados en tiempo real.
@@ -62,9 +62,9 @@ public class DashboardController {
         if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails userDetails && userDetails.getEmpresaId() != null) {
             empresaId = userDetails.getEmpresaId();
         } else {
-            empresaId = empresaRepository.findFirstByOrderByIdAsc().map(Empresa::getId).orElse(1L);
+            Empresa primera = empresaService.obtenerPrimera();
+            empresaId = (primera != null) ? primera.getId() : 1L;
         }
-
         DashboardDto dashboard = dashboardService.obtenerDashboard(empresaId, periodo, tabRenovacion);
         model.addAttribute("dashboard", dashboard);
         model.addAttribute("periodo", periodo);

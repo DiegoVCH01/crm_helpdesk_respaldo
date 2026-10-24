@@ -9,6 +9,4 @@ import java.util.List;
 @Repository
 public interface AuditoriaRepository extends JpaRepository<Auditoria, Long> {
     List<Auditoria> findByEmpresaIdOrderByCreatedAtDesc(Long empresaId);
-    List<Auditoria> findByUsuarioIdOrderByCreatedAtDesc(Long usuarioId);
-    List<Auditoria> findByEntidadAndRegistroIdOrderByCreatedAtDesc(String entidad, Long registroId);
 }

@@ -12,7 +12,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.authenticated;
 import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.unauthenticated;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import org.springframework.security.test.context.support.WithUserDetails;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
@@ -62,7 +62,9 @@ class SecurityAndAuthControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "admin@serviclient.com", roles = {"ADMIN"})
+    @WithUserDetails(
+        value = "admin@serviclient.com",
+        userDetailsServiceBeanName = "customUserDetailsService")
     void testAccesoAClientesAutenticado() throws Exception {
         mockMvc.perform(get("/clientes"))
                 .andExpect(status().isOk())
@@ -71,7 +73,9 @@ class SecurityAndAuthControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "admin@serviclient.com", roles = {"ADMIN"})
+    @WithUserDetails(
+        value = "admin@serviclient.com",
+        userDetailsServiceBeanName = "customUserDetailsService")
     void testAccesoATicketsAutenticado() throws Exception {
         mockMvc.perform(get("/tickets"))
                 .andExpect(status().isOk())
@@ -80,7 +84,9 @@ class SecurityAndAuthControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "admin@serviclient.com", roles = {"ADMIN"})
+    @WithUserDetails(
+        value = "admin@serviclient.com",
+        userDetailsServiceBeanName = "customUserDetailsService")
     void testAccesoARenovacionesAutenticado() throws Exception {
         mockMvc.perform(get("/renovaciones"))
                 .andExpect(status().isOk())

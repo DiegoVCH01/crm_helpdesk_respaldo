@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Nueva incidencia - ServiClient</title>
+
+    <link rel="stylesheet" th:href="@{/css/portal.css}" />
+  </head>
+
+  <body>
+    <div class="portal-layout">
+      <!-- SIDEBAR -->
+      <aside class="portal-sidebar">
+        <div class="portal-brand">
+          <div class="portal-logo">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M8.5 12.5l3-3a2.1 2.1 0 0 1 3 3l-4.8 4.8a4 4 0 0 1-5.7-5.6l4.9-4.9"
+              />
+              <path
+                d="M15.5 11.5l-3 3a2.1 2.1 0 0 1-3-3l4.8-4.8a4 4 0 0 1 5.7 5.6l-4.9 4.9"
+              />
+            </svg>
+          </div>
+
+          <div>
+            <div class="portal-brand-name">ServiClient</div>
+            <div class="portal-brand-subtitle">Portal del Cliente</div>
+          </div>
+        </div>
+
+        <nav class="portal-menu">
+          <a th:href="@{/portal/tickets}" class="portal-menu-link">
+            <svg
+              class="portal-menu-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4V7z"
+              />
+              <path d="M9 9h6M9 12h6M9 15h3" />
+            </svg>
+
+            <span>Mis tickets</span>
+          </a>
+
+          <a th:href="@{/portal/tickets/nuevo}" class="portal-menu-link active">
+            <svg
+              class="portal-menu-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <circle cx="12" cy="12" r="9" />
+              <path d="M12 8v8M8 12h8" />
+            </svg>
+
+            <span>Nueva incidencia</span>
+          </a>
+        </nav>
+
+        <!-- Después vendrán de CuentaPortal -->
+        <div class="portal-company-card">
+          <div class="portal-company-label">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M4 20h16" />
+              <path d="M6 20V6h8v14" />
+              <path d="M14 10h4v10" />
+              <path d="M9 9h2M9 12h2M9 15h2" />
+            </svg>
+
+            <span>Tu empresa</span>
+          </div>
+
+          <div class="portal-company-name">NovaTech Industries</div>
+
+          <div class="portal-company-plan">Plan SaaS Enterprise</div>
+        </div>
+
+        <div class="portal-user">
+          <div class="portal-user-card">
+            <div class="portal-avatar">LM</div>
+
+            <div>
+              <div class="portal-user-name">Laura Méndez</div>
+
+              <div class="portal-user-email">laura@novatech.com</div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- CONTENIDO -->
+      <main class="portal-main">
+        <header class="portal-topbar">
+          <div class="portal-breadcrumb">
+            Inicio /
+            <strong>Nueva incidencia</strong>
+          </div>
+
+          <div class="portal-top-actions">
+            <div class="support-status">
+              <span class="support-status-icon">◉</span>
+              Soporte ServiClient Activo
+            </div>
+
+            <button
+              class="portal-icon-button"
+              type="button"
+              title="Notificaciones"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" />
+                <path d="M10 21h4" />
+              </svg>
+            </button>
+
+            <div class="topbar-separator"></div>
+
+            <div class="topbar-user">
+              <div class="topbar-avatar">LM</div>
+
+              <strong>Laura Méndez</strong>
+            </div>
+          </div>
+        </header>
+
+        <div class="portal-content">
+          <h1 class="portal-page-title">Reportar incidencia</h1>
+
+          <p class="portal-page-subtitle">
+            Describe el problema para que el equipo de soporte pueda ayudarte
+          </p>
+
+          <div class="portal-card">
+            <form
+              th:action="@{/portal/tickets}"
+              th:object="${ticketForm}"
+              method="post"
+              enctype="multipart/form-data"
+            >
+              <!-- ASUNTO -->
+              <div class="portal-form-group">
+                <label class="portal-label">
+                  TÍTULO / ASUNTO
+                  <span class="required">*</span>
+                </label>
+
+                <input
+                  type="text"
+                  th:field="*{asunto}"
+                  class="portal-input"
+                  placeholder="Ej. Error al generar reportes consolidados"
+                  required
+                />
+
+                <div class="portal-help">
+                  Un título claro y breve agiliza la asignación con el
+                  especialista adecuado.
+                </div>
+
+                <span
+                  th:if="${#fields.hasErrors('asunto')}"
+                  th:errors="*{asunto}"
+                  class="portal-error"
+                >
+                </span>
+              </div>
+
+              <!-- CATEGORIA + PRIORIDAD -->
+              <div class="portal-form-row">
+                <div class="portal-form-group">
+                  <label class="portal-label">
+                    CATEGORÍA
+                    <span class="required">*</span>
+                  </label>
+
+                  <select
+                    th:field="*{categoria}"
+                    class="portal-select"
+                    required
+                  >
+                    <option
+                      th:each="categoria : ${categorias}"
+                      th:value="${categoria}"
+                      th:text="${categoria.etiqueta}"
+                    ></option>
+                  </select>
+                </div>
+
+                <div class="portal-form-group">
+                  <label class="portal-label">
+                    NIVEL DE URGENCIA
+                    <span class="required">*</span>
+                  </label>
+
+                  <select
+                    th:field="*{prioridad}"
+                    class="portal-select"
+                    required
+                  >
+                    <option
+                      th:each="prioridad : ${prioridades}"
+                      th:value="${prioridad}"
+                      th:text="${prioridad.etiqueta}"
+                    ></option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- DESCRIPCION -->
+              <div class="portal-form-group">
+                <label class="portal-label">
+                  DESCRIPCIÓN DETALLADA
+                  <span class="required">*</span>
+                </label>
+
+                <textarea
+                  th:field="*{descripcion}"
+                  class="portal-textarea"
+                  placeholder="Describe qué ocurrió, cuándo comenzó y cómo afecta tu trabajo..."
+                  required
+                >
+                </textarea>
+
+                <span
+                  th:if="${#fields.hasErrors('descripcion')}"
+                  th:errors="*{descripcion}"
+                  class="portal-error"
+                >
+                </span>
+              </div>
+
+              <!-- ADJUNTOS -->
+              <div class="portal-form-group">
+                <label class="portal-label"> ARCHIVOS ADJUNTOS </label>
+
+                <label class="upload-box">
+                  <input
+                    id="archivos"
+                    type="file"
+                    name="archivos"
+                    multiple
+                    accept=".png,.jpg,.jpeg,.pdf,.txt"
+                    style="display: none"
+                  />
+
+                  <div class="upload-icon">☁</div>
+
+                  <div class="upload-title">
+                    Arrastra archivos aquí o haz clic para seleccionar
+                  </div>
+
+                  <div class="upload-help">
+                    Formatos permitidos: PNG, JPG, PDF, TXT (Máx. 10MB por
+                    archivo)
+                  </div>
+                </label>
+
+                <div id="selectedFiles" class="selected-files"></div>
+              </div>
+
+              <!-- BOTONES -->
+              <div class="portal-actions">
+                <a
+                  th:href="@{/portal/tickets}"
+                  class="portal-btn portal-btn-secondary"
+                  style="text-decoration: none"
+                >
+                  Cancelar
+                </a>
+
+                <button type="submit" class="portal-btn portal-btn-primary">
+                  ➤ Enviar incidencia
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script>
+      const inputArchivos = document.getElementById("archivos");
+      const contenedor = document.getElementById("selectedFiles");
+
+      inputArchivos.addEventListener("change", function () {
+        contenedor.innerHTML = "";
+
+        Array.from(this.files).forEach((file) => {
+          const fila = document.createElement("div");
+          fila.className = "file-row";
+
+          const sizeKb = Math.round(file.size / 1024);
+
+          fila.innerHTML = `
+                <div>
+                    <strong>${file.name}</strong>
+                    <div class="file-size">${sizeKb} KB · Listo para enviar</div>
+                </div>
+
+                <span>✓</span>
+            `;
+
+          contenedor.appendChild(fila);
+        });
+      });
+    </script>
+  </body>
+</html>

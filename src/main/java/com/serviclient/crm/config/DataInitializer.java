@@ -1,8 +1,8 @@
 package com.serviclient.crm.config;
 
+import com.serviclient.crm.repository.*;
 import com.serviclient.crm.entity.*;
 import com.serviclient.crm.entity.enums.*;
-import com.serviclient.crm.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
@@ -47,7 +47,7 @@ public class DataInitializer implements CommandLineRunner {
     private final RenovacionSeguimientoRepository renovacionSeguimientoRepository;
     private final EncuestaCsatRepository encuestaCsatRepository;
     private final RespuestaCsatRepository respuestaCsatRepository;
-    private final EncuestaSatisfaccionRepository encuestaRepository;
+    private final EncuestaSatisfaccionRepository encuestaSatisfaccionRepository;
     private final HealthScoreHistorialRepository healthScoreHistorialRepository;
     private final InteraccionRepository interaccionRepository;
     private final NotificacionRepository notificacionRepository;
@@ -60,7 +60,7 @@ public class DataInitializer implements CommandLineRunner {
         log.info("Verificando estado de la base de datos...");
 
         // 1. Empresa Principal
-        Empresa empresa = empresaRepository.findAll().stream().findFirst().orElseGet(() -> {
+        Empresa empresa = empresaRepository.findFirstByOrderByIdAsc().orElseGet(() -> {
             Empresa e = Empresa.builder()
                     .nombreComercial("ServiClient")
                     .razonSocial("ServiClient Cloud Solutions S.A.C.")
@@ -97,38 +97,29 @@ public class DataInitializer implements CommandLineRunner {
             todosPermisos.addAll(permisoRepository.findAll());
         }
 
-        RolEntity rolAdmin = rolRepository.findAll().stream()
-                .filter(r -> r.getNombre() != null && r.getNombre().toUpperCase().contains("ADMIN"))
-                .findFirst()
+        RolEntity rolAdmin =rolRepository.findByNombre("Administrador")
                 .orElseGet(() -> rolRepository.save(RolEntity.builder()
-                        .empresa(empresa)
-                        .nombre("Administrador")
-                        .descripcion("Acceso total y configuración del sistema")
-                        .estado("ACTIVO")
-                        .permisos(todosPermisos)
-                        .build()));
+                                .nombre("Administrador")
+                                .descripcion("Acceso total y configuración del sistema")
+                                .estado("ACTIVO")
+                                .permisos(todosPermisos)
+                                .build()));
 
-        RolEntity rolAgente = rolRepository.findAll().stream()
-                .filter(r -> r.getNombre() != null && r.getNombre().toUpperCase().contains("AGENTE"))
-                .findFirst()
-                .orElseGet(() -> rolRepository.save(RolEntity.builder()
-                        .empresa(empresa)
-                        .nombre("Agente de Soporte")
-                        .descripcion("Atención y resolución de tickets e incidencias")
-                        .estado("ACTIVO")
-                        .permisos(todosPermisos)
-                        .build()));
+        RolEntity rolAgente =rolRepository.findByNombre("Agente de Soporte")
+                .orElseGet(() ->rolRepository.save(RolEntity.builder()
+                                .nombre("Agente de Soporte")
+                                .descripcion("Atención y resolución de tickets e incidencias")
+                                .estado("ACTIVO")
+                                .permisos(todosPermisos)
+                                .build()));
 
-        RolEntity rolSupervisor = rolRepository.findAll().stream()
-                .filter(r -> r.getNombre() != null && r.getNombre().toUpperCase().contains("SUPERVISOR"))
-                .findFirst()
-                .orElseGet(() -> rolRepository.save(RolEntity.builder()
-                        .empresa(empresa)
-                        .nombre("Supervisor Customer Success")
-                        .descripcion("Gestión de salud de clientes, CSAT y renovaciones")
-                        .estado("ACTIVO")
-                        .permisos(todosPermisos)
-                        .build()));
+        RolEntity rolSupervisor =rolRepository.findByNombre("Supervisor Customer Success")
+                .orElseGet(() ->rolRepository.save(RolEntity.builder()
+                                .nombre("Supervisor Customer Success")
+                                .descripcion("Gestión de salud de clientes, CSAT y renovaciones")
+                                .estado("ACTIVO")
+                                .permisos(todosPermisos)
+                                .build()));
 
         // 3. Usuarios de prueba
         Usuario admin = usuarioRepository.findByEmail("admin@serviclient.com").map(u -> {
@@ -163,13 +154,13 @@ public class DataInitializer implements CommandLineRunner {
                         .ultimoAcceso(LocalDateTime.now().minusHours(2))
                         .build()));
 
-        Usuario ana = usuarioRepository.findByEmail("ana.silva@serviclient.com").orElseGet(() ->
+        Usuario ana = usuarioRepository.findByEmail("cristofer.silva@serviclient.com").orElseGet(() ->
                 usuarioRepository.save(Usuario.builder()
                         .empresa(empresa)
                         .rolEntity(rolAgente)
-                        .nombre("Ana")
+                        .nombre("Cristofer")
                         .apellido("Silva")
-                        .email("ana.silva@serviclient.com")
+                        .email("cristofer.silva@serviclient.com")
                         .password(passwordEncoder.encode("admin123"))
                         .telefono("+51 982 333 444")
                         .estado("ACTIVO")
@@ -787,7 +778,7 @@ public class DataInitializer implements CommandLineRunner {
                 .comentario(comentario)
                 .build());
 
-        encuestaRepository.save(EncuestaSatisfaccion.builder()
+        encuestaSatisfaccionRepository.save(EncuestaSatisfaccion.builder()
                 .ticket(ticket)
                 .cliente(cli)
                 .contacto(con)

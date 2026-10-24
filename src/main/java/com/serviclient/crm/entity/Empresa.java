@@ -109,10 +109,6 @@ public class Empresa {
 
     @OneToMany(mappedBy = "empresa", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
-    private List<RolEntity> roles = new ArrayList<>();
-
-    @OneToMany(mappedBy = "empresa", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
     private List<Servicio> servicios = new ArrayList<>();
 
     @OneToMany(mappedBy = "empresa", cascade = CascadeType.ALL, orphanRemoval = true)

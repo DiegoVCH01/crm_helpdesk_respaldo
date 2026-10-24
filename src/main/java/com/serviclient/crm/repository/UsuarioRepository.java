@@ -12,13 +12,18 @@ import java.util.Optional;
 
 @Repository
 public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
+
+    Optional<Usuario> findByIdAndEmpresaId(Long id, Long empresaId);
+
     Optional<Usuario> findByEmail(String email);
+
     boolean existsByEmail(String email);
+
     List<Usuario> findByEmpresaId(Long empresaId);
-    
-    @Query("SELECT u FROM Usuario u WHERE u.empresa.id = :empresaId AND LOWER(u.rolEntity.nombre) LIKE LOWER(CONCAT('%', :rol, '%'))")
+
+    @Query("SELECT u FROM Usuario u WHERE u.empresa.id = :empresaId AND LOWER(u.rolEntity.nombre) LIKE LOWER(CONCAT('%', :#{#rol != null ? #rol.name() : ''}, '%'))")
     List<Usuario> findByEmpresaIdAndRol(@Param("empresaId") Long empresaId, @Param("rol") Rol rol);
 
-    @Query("SELECT u FROM Usuario u WHERE LOWER(u.rolEntity.nombre) LIKE LOWER(CONCAT('%', :rol, '%'))")
+    @Query("SELECT u FROM Usuario u WHERE LOWER(u.rolEntity.nombre) LIKE LOWER(CONCAT('%', :#{#rol != null ? #rol.name() : ''}, '%'))")
     List<Usuario> findByRol(@Param("rol") Rol rol);
 }

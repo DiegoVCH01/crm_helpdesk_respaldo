@@ -55,6 +55,10 @@ public class Usuario {
     private LocalDateTime ultimoAcceso;
 
     @Builder.Default
+    @Column(name = "debe_cambiar_password", nullable = false)
+    private Boolean debeCambiarPassword = false;
+
+    @Builder.Default
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 

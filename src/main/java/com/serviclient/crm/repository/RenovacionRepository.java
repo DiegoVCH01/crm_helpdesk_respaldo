@@ -21,12 +21,29 @@ public interface RenovacionRepository extends JpaRepository<Renovacion, Long> {
 
     long countByEmpresaIdAndEstado(Long empresaId, EstadoRenovacion estado);
 
-    @Query("SELECT COUNT(r) FROM Renovacion r WHERE r.empresa.id = :empresaId AND r.estado NOT IN (com.serviclient.crm.entity.enums.EstadoRenovacion.RENOVADO, com.serviclient.crm.entity.enums.EstadoRenovacion.NO_RENOVADO, com.serviclient.crm.entity.enums.EstadoRenovacion.NO_REALIZADO) AND r.fechaVencimiento BETWEEN :desde AND :hasta")
-    long countRenovacionesEnRango(@Param("empresaId") Long empresaId, @Param("desde") LocalDate desde, @Param("hasta") LocalDate hasta);
+    @Query("SELECT COUNT(r) FROM Renovacion r WHERE r.empresa.id = :empresaId AND r.estado NOT IN " +
+           "(com.serviclient.crm.entity.enums.EstadoRenovacion.RENOVADO, com.serviclient.crm.entity.enums.EstadoRenovacion.NO_RENOVADO, com.serviclient.crm.entity.enums.EstadoRenovacion.NO_REALIZADO) " +
+           "AND r.fechaVencimiento BETWEEN :desde AND :hasta")
+    long countRenovacionesEnRango(@Param("empresaId") Long empresaId,
+                                  @Param("desde") LocalDate desde,
+                                  @Param("hasta") LocalDate hasta);
 
-    @Query("SELECT COUNT(r) FROM Renovacion r WHERE r.empresa.id = :empresaId AND r.estado NOT IN (com.serviclient.crm.entity.enums.EstadoRenovacion.RENOVADO, com.serviclient.crm.entity.enums.EstadoRenovacion.NO_RENOVADO, com.serviclient.crm.entity.enums.EstadoRenovacion.NO_REALIZADO) AND r.fechaVencimiento > :fecha")
-    long countRenovacionesMasDeDias(@Param("empresaId") Long empresaId, @Param("fecha") LocalDate fecha);
+    @Query("SELECT COUNT(r) FROM Renovacion r WHERE r.empresa.id = :empresaId AND r.estado NOT IN " +
+           "(com.serviclient.crm.entity.enums.EstadoRenovacion.RENOVADO, com.serviclient.crm.entity.enums.EstadoRenovacion.NO_RENOVADO, com.serviclient.crm.entity.enums.EstadoRenovacion.NO_REALIZADO) " +
+           "AND r.fechaVencimiento > :fecha")
+    long countRenovacionesMasDeDias(@Param("empresaId") Long empresaId,
+                                    @Param("fecha") LocalDate fecha);
 
-    @Query("SELECT COUNT(DISTINCT r.cliente.id) FROM Renovacion r WHERE r.empresa.id = :empresaId AND r.fechaVencimiento <= :hasta AND r.estado NOT IN (com.serviclient.crm.entity.enums.EstadoRenovacion.RENOVADO, com.serviclient.crm.entity.enums.EstadoRenovacion.NO_RENOVADO, com.serviclient.crm.entity.enums.EstadoRenovacion.NO_REALIZADO)")
-    long countClientesEnRiesgoRenovacionProxima(@Param("empresaId") Long empresaId, @Param("hasta") LocalDate hasta);
+    @Query("SELECT COUNT(DISTINCT r.cliente.id) FROM Renovacion r WHERE r.empresa.id = :empresaId AND r.fechaVencimiento <= :hasta " +
+           "AND r.estado NOT IN (com.serviclient.crm.entity.enums.EstadoRenovacion.RENOVADO, com.serviclient.crm.entity.enums.EstadoRenovacion.NO_RENOVADO, com.serviclient.crm.entity.enums.EstadoRenovacion.NO_REALIZADO)")
+    long countClientesEnRiesgoRenovacionProxima(@Param("empresaId") Long empresaId,
+                                               @Param("hasta") LocalDate hasta);
+
+    @Query("SELECT r FROM Renovacion r WHERE r.empresa.id = :empresaId " +
+           "AND (:busqueda IS NULL OR :busqueda = '' OR LOWER(r.cliente.nombreComercial) LIKE LOWER(CONCAT('%', :busqueda, '%'))) " +
+           "AND (:estado IS NULL OR r.estado = :estado) " +
+           "ORDER BY r.fechaVencimiento ASC")
+    List<Renovacion> buscarConFiltros(@Param("empresaId") Long empresaId,
+                                      @Param("busqueda") String busqueda,
+                                      @Param("estado") EstadoRenovacion estado);
 }

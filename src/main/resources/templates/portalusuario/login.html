@@ -1,0 +1,239 @@
+
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Portal del Cliente - ServiClient</title>
+    <!-- Hoja de estilos principal del proyecto -->
+    <link rel="stylesheet" th:href="@{/css/styles.css}" />
+    <style>
+        .portal-card {
+            max-width: 440px;
+            margin: 0 auto;
+            padding-top: 36px !important;
+            padding-bottom: 36px !important;
+        }
+
+        .portal-brand-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+
+        .portal-brand-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #7c3aed, #6d28d9);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(109, 40, 217, 0.25);
+        }
+
+        .portal-brand-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--color-text, #111827);
+            line-height: 1.1;
+        }
+
+        .portal-brand-subtitle {
+            font-size: 10px;
+            font-weight: 700;
+            color: #8b5cf6;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .auth-header-compact {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .auth-header-compact h1 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #111827;
+            margin: 0 0 6px 0;
+        }
+
+        .auth-header-compact p {
+            font-size: 13px;
+            color: #6b7280;
+            margin: 0;
+        }
+
+        .input-icon-wrapper {
+            position: relative;
+        }
+
+        .input-icon-wrapper .input-icon-left {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--color-text-muted, #9ca3af);
+            width: 18px;
+            height: 18px;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .input-icon-wrapper .input-icon-right {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--color-text-muted, #9ca3af);
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            z-index: 2;
+        }
+
+        /* Forzar fondo blanco limpio en los campos */
+        .input-icon-wrapper .form-input {
+            padding-left: 42px;
+            padding-right: 42px;
+            background-color: #ffffff !important;
+            color: var(--color-text, #111827);
+        }
+
+        /* Eliminar el fondo celeste/azul automático del navegador al autocompletar */
+        .input-icon-wrapper .form-input:-webkit-autofill,
+        .input-icon-wrapper .form-input:-webkit-autofill:hover, 
+        .input-icon-wrapper .form-input:-webkit-autofill:focus {
+            -webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important;
+            -webkit-text-fill-color: var(--color-text, #111827) !important;
+            transition: background-color 5000s ease-in-out 0s;
+        }
+
+        .btn-portal {
+            background-color: #6d28d9;
+            color: #ffffff;
+            border: none;
+            width: 100%;
+            padding: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .btn-portal:hover {
+            background-color: #5b21b6;
+        }
+    </style>
+</head>
+<body style="background-color: #F8FAFC;">
+    <div class="auth-wrapper">
+        <div class="auth-card portal-card">
+            
+            <!-- Encabezado con Logo ServiClient -->
+            <div class="portal-brand-header">
+                <div class="portal-brand-icon">
+                    <svg style="width: 26px; height: 26px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M14 9l-2 2m0 0l-2-2m2 2l2 2m-2-2L8 7M16 11l2-2m0 0l2 2m-2-2l-2-2m2 2l2 2M3 12a9 9 0 1018 0 9 9 0 00-18 0z" />
+                    </svg>
+                </div>
+                <div style="text-align: left;">
+                    <div class="portal-brand-title">ServiClient</div>
+                    <div class="portal-brand-subtitle">PORTAL DEL CLIENTE</div>
+                </div>
+            </div>
+
+            <!-- Título del Formulario con espacio ajustado -->
+            <div class="auth-header-compact">
+                <h1>Portal del Cliente</h1>
+                <p>Accede para gestionar tus solicitudes de soporte</p>
+            </div>
+
+            <div class="auth-body">
+                <!-- Alertas -->
+                <div th:if="${errorMessage != null}" style="background-color: #FEF2F2; border: 1px solid #FECACA; color: #991B1B; padding: 12px 16px; border-radius: 8px; font-weight: 500; font-size: 13.5px; margin-bottom: 20px;">
+                    <span th:text="${errorMessage}"></span>
+                </div>
+                <div th:if="${successMessage != null}" style="background-color: #ECFDF5; border: 1px solid #A7F3D0; color: #065F46; padding: 12px 16px; border-radius: 8px; font-weight: 500; font-size: 13.5px; margin-bottom: 20px;">
+                    <span th:text="${successMessage}"></span>
+                </div>
+
+                <!-- Formulario -->
+                <form th:action="@{/portalusuario/login}" method="post">
+                    
+                    <!-- Campo Usuario -->
+                    <div class="form-group">
+                        <label class="form-label" style="font-size: 11px; font-weight: 700; letter-spacing: 0.5px;">USUARIO</label>
+                        <div class="input-icon-wrapper">
+                            <svg class="input-icon-left" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
+                            <input type="email" name="username" class="form-input" placeholder="tu.correo@empresa.com" required="required" />
+                        </div>
+                    </div>
+
+                    <!-- Campo Contraseña -->
+                    <div class="form-group">
+                        <label class="form-label" style="font-size: 11px; font-weight: 700; letter-spacing: 0.5px;">CONTRASEÑA</label>
+                        <div class="input-icon-wrapper">
+                            <svg class="input-icon-left" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 00-2 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            </svg>
+                            <input type="password" id="passwordInput" name="password" class="form-input" placeholder="••••••••" required="required" />
+                            <svg id="togglePasswordBtn" class="input-icon-right" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- Recordarme y Olvidé Contraseña -->
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; font-size: 13px;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--color-text-muted, #6b7280);">
+                            <input type="checkbox" name="remember-me" />
+                            <span>Recordarme</span>
+                        </label>
+                        <a href="#" style="color: #7c3aed; text-decoration: none; font-weight: 600;">¿Olvidaste tu contraseña?</a>
+                    </div>
+
+                    <!-- Botón de Envío -->
+                    <button type="submit" class="btn-portal">
+                        Iniciar sesión
+                    </button>
+                </form>
+
+                <!-- Pie de página -->
+                <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--color-border-light, #e5e7eb); font-size: 12px; color: var(--color-text-muted, #6b7280); text-align: center; line-height: 1.5;">
+                    ¿No tienes acceso? Comunícate con tu proveedor para solicitar tus credenciales.
+                    <br /><br />
+                    <a th:href="@{/login}" style="color: var(--color-text, #374151); text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 6px;">
+                        <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 012-2h2a2 2 0 012 2v1m-4 0h4" />
+                        </svg>
+                        Acceso para personal de la empresa
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script para alternar visibilidad de la contraseña -->
+    <script>
+        const togglePasswordBtn = document.getElementById('togglePasswordBtn');
+        const passwordInput = document.getElementById('passwordInput');
+
+        if (togglePasswordBtn && passwordInput) {
+            togglePasswordBtn.addEventListener('click', function () {
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,10 +1,10 @@
 package com.serviclient.crm.service;
 
-import com.serviclient.crm.dao.*;
+import com.serviclient.crm.repository.*;
 import com.serviclient.crm.dto.TicketDto;
 import com.serviclient.crm.entity.*;
 import com.serviclient.crm.entity.enums.*;
-import com.serviclient.crm.repository.*;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,16 +26,16 @@ import static org.mockito.Mockito.*;
 class TicketServiceTest {
 
     @Mock
-    private TicketDAO ticketDAO;
+    private TicketRepository ticketRepository;
 
     @Mock
-    private TicketMensajeDAO ticketMensajeDAO;
+    private TicketMensajeRepository ticketMensajeRepository;
 
     @Mock
-    private TicketHistorialDAO ticketHistorialDAO;
+    private TicketHistorialRepository ticketHistorialRepository;
 
     @Mock
-    private EncuestaSatisfaccionRepository encuestaRepository;
+    private EncuestaSatisfaccionRepository encuestaSatisfaccionRepository;
 
     @Mock
     private EncuestaCsatRepository encuestaCsatRepository;
@@ -44,19 +44,19 @@ class TicketServiceTest {
     private RespuestaCsatRepository respuestaCsatRepository;
 
     @Mock
-    private ClienteDAO clienteDAO;
+    private ClienteRepository clienteRepository;
 
     @Mock
     private ContactoRepository contactoRepository;
 
     @Mock
-    private UsuarioDAO usuarioDAO;
+    private UsuarioRepository usuarioRepository;
 
     @Mock
-    private CategoriaTicketDAO categoriaTicketDAO;
+    private CategoriaTicketRepository categoriaTicketRepository;
 
     @Mock
-    private ConfiguracionSlaDAO configuracionSlaDAO;
+    private ConfiguracionSlaRepository configuracionSlaRepository;
 
     @Mock
     private EmpresaService empresaService;
@@ -136,11 +136,11 @@ class TicketServiceTest {
         dto.setCanalOrigen(CanalOrigen.PORTAL_WEB);
 
         when(empresaService.obtenerPorId(1L)).thenReturn(empresa);
-        when(clienteDAO.findById(10L)).thenReturn(Optional.of(cliente));
-        when(usuarioDAO.findById(2L)).thenReturn(Optional.of(agente));
-        when(categoriaTicketDAO.findByEmpresaIdAndNombre(eq(1L), anyString())).thenReturn(Optional.of(catSoftware));
-        when(configuracionSlaDAO.findByEmpresaIdAndPrioridad(eq(1L), eq(PrioridadTicket.CRITICA))).thenReturn(Optional.empty());
-        when(ticketDAO.save(any(Ticket.class))).thenAnswer(inv -> {
+        when(clienteRepository.findById(10L)).thenReturn(Optional.of(cliente));
+        when(usuarioRepository.findById(2L)).thenReturn(Optional.of(agente));
+        when(categoriaTicketRepository.findByEmpresaIdAndNombre(eq(1L), anyString())).thenReturn(Optional.of(catSoftware));
+        when(configuracionSlaRepository.findByEmpresaIdAndPrioridad(eq(1L), eq(PrioridadTicket.CRITICA))).thenReturn(Optional.empty());
+        when(ticketRepository.save(any(Ticket.class))).thenAnswer(inv -> {
             Ticket t = inv.getArgument(0);
             t.setId(101L);
             return t;
@@ -155,44 +155,44 @@ class TicketServiceTest {
         assertNotNull(creado.getFechaLimitePrimeraRespuesta());
         assertNotNull(creado.getFechaLimiteResolucion());
 
-        verify(ticketMensajeDAO, times(1)).save(any(TicketMensaje.class));
-        verify(ticketHistorialDAO, times(1)).save(any(TicketHistorial.class));
+        verify(ticketMensajeRepository, times(1)).save(any(TicketMensaje.class));
+        verify(ticketHistorialRepository, times(1)).save(any(TicketHistorial.class));
         verify(healthScoreService, times(1)).recalcularYActualizarHealthScore(cliente);
     }
 
     @Test
     @DisplayName("Debe agregar mensaje de conversación y registrar primera respuesta si es agente")
     void testAgregarMensajeRespuesta() {
-        when(ticketDAO.findById(100L)).thenReturn(Optional.of(ticket));
-        when(ticketMensajeDAO.save(any(TicketMensaje.class))).thenAnswer(i -> i.getArgument(0));
+        when(ticketRepository.findById(100L)).thenReturn(Optional.of(ticket));
+        when(ticketMensajeRepository.save(any(TicketMensaje.class))).thenAnswer(i -> i.getArgument(0));
 
         ticketService.enviarMensaje(100L, agente, "Estamos revisando su caso.", false);
 
         assertTrue(ticket.isPrimeraRespuestaCumplida());
         assertNotNull(ticket.getFechaPrimeraRespuesta());
-        verify(ticketMensajeDAO, times(1)).save(any(TicketMensaje.class));
-        verify(ticketHistorialDAO, times(1)).save(any(TicketHistorial.class));
+        verify(ticketMensajeRepository, times(1)).save(any(TicketMensaje.class));
+        verify(ticketHistorialRepository, times(1)).save(any(TicketHistorial.class));
     }
 
     @Test
     @DisplayName("Debe agregar nota interna sin alterar los tiempos de primera respuesta al cliente")
     void testAgregarNotaInterna() {
-        when(ticketDAO.findById(100L)).thenReturn(Optional.of(ticket));
-        when(ticketMensajeDAO.save(any(TicketMensaje.class))).thenAnswer(i -> i.getArgument(0));
+        when(ticketRepository.findById(100L)).thenReturn(Optional.of(ticket));
+        when(ticketMensajeRepository.save(any(TicketMensaje.class))).thenAnswer(i -> i.getArgument(0));
 
         ticketService.enviarMensaje(100L, agente, "Nota confidencial del equipo técnico.", true);
 
         assertFalse(ticket.isPrimeraRespuestaCumplida());
         assertNull(ticket.getFechaPrimeraRespuesta());
-        verify(ticketMensajeDAO, times(1)).save(any(TicketMensaje.class));
-        verify(ticketHistorialDAO, never()).save(any(TicketHistorial.class));
+        verify(ticketMensajeRepository, times(1)).save(any(TicketMensaje.class));
+        verify(ticketHistorialRepository, never()).save(any(TicketHistorial.class));
     }
 
     @Test
     @DisplayName("Debe cerrar el ticket y generar encuesta de satisfacción cuando enviarCsat es true")
     void testCerrarTicketConCsat() {
-        when(ticketDAO.findById(100L)).thenReturn(Optional.of(ticket));
-        when(ticketDAO.save(any(Ticket.class))).thenReturn(ticket);
+        when(ticketRepository.findById(100L)).thenReturn(Optional.of(ticket));
+        when(ticketRepository.save(any(Ticket.class))).thenReturn(ticket);
         when(encuestaCsatRepository.save(any(EncuestaCsat.class))).thenAnswer(i -> i.getArgument(0));
 
         ticketService.cerrarTicket(100L, true, "Caso solucionado", agente);
@@ -202,20 +202,20 @@ class TicketServiceTest {
         assertNotNull(ticket.getFechaCierre());
 
         verify(encuestaCsatRepository, times(1)).save(any(EncuestaCsat.class));
-        verify(ticketHistorialDAO, times(1)).save(any(TicketHistorial.class));
+        verify(ticketHistorialRepository, times(1)).save(any(TicketHistorial.class));
         verify(healthScoreService, times(1)).recalcularYActualizarHealthScore(cliente);
     }
 
     @Test
     @DisplayName("Debe asignar agente a un ticket y registrar en auditoría")
     void testAsignarAgente() {
-        when(ticketDAO.findById(100L)).thenReturn(Optional.of(ticket));
-        when(usuarioDAO.findById(2L)).thenReturn(Optional.of(agente));
-        when(ticketDAO.save(any(Ticket.class))).thenReturn(ticket);
+        when(ticketRepository.findById(100L)).thenReturn(Optional.of(ticket));
+        when(usuarioRepository.findById(2L)).thenReturn(Optional.of(agente));
+        when(ticketRepository.save(any(Ticket.class))).thenReturn(ticket);
 
         ticketService.asignarAgente(100L, 2L, agente);
 
         assertEquals(agente, ticket.getAgente());
-        verify(ticketHistorialDAO, times(1)).save(any(TicketHistorial.class));
+        verify(ticketHistorialRepository, times(1)).save(any(TicketHistorial.class));
     }
 }

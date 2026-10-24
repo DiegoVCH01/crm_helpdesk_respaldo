@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="es"
+      xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout('Gestión de Agentes', 'agentes', ~{::section})}">
+<head><title>Gestión de Agentes - ServiClient</title></head>
+<body>
+<section>
+
+    <!-- Cabecera con el mismo estilo de Gestión de Clientes -->
+    <div class="page-header-row">
+        <div class="page-title-group">
+            <h1>Gestión de Agentes</h1>
+            <p>Administra los usuarios internos de tu empresa.</p>
+        </div>
+        <button type="button" class="btn btn-primary" data-modal-target="modalNuevoAgente">
+            <svg style="width:18px;height:18px" fill="none" stroke="currentColor"
+                 stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+            </svg>
+            Nuevo Agente
+        </button>
+    </div>
+
+    <!-- Credenciales: solo se envían por FlashAttribute tras crear/restablecer.
+         Se presentan en un modal, nunca en una tabla ni en la URL. -->
+    <div class="table-card">
+        <div class="table-toolbar">
+            <div style="display:flex;align-items:center;gap:10px">
+                <strong style="font-size:14px">Usuarios internos</strong>
+                <span class="badge" style="background:#eef2ff;color:#4f46e5"
+                      th:text="${#lists.size(agentes)} + ' registrados'">0 registrados</span>
+            </div>
+            <span style="font-size:13px;color:var(--color-text-muted)">
+                Agentes de Soporte y Supervisores
+            </span>
+        </div>
+
+        <div style="overflow-x:auto">
+            <table class="custom-table" style="min-width:1040px">
+                <thead>
+                <tr>
+                    <th>Agente</th>
+                    <th>Correo</th>
+                    <th>Teléfono</th>
+                    <th>Rol</th>
+                    <th>Estado</th>
+                    <th style="text-align:right">Acciones</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="agente : ${agentes}">
+                    <td>
+                        <div style="display:flex;align-items:center;gap:12px">
+                            <span th:text="${agente.iniciales}"
+                                  style="width:38px;height:38px;border-radius:50%;
+                                         background:#eef2ff;color:#6366f1;display:flex;
+                                         align-items:center;justify-content:center;
+                                         font-weight:700;font-size:13px;flex-shrink:0">CR</span>
+                            <strong style="white-space:nowrap" th:text="${agente.nombreCompleto}">Carlos Ruiz</strong>
+                        </div>
+                    </td>
+                    <td th:text="${agente.email}">carlos@empresa.com</td>
+                    <td th:text="${agente.telefono != null and !agente.telefono.isBlank()
+                                   ? agente.telefono : '-'}">-</td>
+                    <td th:text="${agente.rolEntity.nombre}">Agente de Soporte</td>
+                    <td>
+                        <span th:if="${agente.activo}" class="badge badge-saludable">Activo</span>
+                        <span th:unless="${agente.activo}" class="badge"
+                              style="background:#f1f5f9;color:#64748b;border-color:#e2e8f0">Inactivo</span>
+                    </td>
+                    <td style="text-align:right">
+                        <div style="display:flex;justify-content:flex-end;gap:6px;align-items:center;white-space:nowrap">
+                            <button type="button" class="btn btn-secondary"
+                                    th:attr="data-modal-target=${'modalEditarAgente-' + agente.id}"
+                                    style="padding:5px 10px;font-size:12px;background:#eff6ff;
+                                           color:#4f46e5;border-color:#c7d2fe">Editar</button>
+
+                            <button type="button" class="btn btn-secondary"
+                                    th:attr="data-modal-target=${'modalRestablecerAgente-' + agente.id}"
+                                    style="padding:5px 10px;font-size:12px;background:#fffbeb;
+                                           color:#b45309;border-color:#fde68a">Restablecer contraseña</button>
+
+                            <button type="button" class="btn btn-secondary"
+                                    th:attr="data-modal-target=${'modalEstadoAgente-' + agente.id}"
+                                    th:style="${agente.activo}
+                                      ? 'padding:5px 10px;font-size:12px;background:#fef2f2;color:#dc2626;border-color:#fecaca'
+                                      : 'padding:5px 10px;font-size:12px;background:#ecfdf5;color:#059669;border-color:#a7f3d0'"
+                                    th:text="${agente.activo ? 'Desactivar' : 'Activar'}">Desactivar</button>
+                        </div>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(agentes)}">
+                    <td colspan="6" style="text-align:center;padding:42px;color:var(--color-text-muted)">
+                        No hay agentes registrados.
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- MODAL: NUEVO AGENTE -->
+    <div id="modalNuevoAgente" class="modal-overlay" role="dialog"
+         aria-modal="true" aria-label="Crear nuevo agente">
+        <div class="modal-card" style="max-width:540px;max-height:90vh;overflow-y:auto">
+            <div class="modal-header">
+                <div>
+                    <div class="modal-title">Nuevo Agente</div>
+                    <div style="font-size:12px;color:var(--color-text-muted);margin-top:4px">
+                        Registra un usuario interno de tu empresa.
+                    </div>
+                </div>
+                <button type="button" class="modal-close-btn" data-modal-close aria-label="Cerrar">&times;</button>
+            </div>
+            <form th:action="@{/agentes}" method="post">
+                <div class="modal-body">
+                    <div th:if="${modalReabrir == 'modalNuevoAgente'}" class="badge badge-riesgo"
+                         style="display:block;margin-bottom:16px;padding:12px"
+                         th:text="${errorMessage}">Comprueba los datos ingresados.</div>
+
+                    <div class="form-row-2">
+                        <div class="form-group">
+                            <label class="form-label" for="nuevoNombre">Nombre *</label>
+                            <input id="nuevoNombre" type="text" name="nombre" class="form-input" maxlength="100"
+                                   th:value="${agenteFormularioError != null and modalReabrir == 'modalNuevoAgente' ? agenteFormularioError.nombre : ''}"
+                                   required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="nuevoApellido">Apellido *</label>
+                            <input id="nuevoApellido" type="text" name="apellido" class="form-input" maxlength="100"
+                                   th:value="${agenteFormularioError != null and modalReabrir == 'modalNuevoAgente' ? agenteFormularioError.apellido : ''}"
+                                   required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="nuevoEmail">Correo electrónico *</label>
+                        <input id="nuevoEmail" type="email" name="email" class="form-input" maxlength="180"
+                               th:value="${agenteFormularioError != null and modalReabrir == 'modalNuevoAgente' ? agenteFormularioError.email : ''}"
+                               required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="nuevoTelefono">Teléfono</label>
+                        <input id="nuevoTelefono" type="tel" name="telefono" class="form-input" maxlength="30"
+                               th:value="${agenteFormularioError != null and modalReabrir == 'modalNuevoAgente' ? agenteFormularioError.telefono : ''}">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="nuevoRol">Rol *</label>
+                        <select id="nuevoRol" name="rol" class="form-select" required>
+                            <option value="">— Seleccionar —</option>
+                            <option th:each="rol : ${rolesDisponibles}" th:value="${rol.name()}"
+                                    th:text="${rol.descripcion}"
+                                    th:selected="${agenteFormularioError != null
+                                        and modalReabrir == 'modalNuevoAgente'
+                                        and agenteFormularioError.rol == rol}">
+                                Agente de Soporte
+                            </option>
+                        </select>
+                    </div>
+
+                    <div style="background:#eef2ff;border:1px solid #c7d2fe;
+                                border-radius:9px;padding:12px 14px;color:#4338ca;
+                                font-size:13px;line-height:1.5">
+                        ServiClient generará automáticamente una contraseña temporal.
+                        El agente deberá cambiarla en su primer acceso.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-modal-close>Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Crear agente</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODALES POR AGENTE: EDITAR, RESTABLECER Y ESTADO -->
+    <th:block th:each="agente : ${agentes}">
+
+        <!-- EDITAR -->
+        <div th:id="${'modalEditarAgente-' + agente.id}"
+             th:with="valorDto=${modalReabrir == ('modalEditarAgente-' + agente.id) ? agenteFormularioError : null}"
+             class="modal-overlay" role="dialog" aria-modal="true" aria-label="Editar agente">
+            <div class="modal-card" style="max-width:540px;max-height:90vh;overflow-y:auto">
+                <div class="modal-header">
+                    <div>
+                        <div class="modal-title">Editar agente</div>
+                        <div style="font-size:12px;color:var(--color-text-muted);margin-top:4px"
+                             th:text="${agente.nombreCompleto}">Carlos Ruiz</div>
+                    </div>
+                    <button type="button" class="modal-close-btn" data-modal-close aria-label="Cerrar">&times;</button>
+                </div>
+
+                <form th:action="@{/agentes/{id}/editar(id=${agente.id})}" method="post">
+                    <div class="modal-body">
+                        <div th:if="${modalReabrir == ('modalEditarAgente-' + agente.id)}"
+                             class="badge badge-riesgo" style="display:block;margin-bottom:16px;padding:12px"
+                             th:text="${errorMessage}">No se pudo guardar.</div>
+
+                        <div class="form-row-2">
+                            <div class="form-group">
+                                <label class="form-label">Nombre *</label>
+                                <input type="text" name="nombre" class="form-input" maxlength="100"
+                                       th:value="${valorDto != null ? valorDto.nombre : agente.nombre}" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Apellido *</label>
+                                <input type="text" name="apellido" class="form-input" maxlength="100"
+                                       th:value="${valorDto != null ? valorDto.apellido : agente.apellido}" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Correo electrónico *</label>
+                            <input type="email" name="email" class="form-input" maxlength="180"
+                                   th:value="${valorDto != null ? valorDto.email : agente.email}" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Teléfono</label>
+                            <input type="tel" name="telefono" class="form-input" maxlength="30"
+                                   th:value="${valorDto != null ? valorDto.telefono : agente.telefono}">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Rol *</label>
+                            <select name="rol" class="form-select" required>
+                                <option th:each="rol : ${rolesDisponibles}"
+                                        th:value="${rol.name()}"
+                                        th:text="${rol.descripcion}"
+                                        th:selected="${(valorDto != null and valorDto.rol != null
+                                              ? valorDto.rol : agente.rol) == rol}">
+                                </option>
+                            </select>
+                        </div>
+
+                        <div style="font-size:12px;color:var(--color-text-muted);line-height:1.5">
+                            Los cambios de datos y rol no modifican la contraseña.
+                            Para eso utiliza la acción «Restablecer contraseña».
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-modal-close>Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- RESTABLECER CONTRASEÑA: CONFIRMACIÓN -->
+        <div th:id="${'modalRestablecerAgente-' + agente.id}"
+             class="modal-overlay" role="dialog" aria-modal="true"
+             aria-label="Confirmar restablecimiento de contraseña">
+            <div class="modal-card" style="max-width:480px">
+                <div class="modal-header">
+                    <div>
+                        <div class="modal-title">Restablecer contraseña</div>
+                        <div style="font-size:12px;color:var(--color-text-muted);margin-top:4px">
+                            Acceso al sistema ServiClient
+                        </div>
+                    </div>
+                    <button type="button" class="modal-close-btn" data-modal-close aria-label="Cerrar">&times;</button>
+                </div>
+
+                <div class="modal-body">
+                    <p style="font-size:14px;line-height:1.6;margin:0 0 16px">
+                        Se generará una contraseña temporal nueva para
+                        <strong th:text="${agente.nombreCompleto}">Carlos Ruiz</strong>.
+                    </p>
+                    <div style="background:#f8fafc;border:1px solid var(--color-border);
+                                padding:14px;border-radius:9px;margin-bottom:16px">
+                        <div style="font-size:11px;font-weight:700;color:var(--color-text-muted);
+                                    text-transform:uppercase;margin-bottom:6px">Cuenta del agente</div>
+                        <strong th:text="${agente.email}" style="font-size:14px">carlos@empresa.com</strong>
+                    </div>
+                    <div style="background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;
+                                border-radius:9px;padding:12px 14px;font-size:13px;line-height:1.5">
+                        <strong>Importante:</strong> la contraseña anterior dejará de servir
+                        para iniciar sesión. El agente tendrá que utilizar la nueva
+                        contraseña temporal y cambiarla antes de continuar.
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-modal-close>Cancelar</button>
+                    <form th:action="@{/agentes/{id}/restablecer-password(id=${agente.id})}"
+                          method="post" style="margin:0">
+                        <button type="submit" class="btn btn-primary">Generar contraseña</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- ACTIVAR / DESACTIVAR: CONFIRMACIÓN -->
+        <div th:id="${'modalEstadoAgente-' + agente.id}"
+             class="modal-overlay" role="dialog" aria-modal="true"
+             aria-label="Confirmar cambio de estado">
+            <div class="modal-card" style="max-width:460px">
+                <div class="modal-header">
+                    <div class="modal-title"
+                         th:text="${agente.activo ? 'Desactivar agente' : 'Activar agente'}">Desactivar agente</div>
+                    <button type="button" class="modal-close-btn" data-modal-close aria-label="Cerrar">&times;</button>
+                </div>
+
+                <div class="modal-body">
+                    <p style="font-size:14px;line-height:1.6;margin:0 0 14px">
+                        ¿Confirmas que deseas
+                        <strong th:text="${agente.activo ? 'desactivar' : 'activar'}">desactivar</strong>
+                        la cuenta de <strong th:text="${agente.nombreCompleto}">Carlos Ruiz</strong>?
+                    </p>
+                    <div th:if="${agente.activo}"
+                         style="background:#fef2f2;border:1px solid #fecaca;color:#991b1b;
+                                padding:13px;border-radius:9px;font-size:13px;line-height:1.5">
+                        El agente no podrá iniciar nuevas sesiones mientras esté inactivo.
+                        Su información se conservará y podrás reactivarlo después.
+                    </div>
+                    <div th:unless="${agente.activo}"
+                         style="background:#ecfdf5;border:1px solid #a7f3d0;color:#047857;
+                                padding:13px;border-radius:9px;font-size:13px;line-height:1.5">
+                        El agente podrá iniciar sesión nuevamente con sus credenciales
+                        actuales. Si necesita otra contraseña, utiliza «Restablecer contraseña».
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-modal-close>Cancelar</button>
+                    <form th:action="@{/agentes/{id}/estado(id=${agente.id})}"
+                          method="post" style="margin:0">
+                        <button type="submit"
+                                class="btn"
+                                th:style="${agente.activo}
+                                    ? 'background:#dc2626;color:white;border-color:#dc2626'
+                                    : 'background:#059669;color:white;border-color:#059669'"
+                                th:text="${agente.activo ? 'Sí, desactivar' : 'Sí, activar'}">
+                            Sí, desactivar
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </th:block>
+
+    <!-- CONTRASEÑA TEMPORAL: se muestra una sola vez y se limpia al recargar -->
+    <div id="modalCredencialesAgente" class="modal-overlay"
+         th:if="${agentePasswordTemporal != null}" role="dialog"
+         aria-modal="true" aria-label="Credenciales temporales del agente">
+        <div class="modal-card" style="max-width:480px">
+            <div class="modal-header">
+                <div class="modal-title">Credenciales generadas</div>
+            </div>
+
+            <div class="modal-body">
+                <p style="font-size:14px;line-height:1.6;margin:0 0 18px">
+                    Guarda estas credenciales y entrégalas al agente de forma segura.
+                    Esta contraseña se muestra una sola vez.
+                </p>
+
+                <div class="form-group">
+                    <label class="form-label">Correo electrónico</label>
+                    <div class="form-input" style="background:#f8fafc"
+                         th:text="${agenteEmail}">agente@empresa.com</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Contraseña temporal</label>
+                    <div class="form-input"
+                         style="font-family:monospace;font-size:18px;font-weight:700;
+                                letter-spacing:1px;background:#eef2ff;color:#4338ca"
+                         th:text="${agentePasswordTemporal}">Ejemplo123</div>
+                </div>
+
+                <div style="background:#fff7ed;color:#9a3412;border:1px solid #fed7aa;
+                            padding:12px 14px;border-radius:9px;font-size:13px;line-height:1.5">
+                    Al cerrar este aviso, no podrás volver a consultar esta contraseña.
+                    Si el agente la pierde, utiliza «Restablecer contraseña».
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <a class="btn btn-primary" th:href="@{/agentes}">Ya guardé las credenciales</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- app.js de ServiClient ya maneja data-modal-target y data-modal-close.
+         Este script reabre el formulario tras un error o muestra las credenciales. -->
+    <div id="estadoModalesAgentes" hidden
+         th:attr="data-open-modal=${agentePasswordTemporal != null
+             ? 'modalCredencialesAgente' : modalReabrir}"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const estado = document.getElementById('estadoModalesAgentes');
+            const id = estado ? estado.getAttribute('data-open-modal') : null;
+            if (id) {
+                const modal = document.getElementById(id);
+                if (modal) modal.classList.add('active');
+            }
+        });
+    </script>
+</section>
+</body>
+</html>
