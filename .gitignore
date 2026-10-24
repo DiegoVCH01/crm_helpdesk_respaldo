@@ -28,3 +28,6 @@ buildNumber.properties
 .DS_Store
 Thumbs.db
 .prettierrc
+
+logs/
+*.log

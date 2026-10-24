@@ -122,11 +122,17 @@ public class RenovacionService {
       throw new IllegalArgumentException("La renovación no pertenece a la empresa actual.");
     }
 
+    if (dto.getEstado() != null) {
+        renovacion.setEstado(dto.getEstado());
+        renovacionDAO.save(renovacion); 
+    }
+
     RenovacionSeguimiento seguimiento =
         RenovacionSeguimiento.builder()
             .renovacion(renovacion)
             .comentario(dto.getComentario())
             .usuario(usuario)
+            .estado(dto.getEstado())
             .fecha(LocalDateTime.now())
             .build();
 

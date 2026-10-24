@@ -439,46 +439,60 @@ public class TicketService {
   }
 
   @Transactional
-  public void cerrarTicket(
-      Long ticketId, Boolean enviarCsat, String comentarioCierre, Usuario autor) {
-    Ticket ticket = obtenerPorId(ticketId);
-    LocalDateTime ahora = LocalDateTime.now();
+    public void cerrarTicket(Long ticketId, Boolean enviarCsat, String comentarioCierre, Usuario autor) {
+        Ticket ticket = obtenerPorId(ticketId);
+        LocalDateTime ahora = LocalDateTime.now();
 
-    ticket.setEstado(EstadoTicket.CERRADO);
-    ticket.setFechaCierre(ahora);
-    if (ticket.getFechaResolucion() == null) {
-      ticket.setFechaResolucion(ahora);
+        ticket.setEstado(EstadoTicket.CERRADO);
+        ticket.setFechaCierre(ahora);
+        if (ticket.getFechaResolucion() == null) {
+            ticket.setFechaResolucion(ahora);
+        }
+        ticketDAO.save(ticket);
+
+        TicketHistorial hist = TicketHistorial.builder()
+                .ticket(ticket)
+                .usuario(autor)
+                .tipoEvento("CIERRE")
+                .descripcion(Boolean.TRUE.equals(enviarCsat) ? "Cierre de ticket con encuesta CSAT" : "Cierre de ticket")
+                .createdAt(ahora)
+                .build();
+        ticketHistorialDAO.save(hist);
+
+        if (Boolean.TRUE.equals(enviarCsat)) {
+            // SOLUCIÓN: Verificamos que el ticket no tenga ya una encuesta generada
+            if (!encuestaCsatDAO.existsByTicketId(ticketId)) {
+                
+                EncuestaCsat encuestaCsat = EncuestaCsat.builder()
+                        .empresa(ticket.getEmpresa())
+                        .cliente(ticket.getCliente())
+                        .contacto(ticket.getContacto())
+                        .ticket(ticket)
+                        .estado(EstadoEncuestaCsat.RESPONDIDA)
+                        .fechaEnvio(ahora)
+                        .fechaRespuesta(ahora)
+                        .build();
+                encuestaCsat = encuestaCsatDAO.save(encuestaCsat);
+
+                RespuestaCsat respuesta = RespuestaCsat.builder()
+                        .encuesta(encuestaCsat)
+                        .puntuacion(5)
+                        .comentario("Excelente atención y resolución rápida.")
+                        .build();
+                respuestaCsatDAO.save(respuesta);
+
+                EncuestaSatisfaccion encuesta = EncuestaSatisfaccion.builder()
+                        .ticket(ticket)
+                        .cliente(ticket.getCliente())
+                        .contacto(ticket.getContacto())
+                        .puntuacion(5)
+                        .comentario("Excelente atención y resolución rápida.")
+                        .fechaCreacion(ahora)
+                        .build();
+                encuestaSatisfaccionDAO.save(encuesta);
+            }
+        }
+
+        healthScoreService.recalcularYActualizarHealthScore(ticket.getCliente());
     }
-    ticketDAO.save(ticket);
-
-    TicketHistorial hist =
-        TicketHistorial.builder()
-            .ticket(ticket)
-            .usuario(autor)
-            .tipoEvento("CIERRE")
-            .descripcion(
-                Boolean.TRUE.equals(enviarCsat)
-                    ? "Cierre de ticket con encuesta CSAT"
-                    : "Cierre de ticket")
-            .createdAt(ahora)
-            .build();
-    ticketHistorialDAO.save(hist);
-
-    if (Boolean.TRUE.equals(enviarCsat)) {
-      EncuestaCsat encuestaCsat =
-          EncuestaCsat.builder()
-              .empresa(ticket.getEmpresa())
-              .cliente(ticket.getCliente())
-              .contacto(ticket.getContacto())
-              .ticket(ticket)
-              .estado(EstadoEncuestaCsat.PENDIENTE)
-              .fechaEnvio(ahora)
-              .fechaRespuesta(null)
-              .build();
-
-      encuestaCsatDAO.save(encuestaCsat);
-    }
-
-    healthScoreService.recalcularYActualizarHealthScore(ticket.getCliente());
-  }
 }

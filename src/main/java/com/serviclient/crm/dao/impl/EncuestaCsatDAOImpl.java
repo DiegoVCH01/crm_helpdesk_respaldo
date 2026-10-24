@@ -70,4 +70,13 @@ public class EncuestaCsatDAOImpl implements EncuestaCsatDAO {
                 .getSingleResult();
         return avg != null ? avg : 0.0;
     }
+
+    @Override
+    public boolean existsByTicketId(Long ticketId) {
+        Long count = entityManager.createQuery(
+                "SELECT COUNT(e) FROM EncuestaCsat e WHERE e.ticket.id = :ticketId", Long.class)
+                .setParameter("ticketId", ticketId)
+                .getSingleResult();
+        return count > 0;
+    }
 }
