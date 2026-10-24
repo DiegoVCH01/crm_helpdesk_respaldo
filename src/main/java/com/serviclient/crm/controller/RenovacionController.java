@@ -17,11 +17,13 @@ import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 /**
@@ -71,7 +73,6 @@ public class RenovacionController {
   @ApiResponses({
     @ApiResponse(responseCode = "200", description = "Panel de renovaciones cargado exitosamente")
   })
-
   @GetMapping
   public String listarRenovaciones(
       @AuthenticationPrincipal CustomUserDetails userDetails,
@@ -79,11 +80,12 @@ public class RenovacionController {
       @RequestParam(value = "estado", required = false) EstadoRenovacion estado,
       Model model) {
 
-    Long empresaId = (userDetails != null && userDetails.getEmpresaId() != null) ? userDetails.getEmpresaId() : 1L;
+    Long empresaId = resolverEmpresaId(userDetails);
 
     RenovacionService.MetricasRenovaciones metricas = renovacionService.obtenerMetricas(empresaId);
 
-    List<Renovacion> renovaciones = renovacionService.listarProximasRenovaciones(empresaId, busqueda, estado);
+    List<Renovacion> renovaciones =
+        renovacionService.listarProximasRenovaciones(empresaId, busqueda, estado);
     List<Usuario> agentes = usuarioService.obtenerAgentesYAdminsPorEmpresa(empresaId);
 
     model.addAttribute("metricas", metricas);
@@ -130,10 +132,7 @@ public class RenovacionController {
           TicketMensajeDto.RegistrarSeguimientoRenovacion dto,
       BindingResult bindingResult,
       RedirectAttributes redirectAttributes) {
-    Long empresaId =
-        (userDetails != null && userDetails.getEmpresaId() != null)
-            ? userDetails.getEmpresaId()
-            : 1L;
+    Long empresaId = resolverEmpresaId(userDetails);
     Usuario autor = usuarioService.obtenerUsuarioAutenticado().orElse(null);
 
     if (bindingResult.hasErrors()) {
@@ -153,5 +152,15 @@ public class RenovacionController {
     }
 
     return "redirect:/renovaciones";
+  }
+
+  private Long resolverEmpresaId(CustomUserDetails userDetails) {
+
+    if (userDetails == null || userDetails.getEmpresaId() == null) {
+      throw new ResponseStatusException(
+          HttpStatus.FORBIDDEN, "No se pudo identificar la empresa del usuario.");
+    }
+
+    return userDetails.getEmpresaId();
   }
 }

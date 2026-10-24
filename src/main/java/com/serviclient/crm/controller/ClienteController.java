@@ -25,6 +25,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -33,6 +34,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 /**
@@ -529,8 +531,12 @@ public class ClienteController {
   // ─────────────────────────────────────────────────────────────────────────
 
   private Long resolverEmpresaId(CustomUserDetails userDetails) {
-    return (userDetails != null && userDetails.getEmpresaId() != null)
-        ? userDetails.getEmpresaId()
-        : 1L;
+
+    if (userDetails == null || userDetails.getEmpresaId() == null) {
+      throw new ResponseStatusException(
+          HttpStatus.FORBIDDEN, "No se pudo identificar la empresa del usuario.");
+    }
+
+    return userDetails.getEmpresaId();
   }
 }

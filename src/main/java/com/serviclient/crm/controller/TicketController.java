@@ -25,11 +25,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 /**
@@ -120,10 +122,7 @@ public class TicketController {
           @RequestParam(value = "size", defaultValue = "10")
           int size,
       Model model) {
-    Long empresaId =
-        (userDetails != null && userDetails.getEmpresaId() != null)
-            ? userDetails.getEmpresaId()
-            : 1L;
+    Long empresaId = resolverEmpresaId(userDetails);
 
     Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
     Page<Ticket> ticketsPage =
@@ -166,10 +165,7 @@ public class TicketController {
   @GetMapping("/nuevo")
   public String formularioNuevoTicket(
       @AuthenticationPrincipal CustomUserDetails userDetails, Model model) {
-    Long empresaId =
-        (userDetails != null && userDetails.getEmpresaId() != null)
-            ? userDetails.getEmpresaId()
-            : 1L;
+    Long empresaId = resolverEmpresaId(userDetails);
     List<Cliente> clientes = clienteService.listarTodosPorEmpresa(empresaId);
     List<Usuario> agentes = usuarioService.obtenerAgentesYAdminsPorEmpresa(empresaId);
 
@@ -212,10 +208,7 @@ public class TicketController {
       BindingResult bindingResult,
       Model model,
       RedirectAttributes redirectAttributes) {
-    Long empresaId =
-        (userDetails != null && userDetails.getEmpresaId() != null)
-            ? userDetails.getEmpresaId()
-            : 1L;
+    Long empresaId = resolverEmpresaId(userDetails);
     Usuario autor = usuarioService.obtenerUsuarioAutenticado().orElse(null);
 
     if (bindingResult.hasErrors()) {
@@ -267,10 +260,7 @@ public class TicketController {
       @AuthenticationPrincipal CustomUserDetails userDetails,
       @Parameter(description = "ID único del ticket", example = "1") @PathVariable("id") Long id,
       Model model) {
-    Long empresaId =
-        (userDetails != null && userDetails.getEmpresaId() != null)
-            ? userDetails.getEmpresaId()
-            : 1L;
+    Long empresaId = resolverEmpresaId(userDetails);
     Ticket ticket = ticketService.obtenerPorIdYEmpresa(id, empresaId);
     List<Usuario> agentes = usuarioService.obtenerAgentesYAdminsPorEmpresa(empresaId);
 
@@ -319,10 +309,7 @@ public class TicketController {
           @RequestParam(value = "esNotaInterna", defaultValue = "false")
           boolean esNotaInterna,
       RedirectAttributes redirectAttributes) {
-    Long empresaId =
-        (userDetails != null && userDetails.getEmpresaId() != null)
-            ? userDetails.getEmpresaId()
-            : 1L;
+    Long empresaId = resolverEmpresaId(userDetails);
     Usuario autor = usuarioService.obtenerUsuarioAutenticado().orElse(null);
     try {
       ticketService.obtenerPorIdYEmpresa(ticketId, empresaId);
@@ -363,10 +350,7 @@ public class TicketController {
           @RequestParam("agenteId")
           Long agenteId,
       RedirectAttributes redirectAttributes) {
-    Long empresaId =
-        (userDetails != null && userDetails.getEmpresaId() != null)
-            ? userDetails.getEmpresaId()
-            : 1L;
+    Long empresaId = resolverEmpresaId(userDetails);
     Usuario autor = usuarioService.obtenerUsuarioAutenticado().orElse(null);
     try {
       ticketService.obtenerPorIdYEmpresa(ticketId, empresaId);
@@ -414,10 +398,7 @@ public class TicketController {
           @RequestParam(value = "comentario", required = false)
           String comentario,
       RedirectAttributes redirectAttributes) {
-    Long empresaId =
-        (userDetails != null && userDetails.getEmpresaId() != null)
-            ? userDetails.getEmpresaId()
-            : 1L;
+    Long empresaId = resolverEmpresaId(userDetails);
     Usuario autor = usuarioService.obtenerUsuarioAutenticado().orElse(null);
     try {
       ticketService.obtenerPorIdYEmpresa(ticketId, empresaId);
@@ -466,10 +447,7 @@ public class TicketController {
           @RequestParam(value = "comentarioCierre", required = false)
           String comentarioCierre,
       RedirectAttributes redirectAttributes) {
-    Long empresaId =
-        (userDetails != null && userDetails.getEmpresaId() != null)
-            ? userDetails.getEmpresaId()
-            : 1L;
+    Long empresaId = resolverEmpresaId(userDetails);
     Usuario autor = usuarioService.obtenerUsuarioAutenticado().orElse(null);
     try {
       ticketService.obtenerPorIdYEmpresa(ticketId, empresaId);
@@ -480,5 +458,15 @@ public class TicketController {
           "errorMessage", "Error al cerrar ticket: " + ex.getMessage());
     }
     return "redirect:/tickets/" + ticketId;
+  }
+
+  private Long resolverEmpresaId(CustomUserDetails userDetails) {
+
+    if (userDetails == null || userDetails.getEmpresaId() == null) {
+      throw new ResponseStatusException(
+          HttpStatus.FORBIDDEN, "No se pudo identificar la empresa del usuario.");
+    }
+
+    return userDetails.getEmpresaId();
   }
 }
