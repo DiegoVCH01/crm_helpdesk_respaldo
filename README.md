@@ -8,6 +8,8 @@
 [![MySQL](https://img.shields.io/badge/MySQL-8.0%2B-blue.svg)](https://www.mysql.com/)
 [![Swagger](https://img.shields.io/badge/Swagger-OpenAPI%203.0-85EA2D.svg)](http://localhost:8080/swagger-ui.html)
 [![License](https://img.shields.io/badge/License-MIT%20Academico-lightgrey.svg)](#-licencia)
+[![Guava](https://img.shields.io/badge/Google%20Guava-33%2B-yellow.svg)](https://github.com/google/guava)
+[![Apache POI](https://img.shields.io/badge/Apache%20POI-5%2B-red.svg)](https://poi.apache.org/)
 
 ---
 
@@ -24,6 +26,8 @@
 | Helpdesk | Mesa de ayuda con KPIs, conversacion, notas internas y control de SLA |
 | Renovaciones | Panel por rangos de vencimiento, alertas de riesgo y seguimientos |
 | Health Score | Motor de calculo automatico (0-100) basado en CSAT, SLA y renovacion |
+| Dashboard | Resumen ejecutivo con KPIs de tickets, clientes y renovaciones |
+| Portal Cliente | Acceso externo para que el cliente cree y siga sus propios tickets |
 | Swagger UI | Documentacion interactiva de la API en /swagger-ui.html |
 
 ---
@@ -38,16 +42,19 @@
 | Persistencia | Spring Data JPA + Hibernate | 6 |
 | Seguridad | Spring Security | 6 |
 | Base de Datos | MySQL | 8.0+ |
-| BD alternativa | H2 in-memory | - |
 | Build | Apache Maven | 3.9+ |
 | Utilidades | Lombok | - |
 | Documentacion API | SpringDoc OpenAPI (Swagger) | 2.6.0 |
+| Logging | Logback (via SLF4J) | incluido en Spring Boot |
+| Validacion defensiva | Google Guava | 33+ |
+| Exportacion Excel | Apache POI (XSSF) | 5+ |
+| Utilidades comunes | Apache Commons Lang3 | 3.14+ |
 
 ---
 
 ## Arquitectura
 
-Monolito en capas estrictas:
+Monolito en capas estrictas con separacion por interfaces de servicio:
 
 ```
 com.serviclient.crm
@@ -59,23 +66,137 @@ com.serviclient.crm
 |       +-- CustomUserDetails.java
 |       +-- CustomUserDetailsService.java
 +-- controller/                        <- Spring MVC (@Controller)
-|   +-- AuthController.java
-|   +-- ClienteController.java
-|   +-- TicketController.java
-|   +-- RenovacionController.java
+|   +-- AuthController.java            <- Inyecta IEmpresaService, IUsuarioService
+|   +-- ClienteController.java         <- Inyecta IClienteService
+|   +-- TicketController.java          <- Inyecta ITicketService
+|   +-- RenovacionController.java      <- Inyecta IRenovacionService
+|   +-- DashboardController.java       <- Inyecta IDashboardService
+|   +-- AgenteController.java
+|   +-- PortalTicketController.java    <- Inyecta IPortalTicketService
+|   +-- CambioPasswordController.java  <- Inyecta IUsuarioService
 |   +-- GlobalControllerAdvice.java
-+-- service/                           <- Logica de negocio (@Service)
-|   +-- EmpresaService.java
-|   +-- UsuarioService.java
-|   +-- ClienteService.java
-|   +-- HealthScoreService.java
++-- service/                           <- Logica de negocio (@Service) + Interfaces
+|   +-- IClienteService.java           <- Interfaz publica del servicio
+|   +-- ClienteService.java            <- Implementacion (usa Apache POI para Excel)
+|   +-- ITicketService.java
 |   +-- TicketService.java
+|   +-- IEmpresaService.java
+|   +-- EmpresaService.java            <- Usa Guava Preconditions
+|   +-- IUsuarioService.java
+|   +-- UsuarioService.java
+|   +-- IRenovacionService.java
 |   +-- RenovacionService.java
-+-- repository/                        <- Spring Data JPA (25 repositorios)
+|   +-- IDashboardService.java
+|   +-- DashboardService.java
+|   +-- IHealthScoreService.java
+|   +-- HealthScoreService.java
+|   +-- ICuentaPortalService.java
+|   +-- CuentaPortalService.java
+|   +-- IPortalTicketService.java
+|   +-- PortalTicketService.java
++-- repository/                        <- Spring Data JPA (26 repositorios)
+|   +-- ClienteRepository.java
+|   +-- TicketRepository.java
+|   +-- RenovacionRepository.java
+|   +-- UsuarioRepository.java
+|   +-- EmpresaRepository.java
+|   +-- ... (21 repositorios mas)
 +-- entity/                            <- Entidades JPA (25 entidades)
 |   +-- enums/                         <- 15 enumeraciones de dominio
++-- dto/                               <- Objetos de transferencia de datos
 +-- ServiClientApplication.java
 ```
+
+### Patron de capas: Controller -> Interface -> Service -> Repository
+
+Los controllers **nunca inyectan la clase concreta del servicio**, sino su interfaz:
+
+```java
+// CORRECTO - Inyeccion por interfaz (bajo acoplamiento)
+@Autowired
+private IClienteService clienteService;
+
+// INCORRECTO - Inyeccion de la implementacion directa (alto acoplamiento)
+// private ClienteService clienteService;
+```
+
+Esto aplica el principio de inversion de dependencias (SOLID - D) y permite usar mocks en pruebas sin modificar el controller.
+
+---
+
+## Librerias de Utilidad
+
+### Google Guava
+
+**Uso en el proyecto:** Validacion defensiva de argumentos en la capa de servicio.
+
+```java
+// En EmpresaService.java
+import com.google.common.base.Preconditions;
+
+Preconditions.checkNotNull(empresa, "La empresa no puede ser nula");
+Preconditions.checkArgument(empresa.getId() != null, "El ID de empresa es requerido");
+```
+
+Se usa `Preconditions` de Guava para lanzar excepciones descriptivas de forma temprana (fail-fast) antes de ejecutar logica de negocio, evitando `NullPointerException` silenciosas.
+
+---
+
+### Logback (SLF4J)
+
+**Uso en el proyecto:** Logging estructurado en servicios y controladores mediante `@Slf4j` de Lombok.
+
+```java
+// En servicios y controladores
+@Slf4j
+@Service
+public class TicketService implements ITicketService {
+
+    public void cerrarTicket(Long ticketId) {
+        log.info("Cerrando ticket ID: {}", ticketId);
+        log.warn("Ticket {} cerrado sin encuesta CSAT activa", ticketId);
+        log.error("Error al cerrar ticket {}: {}", ticketId, e.getMessage());
+    }
+}
+```
+
+Logback es el backend de logging por defecto de Spring Boot. Registra eventos de negocio (creacion de tickets, cambios de estado, errores de SLA) de manera estructurada, sin `System.out.println`.
+
+---
+
+### Apache POI
+
+**Uso en el proyecto:** Generacion dinamica de archivos Excel (.xlsx) para exportacion de datos de clientes.
+
+```java
+// En ClienteService.java
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+
+public byte[] exportarClientesExcel(Long empresaId) {
+    XSSFWorkbook workbook = new XSSFWorkbook();
+    Sheet sheet = workbook.createSheet("Clientes");
+    // Se construyen filas con nombre, Health Score, estado, servicios activos...
+    return baos.toByteArray(); // devuelto como descarga desde el controller
+}
+```
+
+Permite descargar el listado completo de clientes a un archivo Excel desde `GET /clientes/exportar-excel`.
+
+---
+
+### Apache Commons Lang3
+
+**Uso en el proyecto:** Utilidades genericas de manipulacion de Strings y objetos.
+
+```xml
+<!-- pom.xml -->
+<dependency>
+    <groupId>org.apache.commons</groupId>
+    <artifactId>commons-lang3</artifactId>
+</dependency>
+```
+
+Proporciona metodos como `StringUtils.isBlank()`, `StringUtils.capitalize()` y `ObjectUtils.defaultIfNull()` para complementar las utilidades estandar de Java en validaciones y transformaciones dentro de los servicios.
 
 ---
 
@@ -229,6 +350,7 @@ Con la aplicacion corriendo, accede a:
 El codigo fuente incluye Javadoc completo en:
 
 - **Controllers**: descripcion de clase, rutas, parametros, retornos y excepciones
+- **Service Interfaces** (`IXxxService`): contrato de negocio que deben cumplir las implementaciones
 - **Services**: descripcion de la logica de negocio y sus invariantes
 - **Entities**: descripcion de campos JPA y relaciones
 - **Configuracion**: OpenApiConfig, SecurityConfig, DataInitializer
@@ -260,6 +382,7 @@ mvn javadoc:javadoc
 | POST | /clientes | Crear cliente |
 | GET | /clientes/{id} | Vista 360 del cliente |
 | POST | /clientes/{id}/contactos | Agregar contacto al cliente |
+| GET | /clientes/exportar-excel | Descargar listado de clientes en Excel (.xlsx) |
 | GET | /tickets | Mesa de Ayuda - listado con KPIs |
 | GET | /tickets/nuevo | Formulario de nuevo ticket |
 | POST | /tickets | Crear ticket |
@@ -270,6 +393,7 @@ mvn javadoc:javadoc
 | POST | /tickets/{id}/cerrar | Cerrar ticket (dispara CSAT) |
 | GET | /renovaciones | Panel de renovaciones con alertas |
 | POST | /renovaciones/seguimiento | Registrar seguimiento de renovacion |
+| GET | /dashboard | Resumen ejecutivo con KPIs |
 | GET | /swagger-ui.html | Documentacion Swagger UI |
 | GET | /v3/api-docs | Spec OpenAPI JSON |
 
@@ -337,9 +461,11 @@ Empresa --< Notificacion
 
 ## Principios Aplicados
 
-- **SOLID** - Separacion clara de responsabilidades por capa
+- **SOLID** - Interfaces de servicio (`IXxxService`) aplican SRP y DIP; cada capa tiene una sola razon de cambio
 - **DRY** - Layout maestro Thymeleaf reutilizable en todas las vistas
-- **Javadoc** - Documentacion en codigo para controllers, services y configuracion
+- **Bajo acoplamiento** - Controllers dependen de interfaces, no de implementaciones concretas
+- **Fail-fast** - Guava `Preconditions` valida argumentos antes de ejecutar logica de negocio
+- **Javadoc** - Documentacion en codigo para controllers, interfaces, services y configuracion
 - **OpenAPI 3.0** - Swagger UI auto-generado desde las anotaciones del codigo
 - **Seguridad** - CSRF habilitado, contrasenas con BCrypt, rutas protegidas por rol
 
