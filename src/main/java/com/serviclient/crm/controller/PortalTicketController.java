@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.security.Principal;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils; // <-- Utilidad de Apache Commons
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -61,8 +62,7 @@ public class PortalTicketController {
         CuentaPortal cuenta = obtenerCuenta(principal);
 
         Long clienteId = cuenta.getContacto().getCliente().getId();
-        Long empresaId =
-                cuenta.getContacto().getCliente().getEmpresa().getId();
+        Long empresaId = cuenta.getContacto().getCliente().getEmpresa().getId();
 
         Ticket ticket = ticketService.obtenerPorIdYEmpresa(id, empresaId);
 
@@ -98,34 +98,27 @@ public class PortalTicketController {
         return cuenta;
     }
 
-    private void cargarDatosUsuarioAutenticado(
-            Model model, CuentaPortal cuenta) {
-
+    private void cargarDatosUsuarioAutenticado(Model model, CuentaPortal cuenta) {
         Contacto contacto = cuenta.getContacto();
 
-        String nombre = contacto.getNombre() != null
-                ? contacto.getNombre() : "";
+        // 1. Unir nombres y apellidos limpiando espacios (maneja nulos sin romper)
+        String nombreCompleto = StringUtils.trimToEmpty(
+                StringUtils.joinWith(" ", contacto.getNombre(), contacto.getApellido())
+        );
 
-        String apellido = contacto.getApellido() != null
-                ? contacto.getApellido() : "";
+        // 2. Extraer de forma segura el primer caracter de cada campo
+        String inicialNombre = StringUtils.left(contacto.getNombre(), 1);
+        String inicialApellido = StringUtils.left(contacto.getApellido(), 1);
+        String iniciales = StringUtils.upperCase(inicialNombre + inicialApellido);
 
-        String nombreCompleto = (nombre + " " + apellido).trim();
-
-        String inicialNombre = !nombre.isEmpty()
-                ? nombre.substring(0, 1).toUpperCase() : "";
-
-        String inicialApellido = !apellido.isEmpty()
-                ? apellido.substring(0, 1).toUpperCase() : "";
-
-        String iniciales = inicialNombre + inicialApellido;
-
+        // 3. Fallbacks con defaultIfBlank (asigna valor alternativo si es null o cadena en blanco)
         model.addAttribute("usuarioNombre",
-                nombreCompleto.isEmpty() ? cuenta.getEmail() : nombreCompleto);
+                StringUtils.defaultIfBlank(nombreCompleto, cuenta.getEmail()));
 
         model.addAttribute("usuarioIniciales",
-                iniciales.isEmpty() ? "U" : iniciales);
+                StringUtils.defaultIfBlank(iniciales, "U"));
 
         model.addAttribute("empresaNombre",
-                contacto.getCliente().getRazonSocial());
+                StringUtils.defaultIfBlank(contacto.getCliente().getRazonSocial(), "Mi Empresa"));
     }
 }
