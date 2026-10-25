@@ -246,75 +246,90 @@
     </div>
 
 <!-- MODAL OBLIGATORIO DE CAMBIO DE CONTRASEÑA EN PRIMER LOGIN -->
-    <div th:if="${debeCambiarPassword == true}" role="dialog" aria-modal="true" aria-labelledby="tituloCambioPassword"
-         style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.75); display: flex; align-items: center; justify-content: center; z-index: 99999; padding: 20px; overflow-y: auto;">
+<div th:if="${debeCambiarPassword == true}" role="dialog" aria-modal="true" aria-labelledby="tituloCambioPassword"
+     style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 99999; padding: 20px;">
 
-      <div style="background: white; padding: 32px; border-radius: 16px; width: 100%; max-width: 440px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);">
+  <div style="background: #ffffff; padding: 40px 36px; border-radius: 20px; width: 100%; max-width: 420px; box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.05); border: 1px solid #f1f5f9; box-sizing: border-box; text-align: left;">
 
-        <div style="text-align: center; margin-bottom: 24px;">
-          <img th:src="@{/img/logo-icono.png}" alt="ServiClient" style="width: 55px; margin-bottom: 12px;" />
-
-          <h2 id="tituloCambioPassword" style="margin: 0 0 10px; color: #0f172a; font-size: 20px; font-weight: 700;">
-            Cambio de contraseña
-          </h2>
-
-          <p style="color: #64748b; font-size: 14px; margin: 0;">
-            Por seguridad, debes establecer una contraseña personal antes de continuar.
-          </p>
-        </div>
-
-        <div th:if="${errorCambioPassword != null}" th:text="${errorCambioPassword}"
-             style="background: #fef2f2; color: #991b1b; padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 13.5px; border: 1px solid #fecaca;">
-        </div>
-
-        <form th:action="@{/portalusuario/cambiar-password}" method="post">
-          <div style="margin-bottom: 18px;">
-            <label for="nuevaPassword" style="font-weight: 600; font-size: 13px; color: #334155; display: block; margin-bottom: 6px;">
-              Nueva contraseña
-            </label>
-            <input
-              type="password"
-              id="nuevaPassword"
-              name="nuevaPassword"
-              minlength="8"
-              maxlength="72"
-              autocomplete="new-password"
-              autofocus
-              required
-              class="portal-input"
-              style="width: 100%; box-sizing: border-box;"
-            />
-          </div>
-
-          <div style="margin-bottom: 20px;">
-            <label for="confirmarPassword" style="font-weight: 600; font-size: 13px; color: #334155; display: block; margin-bottom: 6px;">
-              Confirmar contraseña
-            </label>
-            <input
-              type="password"
-              id="confirmarPassword"
-              name="confirmarPassword"
-              minlength="8"
-              maxlength="72"
-              autocomplete="new-password"
-              required
-              class="portal-input"
-              style="width: 100%; box-sizing: border-box;"
-            />
-          </div>
-
-          <button type="submit" class="portal-btn portal-btn-primary" style="width: 100%; justify-content: center; padding: 12px;">
-            Guardar y continuar
-          </button>
-        </form>
-
-        <form th:action="@{/logout}" method="post" style="text-align: center; margin-top: 16px;">
-          <button type="submit" style="border: none; background: transparent; color: #64748b; cursor: pointer; font-size: 13px; text-decoration: underline;">
-            Cerrar sesión
-          </button>
-        </form>
+    <!-- Encabezado con Icono -->
+    <div style="text-align: center; margin-bottom: 28px;">
+      <div style="width: 58px; height: 58px; margin: 0 auto 18px; display: flex; align-items: center; justify-content: center;">
+        <img th:src="@{/img/logo-icono.png}" alt="ServiClient" style="width: 100%; height: 100%; object-fit: contain; border-radius: 14px;" />
       </div>
+
+      <h2 id="tituloCambioPassword" style="margin: 0 0 10px; color: #0f172a; font-size: 24px; font-weight: 700; letter-spacing: -0.5px;">
+        Cambio de contraseña
+      </h2>
+
+      <p style="color: #64748b; font-size: 14.5px; line-height: 1.5; margin: 0; max-width: 320px; margin-inline: auto;">
+        Por seguridad, debes establecer una contraseña personal antes de continuar.
+      </p>
     </div>
+
+    <!-- Alerta de Error -->
+    <div th:if="${errorCambioPassword != null}" th:text="${errorCambioPassword}"
+         style="background: #fef2f2; color: #991b1b; padding: 12px 14px; border-radius: 10px; margin-bottom: 20px; font-size: 13.5px; border: 1px solid #fecaca; text-align: center;">
+    </div>
+
+    <!-- Formulario -->
+    <form th:action="@{/portalusuario/cambiar-password}" method="post">
+      <div style="margin-bottom: 20px;">
+        <label for="nuevaPassword" style="font-weight: 600; font-size: 14px; color: #1e293b; display: block; margin-bottom: 8px;">
+          Nueva contraseña
+        </label>
+        <input
+          type="password"
+          id="nuevaPassword"
+          name="nuevaPassword"
+          minlength="8"
+          maxlength="72"
+          autocomplete="new-password"
+          autofocus
+          required
+          style="width: 100%; box-sizing: border-box; padding: 12px 16px; background-color: #ffffff; color: #0f172a; border-radius: 10px; border: 1.5px solid #e2e8f0; font-size: 14.5px; outline: none; transition: border-color 0.2s, box-shadow 0.2s;"
+          onfocus="this.style.borderColor='#5c67f2'; this.style.boxShadow='0 0 0 3.5px rgba(92, 103, 242, 0.15)';"
+          onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';"
+        />
+      </div>
+
+      <div style="margin-bottom: 26px;">
+        <label for="confirmarPassword" style="font-weight: 600; font-size: 14px; color: #1e293b; display: block; margin-bottom: 8px;">
+          Confirmar contraseña
+        </label>
+        <input
+          type="password"
+          id="confirmarPassword"
+          name="confirmarPassword"
+          minlength="8"
+          maxlength="72"
+          autocomplete="new-password"
+          required
+          style="width: 100%; box-sizing: border-box; padding: 12px 16px; background-color: #ffffff; color: #0f172a; border-radius: 10px; border: 1.5px solid #e2e8f0; font-size: 14.5px; outline: none; transition: border-color 0.2s, box-shadow 0.2s;"
+          onfocus="this.style.borderColor='#5c67f2'; this.style.boxShadow='0 0 0 3.5px rgba(92, 103, 242, 0.15)';"
+          onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';"
+        />
+      </div>
+
+      <!-- Botón Primario Púrpura/Azul -->
+      <button type="submit" 
+              style="width: 100%; background-color: #5c67f2; color: #ffffff; border: none; padding: 13px; font-size: 15px; font-weight: 600; border-radius: 10px; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 14px rgba(92, 103, 242, 0.35);"
+              onmouseover="this.style.backgroundColor='#4e59e8'; this.style.boxShadow='0 6px 18px rgba(92, 103, 242, 0.45)';"
+              onmouseout="this.style.backgroundColor='#5c67f2'; this.style.boxShadow='0 4px 14px rgba(92, 103, 242, 0.35)';">
+        Guardar y continuar
+      </button>
+    </form>
+
+    <!-- Botón Cerrar Sesión Sutil -->
+    <form th:action="@{/logout}" method="post" style="text-align: center; margin-top: 20px;">
+      <button type="submit" 
+              style="border: none; background: transparent; color: #64748b; cursor: pointer; font-size: 13.5px; font-weight: 500; text-decoration: none; transition: color 0.2s;"
+              onmouseover="this.style.color='#0f172a';"
+              onmouseout="this.style.color='#64748b';">
+        Cerrar sesión
+      </button>
+    </form>
+  </div>
+</div>
 
     <script>
         const togglePasswordBtn = document.getElementById('togglePasswordBtn');

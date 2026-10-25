@@ -27,17 +27,43 @@ public class PortalUsuarioController {
     private final PasswordEncoder passwordEncoder;
 
     @GetMapping("/login")
-    public String loginPage(@RequestParam(value = "error", required = false) String error,
-                            @RequestParam(value = "logout", required = false) String logout,
-                            Model model) {
-        if (error != null) {
-            model.addAttribute("errorMessage", "Usuario o contraseña incorrectos.");
-        }
-        if (logout != null) {
-            model.addAttribute("successMessage", "Has cerrado sesión correctamente.");
-        }
-        return "portalusuario/login";
+public String loginPage(
+        @RequestParam(value = "error", required = false) String error,
+        @RequestParam(value = "logout", required = false) String logout,
+        Authentication authentication,
+        Model model) {
+
+    if (error != null) {
+        model.addAttribute("errorMessage",
+                "Usuario o contraseña incorrectos.");
     }
+
+    if (logout != null) {
+        model.addAttribute("successMessage",
+                "Has cerrado sesión correctamente.");
+    }
+
+    boolean esCliente = authentication != null
+            && authentication.isAuthenticated()
+            && authentication.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_CLIENTE".equals(a.getAuthority()));
+
+    if (esCliente) {
+        CuentaPortal cuenta = cuentaPortalRepository
+                .findByEmail(authentication.getName())
+                .filter(CuentaPortal::estaActiva)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.FORBIDDEN));
+
+        if (Boolean.TRUE.equals(cuenta.getRequiereCambioPassword())) {
+            model.addAttribute("debeCambiarPassword", true);
+        } else {
+            return "redirect:/portal/tickets/nuevo";
+        }
+    }
+
+    return "portalusuario/login";
+}
 
     @PostMapping("/cambiar-password")
 public String procesarCambioPassword(

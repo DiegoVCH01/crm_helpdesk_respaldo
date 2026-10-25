@@ -20,7 +20,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
+import com.serviclient.crm.repository.CuentaPortalRepository;
 import java.util.Collections;
 
 @Configuration
@@ -63,7 +63,7 @@ public class SecurityConfig {
   @Order(1)
   public SecurityFilterChain portalClienteSecurityFilterChain(
       HttpSecurity http,
-      DaoAuthenticationProvider clienteAuthenticationProvider) throws Exception {
+      DaoAuthenticationProvider clienteAuthenticationProvider, CuentaPortalRepository cuentaPortalRepository) throws Exception {
 
     ProviderManager authManager = new ProviderManager(Collections.singletonList(clienteAuthenticationProvider));
 
@@ -73,6 +73,8 @@ public class SecurityConfig {
         .authorizeHttpRequests(auth -> auth
             .requestMatchers("/portalusuario/login", "/css/**", "/js/**", "/img/**", "/images/**").permitAll()
             .requestMatchers("/portal/**").hasAuthority("ROLE_CLIENTE")
+            .requestMatchers(HttpMethod.POST, "/portalusuario/cambiar-password")
+            .hasAuthority("ROLE_CLIENTE")
             .anyRequest().authenticated()
         )
         .formLogin(form -> form
@@ -80,7 +82,20 @@ public class SecurityConfig {
             .loginProcessingUrl("/portalusuario/login")
             .usernameParameter("username")
             .passwordParameter("password")
-            .defaultSuccessUrl("/portal/tickets/nuevo", true)
+            .successHandler((request, response, authentication) -> {
+
+    boolean debeCambiar = cuentaPortalRepository
+            .findByEmail(authentication.getName())
+            .map(cuenta -> Boolean.TRUE.equals(
+                    cuenta.getRequiereCambioPassword()))
+            .orElse(true);
+
+    String destino = debeCambiar
+            ? "/portalusuario/login"
+            : "/portal/tickets/nuevo";
+
+    response.sendRedirect(request.getContextPath() + destino);
+})
             .failureUrl("/portalusuario/login?error=true")
             .permitAll()
         )
@@ -91,6 +106,10 @@ public class SecurityConfig {
             .deleteCookies("JSESSIONID")
             .permitAll()
         );
+
+    http.addFilterAfter(
+        new CambioPasswordPortalFilter(cuentaPortalRepository),
+        UsernamePasswordAuthenticationFilter.class);
 
     return http.build();
   }
