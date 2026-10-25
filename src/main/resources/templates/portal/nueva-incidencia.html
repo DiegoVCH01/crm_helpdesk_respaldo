@@ -72,7 +72,7 @@
           </a>
         </nav>
 
-        <!-- Después vendrán de CuentaPortal -->
+        <!-- INFORMACIÓN DINÁMICA DE LA EMPRESA -->
         <div class="portal-company-card">
           <div class="portal-company-label">
             <svg
@@ -90,19 +90,20 @@
             <span>Tu empresa</span>
           </div>
 
-          <div class="portal-company-name">NovaTech Industries</div>
+          <div class="portal-company-name" th:text="${empresaNombre != null ? empresaNombre : 'Mi Empresa'}">NovaTech Industries</div>
 
-          <div class="portal-company-plan">Plan SaaS Enterprise</div>
+          <div class="portal-company-plan">Portal de Atención</div>
         </div>
 
+        <!-- INFORMACIÓN DINÁMICA DEL USUARIO EN SIDEBAR -->
         <div class="portal-user">
           <div class="portal-user-card">
-            <div class="portal-avatar">LM</div>
+            <div class="portal-avatar" th:text="${usuarioIniciales != null ? usuarioIniciales : 'U'}">LM</div>
 
             <div>
-              <div class="portal-user-name">Laura Méndez</div>
+              <div class="portal-user-name" th:text="${usuarioNombre != null ? usuarioNombre : #authentication.name}">Laura Méndez</div>
 
-              <div class="portal-user-email">laura@novatech.com</div>
+              <div class="portal-user-email" th:text="${#authentication.name}">laura@novatech.com</div>
             </div>
           </div>
         </div>
@@ -140,10 +141,11 @@
 
             <div class="topbar-separator"></div>
 
+            <!-- INFORMACIÓN DINÁMICA DEL USUARIO EN TOPBAR -->
             <div class="topbar-user">
-              <div class="topbar-avatar">LM</div>
+              <div class="topbar-avatar" th:text="${usuarioIniciales != null ? usuarioIniciales : 'U'}">LM</div>
 
-              <strong>Laura Méndez</strong>
+              <strong th:text="${usuarioNombre != null ? usuarioNombre : #authentication.name}">Laura Méndez</strong>
             </div>
           </div>
         </header>
