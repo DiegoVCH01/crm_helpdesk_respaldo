@@ -120,5 +120,8 @@ public class PortalTicketController {
 
         model.addAttribute("empresaNombre",
                 StringUtils.defaultIfBlank(contacto.getCliente().getRazonSocial(), "Mi Empresa"));
-    }
+    
+        boolean debeCambiar = Boolean.TRUE.equals(cuenta.getRequiereCambioPassword()); // o cuenta.isRequiereCambioPassword()
+        model.addAttribute("debeCambiarPassword", debeCambiar);  
+        }
 }
