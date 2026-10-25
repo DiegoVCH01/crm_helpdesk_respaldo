@@ -55,12 +55,7 @@ public class SecurityConfig {
     return authProvider;
   }
 
-  @Bean
-  public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig)
-      throws Exception {
-    return authConfig.getAuthenticationManager();
-  }
-
+  
   // ==========================================
   // FILTRO 1: PORTAL DE CLIENTES
   // ==========================================
@@ -106,6 +101,9 @@ public class SecurityConfig {
   @Bean
   @Order(2)
   public SecurityFilterChain filterChain(HttpSecurity http, UsuarioRepository usuarioRepository) throws Exception {
+    http.authenticationManager(
+        new ProviderManager(
+            Collections.singletonList(adminAuthenticationProvider())));
     http.csrf(csrf -> csrf.ignoringRequestMatchers("/h2-console/**"))
         .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.sameOrigin()))
         .authorizeHttpRequests(
@@ -178,8 +176,7 @@ public class SecurityConfig {
                     .deleteCookies("JSESSIONID")
                     .permitAll());
 
-    http.authenticationProvider(adminAuthenticationProvider());
-
+    
     http.addFilterAfter(
         new CambioPasswordObligatorioFilter(usuarioRepository),
         UsernamePasswordAuthenticationFilter.class);

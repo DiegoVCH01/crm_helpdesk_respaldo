@@ -19,6 +19,7 @@ import com.serviclient.crm.service.IClienteService.ResultadoCreacionCliente;
 import com.serviclient.crm.service.IHealthScoreService;
 import com.serviclient.crm.service.IUsuarioService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -69,6 +70,9 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @RequestMapping("/clientes")
 @RequiredArgsConstructor
 @Slf4j
+@Tag(
+    name = "Clientes",
+    description = "Gestión de clientes B2B: listado paginado, vista 360°, contactos, Health Score y exportación Excel")
 public class ClienteController {
 
   private final IClienteService clienteService;
