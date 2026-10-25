@@ -1,21 +1,27 @@
 package com.serviclient.crm.config.security;
 
+import com.serviclient.crm.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.http.HttpMethod;
-import com.serviclient.crm.repository.UsuarioRepository;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import java.util.Collections;
 
 @Configuration
 @EnableWebSecurity
@@ -30,10 +36,21 @@ public class SecurityConfig {
     return new BCryptPasswordEncoder();
   }
 
+  // Provider para administradores
   @Bean
-  public DaoAuthenticationProvider authenticationProvider() {
+  public DaoAuthenticationProvider adminAuthenticationProvider() {
     DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
     authProvider.setUserDetailsService(userDetailsService);
+    authProvider.setPasswordEncoder(passwordEncoder());
+    return authProvider;
+  }
+
+  // Provider específico para el Portal de Clientes
+  @Bean
+  public DaoAuthenticationProvider clienteAuthenticationProvider(
+      @Qualifier("clienteUserDetailsService") UserDetailsService clienteUserDetailsService) {
+    DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+    authProvider.setUserDetailsService(clienteUserDetailsService);
     authProvider.setPasswordEncoder(passwordEncoder());
     return authProvider;
   }
@@ -44,7 +61,50 @@ public class SecurityConfig {
     return authConfig.getAuthenticationManager();
   }
 
+  // ==========================================
+  // FILTRO 1: PORTAL DE CLIENTES
+  // ==========================================
   @Bean
+  @Order(1)
+  public SecurityFilterChain portalClienteSecurityFilterChain(
+      HttpSecurity http,
+      DaoAuthenticationProvider clienteAuthenticationProvider) throws Exception {
+
+    ProviderManager authManager = new ProviderManager(Collections.singletonList(clienteAuthenticationProvider));
+
+    http
+        .securityMatcher("/portalusuario/**", "/portal/**")
+        .authenticationManager(authManager)
+        .authorizeHttpRequests(auth -> auth
+            .requestMatchers("/portalusuario/login", "/css/**", "/js/**", "/img/**", "/images/**").permitAll()
+            .requestMatchers("/portal/**").hasAuthority("ROLE_CLIENTE")
+            .anyRequest().authenticated()
+        )
+        .formLogin(form -> form
+            .loginPage("/portalusuario/login")
+            .loginProcessingUrl("/portalusuario/login")
+            .usernameParameter("username")
+            .passwordParameter("password")
+            .defaultSuccessUrl("/portal/tickets/nuevo", true)
+            .failureUrl("/portalusuario/login?error=true")
+            .permitAll()
+        )
+        .logout(logout -> logout
+            .logoutUrl("/portalusuario/logout")
+            .logoutSuccessUrl("/portalusuario/login?logout=true")
+            .invalidateHttpSession(true)
+            .deleteCookies("JSESSIONID")
+            .permitAll()
+        );
+
+    return http.build();
+  }
+
+  // ==========================================
+  // FILTRO 2: PORTAL ADMINISTRADOR (ORIGINAL)
+  // ==========================================
+  @Bean
+  @Order(2)
   public SecurityFilterChain filterChain(HttpSecurity http, UsuarioRepository usuarioRepository) throws Exception {
     http.csrf(csrf -> csrf.ignoringRequestMatchers("/h2-console/**"))
         .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.sameOrigin()))
@@ -58,8 +118,8 @@ public class SecurityConfig {
                     .requestMatchers("/login", "/registro/**", "/h2-console/**")
                     .permitAll()
                     .requestMatchers("/portalusuario/**")
-                    .permitAll() // <-- LÍNEA AGREGADA PARA EL PORTAL DE USUARIOS
-                    // Swagger / OpenAPI — acceso público a la documentación
+                    .permitAll()
+                    // Swagger / OpenAPI
                     .requestMatchers(
                         "/swagger-ui.html",
                         "/swagger-ui/**",
@@ -118,7 +178,7 @@ public class SecurityConfig {
                     .deleteCookies("JSESSIONID")
                     .permitAll());
 
-    http.authenticationProvider(authenticationProvider());
+    http.authenticationProvider(adminAuthenticationProvider());
 
     http.addFilterAfter(
         new CambioPasswordObligatorioFilter(usuarioRepository),

@@ -99,9 +99,45 @@
                     <strong>Credenciales Demo:</strong>
                     admin@serviclient.com / admin123
                 </div>
+
+                <!--enlace al portal de clientes/Usuarios-->
+
+
+           <div style="
+                            margin-top: 14px;
+                            padding-top: 14px;
+                            border-top: 1px dashed var(--color-border-light, #e2e8f0);
+                            text-align: center;
+                        ">
+                    <p style="margin: 0 0 6px; font-size: 12px; color: var(--color-text-muted, #64748b);">
+                        ¿No eres administrador de la plataforma?
+                    </p>
+                    <a th:href="@{/portalusuario/login}" style="
+                                display: inline-flex;
+                                align-items: center;
+                                justify-content: center;
+                                gap: 6px;
+                                color: var(--color-primary, #4f46e5);
+                                text-decoration: none;
+                                font-size: 13px;
+                                font-weight: 600;
+                            ">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                        <span>Acceder como Usuario / Cliente</span>
+                    </a>
+                </div>
             </div>
         </div>
     </div>
+                
+
+
+
+
+
     <!-- Modal obligatorio de cambio de contraseña -->
     <div th:if="${debeCambiarPassword == true}" role="dialog" aria-modal="true" aria-labelledby="tituloCambioPassword"
         style="

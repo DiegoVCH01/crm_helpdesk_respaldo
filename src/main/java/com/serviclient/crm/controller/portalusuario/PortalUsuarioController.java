@@ -15,16 +15,11 @@ public class PortalUsuarioController {
                             @RequestParam(value = "logout", required = false) String logout,
                             Model model) {
         if (error != null) {
-            model.addAttribute("errorMessage", "Credenciales incorrectas para el portal de usuarios.");
+            model.addAttribute("errorMessage", "Usuario o contraseña incorrectos.");
         }
         if (logout != null) {
-            model.addAttribute("successMessage", "Sesión cerrada correctamente.");
+            model.addAttribute("successMessage", "Has cerrado sesión correctamente.");
         }
         return "portalusuario/login";
-    }
-
-    @GetMapping("/cambiar-password")
-    public String cambiarPasswordPage() {
-        return "portalusuario/cambiar-password";
     }
 }
