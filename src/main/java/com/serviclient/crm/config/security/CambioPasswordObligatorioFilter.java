@@ -10,14 +10,40 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+/**
+ * Filtro de seguridad servlet que intercepta solicitudes de usuarios internos con credenciales temporales.
+ * <p>
+ * Si el usuario autenticado tiene marcado el flag {@code debeCambiarPassword}, el filtro restringe
+ * su navegación redirigiéndolo obligatoriamente hacia el flujo de cambio de clave antes de concederle
+ * acceso al resto de la aplicación.
+ * </p>
+ *
+ * @author ServiClient Dev Team
+ * @version 1.0.0
+ * @see org.springframework.web.filter.OncePerRequestFilter
+ */
 public class CambioPasswordObligatorioFilter extends OncePerRequestFilter {
 
   private final UsuarioRepository usuarioRepository;
 
+  /**
+   * Crea una nueva instancia del filtro inyectando el repositorio de usuarios.
+   *
+   * @param usuarioRepository repositorio para verificar el estado de la contraseña
+   */
   public CambioPasswordObligatorioFilter(UsuarioRepository usuarioRepository) {
     this.usuarioRepository = usuarioRepository;
   }
 
+  /**
+   * Evalúa cada petición HTTP verificando si el usuario autenticado debe cambiar su clave temporal.
+   *
+   * @param request petición HTTP entrante
+   * @param response respuesta HTTP saliente
+   * @param filterChain cadena de filtros de Spring Security
+   * @throws ServletException si ocurre un fallo en el procesamiento del servlet
+   * @throws IOException si ocurre un error de entrada/salida
+   */
   @Override
   protected void doFilterInternal(
       HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)

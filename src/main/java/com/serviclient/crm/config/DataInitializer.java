@@ -54,6 +54,12 @@ public class DataInitializer implements CommandLineRunner {
     private final AuditoriaRepository auditoriaRepository;
     private final PasswordEncoder passwordEncoder;
 
+    /**
+     * Punto de entrada de inicialización de datos ejecutado por Spring Boot al arrancar el contexto.
+     * Verifica la existencia de datos y realiza la siembra inicial (roles, permisos, empresa demo, usuarios y tickets).
+     *
+     * @param args argumentos de línea de comandos suministrados a la aplicación
+     */
     @Override
     @Transactional
     public void run(String... args) {

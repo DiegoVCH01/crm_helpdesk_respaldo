@@ -83,6 +83,17 @@ public class ClienteController {
   //  LISTADO
   // ─────────────────────────────────────────────────────────────────────────
 
+  /**
+   * Muestra la bandeja principal de clientes con paginación, filtros por nombre/RUC y estado, y resumen de métricas.
+   *
+   * @param userDetails detalles del usuario autenticado
+   * @param busqueda término opcional de búsqueda por nombre comercial o RUC
+   * @param estado filtro opcional por estado del cliente
+   * @param page índice de página (base 0)
+   * @param size tamaño de página
+   * @param model modelo para transferir datos a la vista Thymeleaf
+   * @return vista "clientes/index"
+   */
   @Operation(
       summary = "Listar clientes",
       description =
@@ -113,6 +124,14 @@ public class ClienteController {
     return "clientes/index";
   }
 
+  /**
+   * Genera y transmite el archivo Excel (.xlsx) con el padrón de clientes filtrado.
+   *
+   * @param userDetails detalles del usuario autenticado
+   * @param busqueda término opcional de filtro
+   * @param estado estado opcional de filtro
+   * @return respuesta HTTP con el archivo binario adjunto para descarga
+   */
   @Operation(
       summary = "Exportar clientes a Excel",
       description =
@@ -148,6 +167,13 @@ public class ClienteController {
   //  CREAR
   // ─────────────────────────────────────────────────────────────────────────
 
+  /**
+   * Carga el formulario en blanco para el registro de un nuevo cliente corporativo.
+   *
+   * @param userDetails detalles del usuario autenticado
+   * @param model modelo de datos para la vista
+   * @return vista "clientes/form"
+   */
   @Operation(summary = "Formulario de nuevo cliente")
   @GetMapping("/nuevo")
   public String formularioNuevoCliente(
@@ -162,6 +188,16 @@ public class ClienteController {
     return "clientes/form";
   }
 
+  /**
+   * Procesa la creación de un nuevo cliente y de su contacto principal opcional, aprovisionando credenciales si aplica.
+   *
+   * @param userDetails detalles del usuario autenticado
+   * @param dto formulario con datos del cliente y contacto principal
+   * @param bindingResult resultado de la validación del formulario
+   * @param model modelo de datos
+   * @param redirectAttributes atributos flash para mensajes y credenciales generadas
+   * @return redirección a la vista 360° del nuevo cliente o retorno al formulario en caso de error
+   */
   @Operation(summary = "Crear nuevo cliente")
   @PostMapping
   public String guardarCliente(
@@ -223,6 +259,14 @@ public class ClienteController {
   //  EDITAR
   // ─────────────────────────────────────────────────────────────────────────
 
+  /**
+   * Carga los datos existentes de un cliente en el formulario para su edición.
+   *
+   * @param userDetails detalles del usuario autenticado
+   * @param id identificador del cliente
+   * @param model modelo de vista
+   * @return vista "clientes/form" en modo edición
+   */
   @Operation(
       summary = "Formulario de edición de cliente",
       description =
@@ -246,6 +290,17 @@ public class ClienteController {
     return "clientes/form";
   }
 
+  /**
+   * Procesa la actualización de datos de un cliente existente.
+   *
+   * @param userDetails detalles del usuario autenticado
+   * @param id identificador del cliente
+   * @param dto formulario con datos actualizados
+   * @param bindingResult resultado de validación
+   * @param model modelo de vista
+   * @param redirectAttributes atributos flash para notificación
+   * @return redirección a la vista 360° del cliente o vista de formulario si hay errores
+   */
   @Operation(
       summary = "Actualizar cliente existente",
       description = "Valida y persiste los cambios realizados sobre un cliente existente.")
@@ -288,6 +343,14 @@ public class ClienteController {
   //  ELIMINAR
   // ─────────────────────────────────────────────────────────────────────────
 
+  /**
+   * Elimina un cliente y sus registros dependientes previa validación de pertenencia a la empresa.
+   *
+   * @param userDetails detalles del usuario autenticado
+   * @param id identificador del cliente
+   * @param redirectAttributes atributos flash para mensajes de éxito o error
+   * @return redirección al listado general de clientes
+   */
   @Operation(
       summary = "Eliminar cliente",
       description = "Elimina permanentemente el cliente y todos sus datos asociados.")
@@ -317,6 +380,16 @@ public class ClienteController {
   //  VISTA 360°
   // ─────────────────────────────────────────────────────────────────────────
 
+  /**
+   * Carga la vista integral 360° del cliente con sus KPIs, factores de salud, contratos, tickets y contactos.
+   *
+   * @param userDetails detalles del usuario autenticado
+   * @param id identificador del cliente
+   * @param tab pestaña activa a visualizar ("resumen", "contactos", "tickets", "actividad", "renovacion", "csat")
+   * @param model modelo de vista
+   * @return vista "clientes/cliente360"
+   * @throws org.springframework.security.access.AccessDeniedException si el usuario no tiene rol permitido para el tab
+   */
   @Operation(
       summary = "Vista 360° del cliente",
       description =
@@ -357,6 +430,15 @@ public class ClienteController {
   //  CONTACTOS
   // ─────────────────────────────────────────────────────────────────────────
 
+  /**
+   * Agrega un nuevo contacto corporativo al cliente y genera credenciales de acceso al portal si es principal.
+   *
+   * @param userDetails detalles del usuario autenticado
+   * @param clienteId identificador del cliente
+   * @param contacto entidad contacto a registrar
+   * @param redirectAttributes atributos flash para mensajes y credenciales
+   * @return redirección a la pestaña de contactos de la ficha 360°
+   */
   @Operation(summary = "Agregar contacto al cliente")
   @PostMapping("/{clienteId}/contactos")
   public String agregarContacto(
@@ -383,6 +465,16 @@ public class ClienteController {
     return "redirect:/clientes/" + clienteId + "?tab=contactos";
   }
 
+  /**
+   * Modifica los datos personales y de comunicación de un contacto existente.
+   *
+   * @param userDetails detalles del usuario autenticado
+   * @param clienteId identificador del cliente
+   * @param contactoId identificador del contacto
+   * @param contacto nuevos datos del contacto
+   * @param redirectAttributes atributos flash para mensajes
+   * @return redirección a la pestaña de contactos de la ficha 360°
+   */
   @PostMapping("/{clienteId}/contactos/{contactoId}/editar")
   public String editarContacto(
       @AuthenticationPrincipal CustomUserDetails userDetails,
@@ -407,6 +499,15 @@ public class ClienteController {
     return "redirect:/clientes/" + clienteId + "?tab=contactos";
   }
 
+  /**
+   * Establece un contacto como principal de la cuenta cliente y aprovisiona sus credenciales de portal.
+   *
+   * @param userDetails detalles del usuario autenticado
+   * @param clienteId identificador del cliente
+   * @param contactoId identificador del contacto
+   * @param redirectAttributes atributos flash para mensajes y credenciales
+   * @return redirección a la pestaña de contactos
+   */
   @PostMapping("/{clienteId}/contactos/{contactoId}/principal")
   public String establecerPrincipal(
       @AuthenticationPrincipal CustomUserDetails userDetails,
@@ -436,6 +537,15 @@ public class ClienteController {
     return "redirect:/clientes/" + clienteId + "?tab=contactos";
   }
 
+  /**
+   * Desactiva un contacto secundario y suspende su cuenta de portal si existía.
+   *
+   * @param userDetails detalles del usuario autenticado
+   * @param clienteId identificador del cliente
+   * @param contactoId identificador del contacto
+   * @param redirectAttributes atributos flash para mensajes
+   * @return redirección a la pestaña de contactos
+   */
   @PostMapping("/{clienteId}/contactos/{contactoId}/desactivar")
   public String desactivarContacto(
       @AuthenticationPrincipal CustomUserDetails userDetails,
@@ -457,6 +567,15 @@ public class ClienteController {
     return "redirect:/clientes/" + clienteId + "?tab=contactos";
   }
 
+  /**
+   * Reactiva un contacto previamente desactivado y restaura sus credenciales de acceso al portal.
+   *
+   * @param userDetails detalles del usuario autenticado
+   * @param clienteId identificador del cliente
+   * @param contactoId identificador del contacto
+   * @param redirectAttributes atributos flash para mensajes y credenciales
+   * @return redirección a la pestaña de contactos
+   */
   @PostMapping("/{clienteId}/contactos/{contactoId}/reactivar")
   public String reactivarContacto(
       @AuthenticationPrincipal CustomUserDetails userDetails,
@@ -485,6 +604,15 @@ public class ClienteController {
     return "redirect:/clientes/" + clienteId + "?tab=contactos";
   }
 
+  /**
+   * Genera y asigna una nueva contraseña temporal para el acceso de un contacto al portal de clientes.
+   *
+   * @param userDetails detalles del usuario autenticado
+   * @param clienteId identificador del cliente
+   * @param contactoId identificador del contacto
+   * @param redirectAttributes atributos flash para comunicar la clave provisional generada
+   * @return redirección a la pestaña de contactos
+   */
   @PostMapping("/{clienteId}/contactos/{contactoId}/portal/restablecer")
   public String restablecerCredencialesPortal(
       @AuthenticationPrincipal CustomUserDetails userDetails,
@@ -513,6 +641,13 @@ public class ClienteController {
     return "redirect:/clientes/" + clienteId + "?tab=contactos";
   }
 
+  /**
+   * Valida si el rol del usuario conectado tiene privilegios para visualizar la pestaña solicitada en la vista 360°.
+   *
+   * @param userDetails detalles del usuario autenticado
+   * @param tab identificador de la pestaña
+   * @throws AccessDeniedException si el rol no tiene acceso a dicha pestaña
+   */
   private void validarAccesoTabCliente360(CustomUserDetails userDetails, String tab) {
 
     Rol rol = userDetails.getRol();
@@ -535,6 +670,13 @@ public class ClienteController {
   //  HELPERS
   // ─────────────────────────────────────────────────────────────────────────
 
+  /**
+   * Extrae y valida el identificador de la empresa tenant asociada a la sesión del usuario.
+   *
+   * @param userDetails detalles del usuario autenticado
+   * @return identificador de la empresa
+   * @throws ResponseStatusException con estado HTTP 403 si no se identifica la empresa
+   */
   private Long resolverEmpresaId(CustomUserDetails userDetails) {
 
     if (userDetails == null || userDetails.getEmpresaId() == null) {

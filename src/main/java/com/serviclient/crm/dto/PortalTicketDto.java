@@ -7,6 +7,12 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
+/**
+ * Objeto de transferencia de datos (DTO) para la emisión de solicitudes de soporte desde el Portal de Clientes.
+ *
+ * @author ServiClient Dev Team
+ * @version 1.0.0
+ */
 @Getter
 @Setter
 @NoArgsConstructor

@@ -13,98 +13,95 @@
 
 ---
 
-## Descripcion
+## Propósito del Sistema
 
-**ServiClient** es un CRM academico orientado a empresas de servicios B2B. Permite gestionar el ciclo de vida del cliente: desde el registro de empresa y onboarding, hasta el seguimiento de tickets de soporte, control de SLA, encuestas de satisfaccion (CSAT) y gestion de renovaciones de contratos.
+**ServiClient CRM Helpdesk** es una plataforma web monolítica empresarial orientada a compañías de servicios **B2B** (*Business-to-Business*). Su objetivo central es gestionar de extremo a extremo el ciclo de vida del cliente corporativo: desde el registro multitenancy y onboarding de empresas, hasta el seguimiento de contratos, directorio de contactos, mesa de ayuda multicanal con acuerdos de nivel de servicio (SLA), encuestas de satisfacción (CSAT), motor analítico de salud del cliente (*Health Score*) y control de retención de contratos y ARR (*Annual Recurring Revenue*), complementado con un portal de autoservicio para clientes finales.
 
-### Modulos principales
+### Módulos Principales
 
-| Modulo | Descripcion |
+| Módulo | Descripción Funcional |
 |---|---|
-| Autenticacion | Login + Wizard de registro en 3 pasos (Empresa -> Admin -> Configuracion) |
-| Clientes | Listado paginado con Health Score, filtros y Vista 360 por tabs |
-| Helpdesk | Mesa de ayuda con KPIs, conversacion, notas internas y control de SLA |
-| Renovaciones | Panel por rangos de vencimiento, alertas de riesgo y seguimientos |
-| Health Score | Motor de calculo automatico (0-100) basado en CSAT, SLA y renovacion |
-| Dashboard | Resumen ejecutivo con KPIs de tickets, clientes y renovaciones |
-| Portal Cliente | Acceso externo para que el cliente cree y siga sus propios tickets |
-| Swagger UI | Documentacion interactiva de la API en /swagger-ui.html |
+| **Autenticación & Onboarding** | Inicio/cierre de sesión seguro y Wizard de registro en 3 pasos: Empresa ➔ Usuario Administrador ➔ Configuración de SLA, CSAT y Health Score. Incluye control de contraseña temporal obligatoria. |
+| **Dashboard Interactivo** | Panel de control ejecutivo en tiempo real con filtros temporales (7d, 30d, 90d, 1y, todo), gráficos interactivos (Chart.js), balance de tickets, satisfacción CSAT y panel de contratos por vencer. |
+| **Gestión de Clientes B2B** | Padrón de clientes con búsqueda predictiva, filtros por estado de salud, alta/edición/baja, exportación de reportes a Excel (.xlsx) y **Vista 360°** organizada en pestañas temáticas. |
+| **Directorio de Contactos** | Gestión de interlocutores comerciales y técnicos, designación de contacto principal y generación/restablecimiento de credenciales de autoservicio. |
+| **Mesa de Ayuda (Helpdesk)** | Gestión del ciclo de vida de tickets con numeración correlativa (`TK-XXXX`), cálculo dinámico de tiempos límite de primera respuesta y resolución (SLA), mensajería dual (pública y notas internas) y reasignación de agentes. |
+| **Satisfacción del Cliente (CSAT)** | Generación automática de encuestas al resolver o cerrar tickets de soporte y registro de métricas de satisfacción por cliente. |
+| **Panel de Renovaciones & ARR** | Monitoreo de contratos clasificados por urgencia de expiración (<15 días, 16-30 días, 31-60 días, >60 días), cálculo de ARR en riesgo y bitácora de seguimientos comerciales. |
+| **Motor de Health Score** | Algoritmo determinista continuo (0 a 100) que califica la salud de cada cuenta evaluando casos críticos, violaciones de SLA, promedio de CSAT y cercanía a la renovación. |
+| **Gestión de Equipo & Agentes** | Administración del equipo de atención y supervisión con roles (`ADMIN`, `SUPERVISOR`, `AGENTE`), activación/desactivación y reseteo de claves temporales. |
+| **Portal de Autoservicio** | Acceso para clientes externos para creación de incidencias (`/portal/tickets/nuevo`) y seguimiento en línea de sus casos (`/portal/tickets/{id}`). |
+| **Documentación OpenAPI 3.0** | Swagger UI interactivo (`/swagger-ui.html`) y especificación en JSON/YAML sincronizada con las anotaciones del controlador. |
 
 ---
 
-## Stack Tecnologico
+## Stack Tecnológico
 
-| Capa | Tecnologia | Version |
-|---|---|---|
-| Lenguaje | Java | 21 |
-| Framework | Spring Boot | 3.3.3 |
-| Vista | Thymeleaf | 3.1 |
-| Persistencia | Spring Data JPA + Hibernate | 6 |
-| Seguridad | Spring Security | 6 |
-| Base de Datos | MySQL | 8.0+ |
-| Build | Apache Maven | 3.9+ |
-| Utilidades | Lombok | - |
-| Documentacion API | SpringDoc OpenAPI (Swagger) | 2.6.0 |
-| Logging | Logback (via SLF4J) | incluido en Spring Boot |
-| Validacion defensiva | Google Guava | 33+ |
-| Exportacion Excel | Apache POI (XSSF) | 5+ |
-| Utilidades comunes | Apache Commons Lang3 | 3.14+ |
+| Capa / Componente | Tecnología | Versión | Propósito en el Proyecto |
+|---|---|---|---|
+| **Lenguaje Base** | Java (OpenJDK / LTS) | 21 | Plataforma de ejecución moderna con Records, Pattern Matching y Switch Expressions |
+| **Framework Principal** | Spring Boot | 3.3.3 | Núcleo de la aplicación web, inyección de dependencias y autoconfiguración |
+| **Motor de Plantillas** | Thymeleaf + Extras | 3.1.2 / 3.3.3 | Renderizado del lado del servidor (SSR) con integración de directivas Spring Security 6 |
+| **Persistencia & ORM** | Spring Data JPA + Hibernate | 3.3.3 / 6.5 | Mapeo objeto-relacional y consultas optimizadas sobre 26 entidades y 26 repositorios |
+| **Seguridad Web** | Spring Security | 6.3.3 | Autenticación basada en sesiones, filtro de contraseñas temporales, roles y CSRF |
+| **Base de Datos** | MySQL Server | 8.0+ | Base de datos relacional principal con motor InnoDB y juego de caracteres UTF-8 |
+| **Base de Datos de Pruebas** | H2 Database | 2.2.x | Base de datos relacional en memoria para ejecución veloz de pruebas de integración |
+| **Documentación OpenAPI** | Springdoc OpenAPI UI | 2.6.0 | Generación automática de Swagger UI (`/swagger-ui.html`) y esquemas OpenAPI 3 |
+| **Gestión de Construcción** | Apache Maven | 3.9+ | Ciclo de vida de compilación, empaquetado y generación de Javadoc |
+| **Documentación de Código** | Maven Javadoc Plugin | 3.6.3 | Compilación del sitio Javadoc HTML con soporte nativo de Java 21 y UTF-8 |
+| **Hojas de Cálculo** | Apache POI (poi-ooxml) | 5.2.5 | Generación en memoria y descarga de reportes Excel (.xlsx) de clientes |
+| **Validación Defensiva** | Google Guava | 33.0.0-jre | Validación de invariantes con `Preconditions` (`checkNotNull`, `checkArgument`) |
+| **Utilidades de Cadenas** | Apache Commons Lang3 | 3.14.0 | Operaciones auxiliares de validación y formateo de texto |
+| **Generación de Código** | Project Lombok | 1.18.30 | Reducción de boilerplate (`@Getter`, `@Setter`, `@Builder`, `@RequiredArgsConstructor`, `@Slf4j`) |
+| **Registro de Eventos** | SLF4J con Logback | 1.5.12 | Logging estructurado para auditoría operativa y seguimiento de excepciones |
 
 ---
 
-## Arquitectura
+## Arquitectura de Software
 
-Monolito en capas estrictas con separacion por interfaces de servicio:
+El sistema sigue una arquitectura monolítica en capas estrictas (**N-Tier + Spring MVC**) desacoplada mediante interfaces de servicio:
 
 ```
 com.serviclient.crm
-+-- config/
-|   +-- DataInitializer.java          <- Datos demo en las 25 tablas al arrancar
-|   +-- OpenApiConfig.java            <- Configuracion Swagger / OpenAPI 3.0
-|   +-- security/
-|       +-- SecurityConfig.java
-|       +-- CustomUserDetails.java
-|       +-- CustomUserDetailsService.java
-+-- controller/                        <- Spring MVC (@Controller)
-|   +-- AuthController.java            <- Inyecta IEmpresaService, IUsuarioService
-|   +-- ClienteController.java         <- Inyecta IClienteService
-|   +-- TicketController.java          <- Inyecta ITicketService
-|   +-- RenovacionController.java      <- Inyecta IRenovacionService
-|   +-- DashboardController.java       <- Inyecta IDashboardService
-|   +-- AgenteController.java
-|   +-- PortalTicketController.java    <- Inyecta IPortalTicketService
-|   +-- CambioPasswordController.java  <- Inyecta IUsuarioService
-|   +-- GlobalControllerAdvice.java
-+-- service/                           <- Logica de negocio (@Service) + Interfaces
-|   +-- IClienteService.java           <- Interfaz publica del servicio
-|   +-- ClienteService.java            <- Implementacion (usa Apache POI para Excel)
-|   +-- ITicketService.java
-|   +-- TicketService.java
-|   +-- IEmpresaService.java
-|   +-- EmpresaService.java            <- Usa Guava Preconditions
-|   +-- IUsuarioService.java
-|   +-- UsuarioService.java
-|   +-- IRenovacionService.java
-|   +-- RenovacionService.java
-|   +-- IDashboardService.java
-|   +-- DashboardService.java
-|   +-- IHealthScoreService.java
-|   +-- HealthScoreService.java
-|   +-- ICuentaPortalService.java
-|   +-- CuentaPortalService.java
-|   +-- IPortalTicketService.java
-|   +-- PortalTicketService.java
-+-- repository/                        <- Spring Data JPA (26 repositorios)
-|   +-- ClienteRepository.java
-|   +-- TicketRepository.java
-|   +-- RenovacionRepository.java
-|   +-- UsuarioRepository.java
-|   +-- EmpresaRepository.java
-|   +-- ... (21 repositorios mas)
-+-- entity/                            <- Entidades JPA (25 entidades)
-|   +-- enums/                         <- 15 enumeraciones de dominio
-+-- dto/                               <- Objetos de transferencia de datos
-+-- ServiClientApplication.java
+├── config/                                # Configuración global del sistema
+│   ├── DataInitializer.java               # Carga inicial de datos semilla en las 26 tablas
+│   ├── OpenApiConfig.java                 # Configuración de Swagger UI / OpenAPI 3.0
+│   └── security/                          # Seguridad Spring Security
+│       ├── CustomUserDetails.java         # Principal autenticado con empresaId y rol
+│       ├── CustomUserDetailsService.java  # Carga de credenciales desde UsuarioRepository
+│       ├── CambioPasswordObligatorioFilter.java # Interceptor de cambio de clave temporal
+│       └── SecurityConfig.java            # Reglas de rutas, sesiones, login y CSRF
+├── controller/                            # Controladores Spring MVC (@Controller)
+│   ├── AgenteController.java              # Gestión del equipo de soporte
+│   ├── AuthController.java                # Login y Wizard de registro en 3 pasos
+│   ├── CambioPasswordController.java      # Flujo de cambio de clave obligatoria
+│   ├── ClienteController.java             # Padrón de clientes, Vista 360 y exportación
+│   ├── DashboardController.java           # Tablero ejecutivo interactivo
+│   ├── GlobalControllerAdvice.java        # Inyección de usuario y empresa a vistas
+│   ├── PortalTicketController.java        # Creación y consulta de tickets por clientes
+│   ├── RenovacionController.java          # Tablero de vencimientos y ARR en riesgo
+│   ├── TicketController.java              # Mesa de ayuda, SLA, notas y cierre CSAT
+│   └── portalusuario/
+│       └── PortalUsuarioController.java   # Autenticación al portal de clientes
+├── service/                               # Capa de negocio e interfaces públicas
+│   ├── IClienteService.java / ClienteService.java
+│   ├── ICuentaPortalService.java / CuentaPortalService.java
+│   ├── IDashboardService.java / DashboardService.java
+│   ├── IEmpresaService.java / EmpresaService.java
+│   ├── IHealthScoreService.java / HealthScoreService.java
+│   ├── IPortalTicketService.java / PortalTicketService.java
+│   ├── IRenovacionService.java / RenovacionService.java
+│   ├── ITicketService.java / TicketService.java
+│   └── IUsuarioService.java / UsuarioService.java
+├── repository/                            # 26 Repositorios Spring Data JPA
+│   ├── ClienteRepository.java / TicketRepository.java / RenovacionRepository.java
+│   ├── EmpresaRepository.java / UsuarioRepository.java / CuentaPortalRepository.java
+│   └── ... (20 repositorios adicionales)
+├── entity/                                # 26 Entidades JPA mapeadas a MySQL
+│   ├── Cliente.java / Contacto.java / Ticket.java / Renovacion.java / etc.
+│   └── enums/                             # 15 Enumeraciones de dominio (EstadoTicket, etc.)
+├── dto/                                   # Objetos de transferencia y validación de formularios
+└── ServiClientApplication.java            # Clase de inicio Spring Boot
 ```
 
 ### Patron de capas: Controller -> Interface -> Service -> Repository
@@ -263,139 +260,156 @@ Variables de entorno: `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`
 
 ---
 
-## Ejecucion
+## Instalación y Ejecución
 
-### Opcion 1 - Script rapido automatizado (Windows)
+### Opción 1 - Script Rápido Automatizado (Windows)
 
-El repositorio incluye un script automatizado (`iniciar.bat`) que configura las variables de entorno de Java 21 y Maven, levanta el backend con el perfil MySQL y abre automaticamente el navegador en `http://localhost:8080`:
+El proyecto cuenta con scripts de arranque en la carpeta `bin/` que configuran el entorno Java 21 y Maven, levantan el perfil MySQL y abren automáticamente el navegador en `http://localhost:8080`:
 
-```bat
-iniciar.bat
+Desde **CMD**:
+```cmd
+bin\iniciar.bat
 ```
 
-> **Nota:** Tambien puedes ejecutarlo desde PowerShell con:
-> ```powershell
-> .\iniciar.ps1
-> ```
+Desde **PowerShell**:
+```powershell
+.\bin\iniciar.ps1
+```
 
-**Que hace el script internamente:**
-1. Configura `JAVA_HOME` apuntando al JDK 21 (`C:\Program Files\Microsoft\jdk-21.0.12.101-hotspot`) y anade Maven al `PATH`.
-2. Lanza un temporizador en segundo plano para abrir `http://localhost:8080` tras el arranque.
-3. Si existe `target\crm-helpdesk-1.0.0.jar`, ejecuta:
+**Flujo interno del script:**
+1. Configura `JAVA_HOME` apuntando al JDK 21 y añade Maven al `PATH`.
+2. Si existe el empaquetado `target\crm-helpdesk-1.0.0.jar`, ejecuta:
    ```cmd
    java -jar target\crm-helpdesk-1.0.0.jar --spring.profiles.active=mysql
    ```
-4. Si no existe el empaquetado JAR, lo compila y ejecuta via Maven:
+3. En caso contrario, inicia mediante el plugin de Spring Boot:
    ```cmd
    mvn spring-boot:run -Dspring-boot.run.profiles=mysql
    ```
 
-### Opcion 2 - Maven directo
+### Opción 2 - Ejecución Directa con Maven
 
 ```powershell
 mvn spring-boot:run -Dspring-boot.run.profiles=mysql
 ```
 
-### Opcion 3 - JAR empaquetado
+### Opción 3 - Compilación y Ejecución de JAR
 
 ```bash
+# Compilar y empaquetar
 mvn clean package -DskipTests
+
+# Ejecutar el artefacto generado
 java -jar target/crm-helpdesk-1.0.0.jar --spring.profiles.active=mysql
 ```
 
-La aplicacion estara disponible en **http://localhost:8080**
+La aplicación quedará disponible en **http://localhost:8080**
 
-> **Primer arranque:** El `DataInitializer` detecta que la BD esta vacia y carga
-> automaticamente datos de demostracion en las 25 tablas.
+> **Poblado Automático de Datos:** Al iniciar por primera vez, `DataInitializer` detecta si la base de datos se encuentra vacía y carga automáticamente la información semilla de prueba en las 26 tablas del sistema. Los scripts SQL de respaldo se encuentran disponibles en `sql/CRM_MESA_AYUDA.sql` y `sql/CRM_MESA_AYUDA_DATOS_DEMO.sql`.
 
 ---
 
-## Credenciales Demo
+## Credenciales de Demostración
 
-| Email | Contrasena | Rol |
+| Correo Electrónico | Contraseña | Rol Asignado |
 |---|---|---|
-| admin@serviclient.com | admin123 | Administrador |
-| carlos.ruiz@serviclient.com | admin123 | Agente de Soporte |
-| ana.garcia@serviclient.com | admin123 | Agente de Soporte |
-| laura.mendoza@serviclient.com | admin123 | Supervisor Customer Success |
+| `admin@serviclient.com` | `admin123` | Administrador General |
+| `carlos.ruiz@serviclient.com` | `admin123` | Agente de Soporte |
+| `ana.garcia@serviclient.com` | `admin123` | Agente de Soporte |
+| `laura.mendoza@serviclient.com` | `admin123` | Supervisor Customer Success |
 
 ---
 
-## Documentacion API (Swagger / OpenAPI)
+## Documentación de APIs (Swagger / OpenAPI 3.0)
 
-Con la aplicacion corriendo, accede a:
+Con la aplicación en ejecución:
 
-| URL | Descripcion |
-|---|---|
-| http://localhost:8080/swagger-ui.html | **Swagger UI interactivo** |
-| http://localhost:8080/v3/api-docs | Spec OpenAPI 3.0 en JSON |
-| http://localhost:8080/v3/api-docs.yaml | Spec OpenAPI 3.0 en YAML |
+| Recurso | URL Local | Descripción |
+|---|---|---|
+| **Swagger UI Interactivo** | http://localhost:8080/swagger-ui.html | Exploración interactiva y prueba de endpoints |
+| **OpenAPI Spec (JSON)** | http://localhost:8080/v3/api-docs | Especificación OpenAPI 3.0 en formato JSON |
+| **OpenAPI Spec (YAML)** | http://localhost:8080/v3/api-docs.yaml | Especificación OpenAPI 3.0 en formato YAML |
 
-### Tags documentados
-
-| Tag | Rutas cubiertas |
-|---|---|
-| Autenticacion | /login, /registro/paso-{1,2,3} |
-| Clientes | /clientes/** |
-| Helpdesk / Tickets | /tickets/** |
-| Renovaciones | /renovaciones/** |
-
-> **Nota:** Para probar endpoints protegidos desde Swagger UI, inicia sesion en /login
-> en la misma pestaña del navegador. La cookie JSESSIONID se comparte automaticamente.
+### Tags de la API Documentados:
+- **Autenticación:** Login, logout y wizard de registro en 3 pasos.
+- **Dashboard:** Panel interactivo general con métricas, gráficos y KPIs.
+- **Clientes:** Padrón, filtros, creación, edición, vista 360 y exportación Excel.
+- **Helpdesk / Tickets:** Bandeja de soporte, mensajería, notas privadas y control de SLA.
+- **Renovaciones:** Panel de vencimientos, ARR y registro de seguimientos.
+- **Agentes:** Administración del equipo de agentes y supervisores.
+- **Perfil de Usuario:** Cambio obligatorio de contraseña temporal.
+- **Portal de Clientes:** Autoservicio de reporte y consulta externa de incidencias.
 
 ---
 
-## Javadoc
+## Javadoc del Proyecto
 
-El codigo fuente incluye Javadoc completo en:
+El código fuente cuenta con comentarios Javadoc completos en español utilizando `@param`, `@return` y `@throws`:
 
-- **Controllers**: descripcion de clase, rutas, parametros, retornos y excepciones
-- **Service Interfaces** (`IXxxService`): contrato de negocio que deben cumplir las implementaciones
-- **Services**: descripcion de la logica de negocio y sus invariantes
-- **Entities**: descripcion de campos JPA y relaciones
-- **Configuracion**: OpenApiConfig, SecurityConfig, DataInitializer
+- **Controllers:** Descripción de flujo MVC, modelos Thymeleaf, parámetros de ruta y redirecciones.
+- **Service Interfaces (`IXxxService`) & Implementaciones:** Reglas de negocio, invariantes y precondiciones.
+- **Entities & DTOs:** Mapeo relacional, validaciones declarativas Bean Validation (JSR-380) y constructores.
+- **Configuración:** OpenAPI, filtros de seguridad y carga de datos semilla.
 
-Para generar el sitio HTML de Javadoc:
-
+Para generar el sitio web HTML de Javadoc:
 ```bash
-mvn javadoc:javadoc
+mvn javadoc:javadoc -DskipTests
 # Resultado en: target/site/apidocs/index.html
 ```
 
 ---
 
-## Endpoints Disponibles
+## Endpoints Disponibles en el Sistema
 
-| Metodo | Ruta | Descripcion |
-|---|---|---|
-| GET | / | Redireccion a /clientes |
-| GET | /login | Pantalla de inicio de sesion |
-| POST | /login | Procesar login (Spring Security) |
-| GET | /registro/paso-1 | Wizard - Datos de Empresa |
-| POST | /registro/paso-1 | Validar y avanzar al paso 2 |
-| GET | /registro/paso-2 | Wizard - Usuario Administrador |
-| POST | /registro/paso-2 | Validar y avanzar al paso 3 |
-| GET | /registro/paso-3 | Wizard - Configuracion SLA/CSAT/Health Score |
-| POST | /registro/paso-3 | Persistir empresa completa |
-| GET | /clientes | Listado paginado de clientes |
-| GET | /clientes/nuevo | Formulario de nuevo cliente |
-| POST | /clientes | Crear cliente |
-| GET | /clientes/{id} | Vista 360 del cliente |
-| POST | /clientes/{id}/contactos | Agregar contacto al cliente |
-| GET | /clientes/exportar-excel | Descargar listado de clientes en Excel (.xlsx) |
-| GET | /tickets | Mesa de Ayuda - listado con KPIs |
-| GET | /tickets/nuevo | Formulario de nuevo ticket |
-| POST | /tickets | Crear ticket |
-| GET | /tickets/{id} | Detalle de ticket (conversacion + SLA) |
-| POST | /tickets/{id}/mensajes | Enviar mensaje o nota interna |
-| POST | /tickets/{id}/asignar | Reasignar agente |
-| POST | /tickets/{id}/cambiar-estado | Cambiar estado y/o prioridad |
-| POST | /tickets/{id}/cerrar | Cerrar ticket (dispara CSAT) |
-| GET | /renovaciones | Panel de renovaciones con alertas |
-| POST | /renovaciones/seguimiento | Registrar seguimiento de renovacion |
-| GET | /dashboard | Resumen ejecutivo con KPIs |
-| GET | /swagger-ui.html | Documentacion Swagger UI |
-| GET | /v3/api-docs | Spec OpenAPI JSON |
+| Método | Ruta | Descripción | Acceso |
+|---|---|---|---|
+| `GET` | `/` | Redirección a `/dashboard` | Autenticado |
+| `GET` | `/login` | Pantalla de inicio de sesión | Público |
+| `POST` | `/login` | Procesamiento de credenciales (Spring Security) | Público |
+| `GET` | `/registro/paso-1` | Wizard de Empresa: datos corporativos | Público |
+| `POST` | `/registro/paso-1` | Validación y avance al paso 2 | Público |
+| `GET` | `/registro/paso-2` | Wizard de Administrador: credenciales de acceso | Público |
+| `POST` | `/registro/paso-2` | Validación y avance al paso 3 | Público |
+| `GET` | `/registro/paso-3` | Wizard de Configuración: umbrales SLA, CSAT y salud | Público |
+| `POST` | `/registro/paso-3` | Persistencia atómica de la empresa y administrador | Público |
+| `GET` | `/dashboard` | Tablero ejecutivo interactivo con KPIs y gráficos | Autenticado |
+| `GET` | `/cambiar-password` | Redirección o acceso al cambio de contraseña temporal | Autenticado |
+| `POST` | `/cambiar-password` | Procesar cambio de clave obligatoria | Autenticado |
+| `GET` | `/clientes` | Listado paginado de clientes con filtros y KPIs de salud | Autenticado |
+| `GET` | `/clientes/nuevo` | Formulario de alta de cliente B2B | `ADMIN` / `SUPERVISOR` |
+| `POST` | `/clientes` | Persistir nuevo cliente y credenciales de portal | `ADMIN` / `SUPERVISOR` |
+| `GET` | `/clientes/{id}` | Vista 360° del cliente con tabs temáticas | Autenticado |
+| `GET` | `/clientes/{id}/editar` | Formulario de edición de cliente | `ADMIN` / `SUPERVISOR` |
+| `POST` | `/clientes/{id}/editar` | Actualizar datos del cliente | `ADMIN` / `SUPERVISOR` |
+| `POST` | `/clientes/{id}/eliminar` | Eliminación de cliente del sistema | `ADMIN` |
+| `GET` | `/clientes/exportar` | Descarga de clientes en formato Excel (.xlsx) | Autenticado |
+| `POST` | `/clientes/{clienteId}/contactos` | Agregar nuevo contacto al cliente | `ADMIN` |
+| `POST` | `/clientes/{clienteId}/contactos/{contactoId}/editar` | Modificar datos del contacto | `ADMIN` |
+| `POST` | `/clientes/{clienteId}/contactos/{contactoId}/principal` | Designar contacto principal y generar credenciales | `ADMIN` |
+| `POST` | `/clientes/{clienteId}/contactos/{contactoId}/desactivar` | Desactivar acceso del contacto | `ADMIN` |
+| `POST` | `/clientes/{clienteId}/contactos/{contactoId}/reactivar` | Reactivar contacto y regenerar clave temporal | `ADMIN` |
+| `POST` | `/clientes/{clienteId}/contactos/{contactoId}/portal/restablecer` | Restablecer contraseña temporal del portal | `ADMIN` |
+| `GET` | `/tickets` | Bandeja de tickets con KPIs de SLA y filtros combinados | Autenticado |
+| `GET` | `/tickets/nuevo` | Formulario para registrar nuevo ticket de soporte | Autenticado |
+| `POST` | `/tickets` | Crear ticket con cálculo automático de SLA | Autenticado |
+| `GET` | `/tickets/{id}` | Detalle del ticket con conversación, notas y tiempos | Autenticado |
+| `POST` | `/tickets/{id}/mensajes` | Enviar respuesta visible o nota interna privada | Autenticado |
+| `POST` | `/tickets/{id}/asignar` | Reasignar agente responsable | `ADMIN` / `SUPERVISOR` |
+| `POST` | `/tickets/{id}/cambiar-estado` | Modificar estado y/o severidad del ticket | Autenticado |
+| `POST` | `/tickets/{id}/cerrar` | Cerrar ticket y disparar encuesta CSAT si aplica | Autenticado |
+| `GET` | `/renovaciones` | Tablero de contratos próximos a vencer y ARR en riesgo | Autenticado |
+| `POST` | `/renovaciones/seguimiento` | Registrar avance comercial de renovación | Autenticado |
+| `GET` | `/agentes` | Listado y gestión del equipo de agentes y supervisores | `ADMIN` |
+| `POST` | `/agentes` | Crear agente con generación de clave temporal | `ADMIN` |
+| `POST` | `/agentes/{id}/editar` | Modificar nombre, email o rol del agente | `ADMIN` |
+| `POST` | `/agentes/{id}/estado` | Alternar estado activo / inactivo de un agente | `ADMIN` |
+| `POST` | `/agentes/{id}/restablecer-password` | Generar y entregar nueva clave temporal al agente | `ADMIN` |
+| `GET` | `/portal/tickets/nuevo` | Formulario público para creación de tickets por clientes | Público |
+| `GET` | `/portal/tickets/{id}` | Consulta del estado y conversación de un ticket | Público / Contacto |
+| `GET` | `/portalusuario/login` | Pantalla de inicio de sesión en portal de usuarios | Público |
+| `GET` | `/portalusuario/cambiar-password` | Cambio de contraseña de usuario de portal | Público |
+| `GET` | `/swagger-ui.html` | Interfaz interactiva de documentación Swagger | Autenticado |
+| `GET` | `/v3/api-docs` | Especificación de esquema OpenAPI 3 en formato JSON | Autenticado |
 
 ---
 

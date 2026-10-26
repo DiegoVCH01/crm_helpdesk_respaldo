@@ -7,6 +7,12 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
+/**
+ * Objeto de transferencia de datos (DTO) para la creación de tickets desde la consola interna de agentes.
+ *
+ * @author ServiClient Dev Team
+ * @version 1.0.0
+ */
 @Getter
 @Setter
 @NoArgsConstructor

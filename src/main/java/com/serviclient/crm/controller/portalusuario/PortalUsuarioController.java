@@ -18,6 +18,23 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.security.core.Authentication;
 
 
+/**
+ * Controlador MVC para la autenticación del Portal de Clientes.
+ *
+ * <p>Gestiona el inicio de sesión y el cambio de contraseña obligatorio
+ * para los usuarios con rol {@code ROLE_CLIENTE} que acceden al portal
+ * externo de la plataforma.
+ *
+ * <p><b>Rutas expuestas:</b>
+ *
+ * <pre>
+ * GET  /portalusuario/login            → formulario de login del portal
+ * POST /portalusuario/cambiar-password → cambio de contraseña temporal
+ * </pre>
+ *
+ * @author ServiClient Dev Team
+ * @version 1.0.0
+ */
 @Controller
 @RequestMapping("/portalusuario")
 @RequiredArgsConstructor
@@ -26,6 +43,17 @@ public class PortalUsuarioController {
     private final CuentaPortalRepository cuentaPortalRepository;
     private final PasswordEncoder passwordEncoder;
 
+    /**
+     * Muestra la página de login del portal de clientes con mensajes contextuales.
+     * Si el usuario ya está autenticado como cliente, verifica si requiere cambio
+     * de contraseña; si no, redirige al formulario de nuevo ticket.
+     *
+     * @param error presente cuando las credenciales son inválidas
+     * @param logout presente tras un cierre de sesión exitoso
+     * @param authentication información de autenticación actual
+     * @param model modelo Thymeleaf para pasar mensajes a la vista
+     * @return vista {@code portalusuario/login} o redirección a {@code /portal/tickets/nuevo}
+     */
     @GetMapping("/login")
 public String loginPage(
         @RequestParam(value = "error", required = false) String error,
@@ -65,6 +93,18 @@ public String loginPage(
     return "portalusuario/login";
 }
 
+    /**
+     * Procesa el cambio de contraseña temporal del cliente del portal.
+     * Valida longitud, coincidencia y que no sea igual a la contraseña temporal actual.
+     *
+     * @param nuevaPassword nueva contraseña a establecer
+     * @param confirmarPassword confirmación de la nueva contraseña
+     * @param authentication información de autenticación actual
+     * @param redirectAttributes atributos flash para mensajes de error
+     * @return redirección a {@code /portal/tickets/nuevo} si es exitoso,
+     *         o a {@code /portalusuario/login} si hay error
+     * @throws ResponseStatusException si el usuario no tiene rol {@code ROLE_CLIENTE}
+     */
     @PostMapping("/cambiar-password")
 public String procesarCambioPassword(
         @RequestParam("nuevaPassword") String nuevaPassword,

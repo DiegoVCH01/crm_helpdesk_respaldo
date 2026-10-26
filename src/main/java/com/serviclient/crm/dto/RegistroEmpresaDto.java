@@ -4,6 +4,16 @@ import jakarta.validation.constraints.*;
 import java.io.Serializable;
 import lombok.*;
 
+/**
+ * Objeto de transferencia de datos (DTO) para el asistente de aprovisionamiento de una nueva empresa tenant.
+ * <p>
+ * Agrupa la información corporativa (paso 1), las credenciales del usuario administrador raíz (paso 2)
+ * y las políticas predeterminadas de SLA, encuestas CSAT y Health Score (paso 3).
+ * </p>
+ *
+ * @author ServiClient Dev Team
+ * @version 1.0.0
+ */
 @Getter
 @Setter
 @NoArgsConstructor

@@ -12,6 +12,16 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Entidad JPA que modela un ticket o caso de soporte en el sistema CRM Helpdesk.
+ * <p>
+ * Gestiona el ciclo de vida de la incidencia (estado, prioridad, canal de origen, agente asignado,
+ * cálculo de vencimiento y cumplimiento de SLAs de primera respuesta y resolución, mensajes y adjuntos).
+ * </p>
+ *
+ * @author ServiClient Dev Team
+ * @version 1.0.0
+ */
 @Entity
 @Table(name = "tickets", uniqueConstraints = {
     @UniqueConstraint(name = "uq_ticket_numero_empresa", columnNames = {"empresa_id", "numero_ticket"})
@@ -160,6 +170,11 @@ public class Ticket {
         return fechaPrimeraRespuesta != null;
     }
 
+    /**
+     * Determina si el ticket se encuentra o fue cerrado fuera del plazo límite de resolución estipulado por el SLA.
+     *
+     * @return true si superó el tiempo límite de resolución, false en caso contrario
+     */
     public boolean isFueraDeSla() {
         if (estado == EstadoTicket.RESUELTO || estado == EstadoTicket.CERRADO) {
             if (fechaResolucion != null && slaResolucionLimite != null) {
@@ -173,6 +188,11 @@ public class Ticket {
         return false;
     }
 
+    /**
+     * Retorna una etiqueta textual informativa del estado de cumplimiento de SLA ("Vencido", "Cumplido", "Próximo a vencer", "Saludable").
+     *
+     * @return estado descriptivo del SLA
+     */
     public String getEstadoSlaTexto() {
         if (isFueraDeSla()) return "Vencido";
         if (estado == EstadoTicket.RESUELTO || estado == EstadoTicket.CERRADO) return "Cumplido";
@@ -183,6 +203,11 @@ public class Ticket {
         return "Saludable";
     }
 
+    /**
+     * Formatea el tiempo total transcurrido desde la creación del ticket hasta su resolución (o la fecha actual) en "Xh Ym".
+     *
+     * @return tiempo transcurrido en horas y minutos
+     */
     public String getTiempoTranscurridoFormateado() {
         LocalDateTime fin = (fechaResolucion != null) ? fechaResolucion : LocalDateTime.now();
         Duration duration = Duration.between(createdAt != null ? createdAt : LocalDateTime.now(), fin);
@@ -191,6 +216,11 @@ public class Ticket {
         return hours + "h " + minutes + "m";
     }
 
+    /**
+     * Formatea el tiempo restante disponible antes de incumplir el SLA de resolución, o el exceso si ya venció.
+     *
+     * @return tiempo restante en horas y minutos o 0h 0m si ya fue resuelto
+     */
     public String getTiempoRestanteFormateado() {
         if (slaResolucionLimite == null || estado == EstadoTicket.RESUELTO || estado == EstadoTicket.CERRADO) {
             return "0h 0m";

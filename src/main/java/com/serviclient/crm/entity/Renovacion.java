@@ -11,6 +11,17 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Entidad JPA que gestiona el seguimiento comercial y retención de suscripciones y contratos B2B.
+ * <p>
+ * Registra fechas de vencimiento, estado en el pipeline de renovación (PENDIENTE, EN_NEGOCIACION, RENOVADO, NO_RENOVADO),
+ * alertas de anticipación y el histórico cronológico de interacciones de Customer Success ({@link RenovacionSeguimiento}).
+ * </p>
+ *
+ * @author ServiClient Dev Team
+ * @version 1.0.0
+ * @see RenovacionSeguimiento
+ */
 @Entity
 @Table(name = "renovaciones", indexes = {
     @Index(name = "idx_renovacion_empresa_estado", columnList = "empresa_id, estado"),

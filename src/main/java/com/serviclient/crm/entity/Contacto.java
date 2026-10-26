@@ -5,6 +5,17 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
+/**
+ * Entidad JPA que representa a una persona de contacto dentro de una empresa cliente.
+ * <p>
+ * Puede actuar como contacto principal o secundario. Si es contacto principal o se le habilita acceso,
+ * se vincula a una {@link CuentaPortal} para interactuar en el portal de autoservicio de soporte.
+ * </p>
+ *
+ * @author ServiClient Dev Team
+ * @version 1.0.0
+ * @see CuentaPortal
+ */
 @Entity
 @Table(name = "contactos", uniqueConstraints = {
     @UniqueConstraint(name = "uq_contacto_email_cliente", columnNames = {"cliente_id", "email"})

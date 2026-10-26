@@ -12,6 +12,18 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Implementación del servicio de gestión de cuentas y credenciales para el portal de clientes.
+ * <p>
+ * Administra el ciclo de vida del acceso de los contactos externos al portal de autoservicio:
+ * activación y aprovisionamiento con claves temporales de 12 caracteres de alta entropía,
+ * desactivación de accesos y sincronización ante modificaciones de correo electrónico.
+ * </p>
+ *
+ * @author ServiClient Dev Team
+ * @version 1.0.0
+ * @see ICuentaPortalService
+ */
 @Service
 @RequiredArgsConstructor
 public class CuentaPortalService implements ICuentaPortalService {
@@ -21,8 +33,25 @@ public class CuentaPortalService implements ICuentaPortalService {
 
   private static final SecureRandom RANDOM = new SecureRandom();
 
+  /**
+   * Registro inmutable que encapsula las credenciales provisionales generadas para el usuario del portal.
+   *
+   * @param email correo electrónico de acceso al portal
+   * @param passwordTemporal contraseña provisional generada en texto plano
+   */
   public record CredencialesTemporales(String email, String passwordTemporal) {}
 
+  /**
+   * Activa o aprovisiona una cuenta de portal para un contacto dado, generando una contraseña temporal.
+   * <p>
+   * Si la cuenta ya existía, actualiza su hash con la nueva contraseña temporal y marca la obligación
+   * de cambio de clave en el primer inicio de sesión.
+   * </p>
+   *
+   * @param contacto contacto cliente a quien se habilita el acceso
+   * @return {@link CredencialesTemporales} con el email y la contraseña provisional generada
+   * @throws IllegalArgumentException si el contacto no es válido, no tiene correo o el correo ya pertenece a otro contacto
+   */
   @Transactional
   public CredencialesTemporales activarOCrearCuenta(Contacto contacto) {
 
@@ -61,6 +90,11 @@ public class CuentaPortalService implements ICuentaPortalService {
     return new CredencialesTemporales(contacto.getEmail(), passwordTemporal);
   }
 
+  /**
+   * Desactiva la cuenta de portal asociada a un contacto estableciendo su estado en "INACTIVO".
+   *
+   * @param contactoId identificador del contacto
+   */
   @Transactional
   public void desactivarCuenta(Long contactoId) {
 
@@ -73,6 +107,12 @@ public class CuentaPortalService implements ICuentaPortalService {
             });
   }
 
+  /**
+   * Actualiza el correo electrónico de acceso al portal del cliente si el contacto ya posee una cuenta activa.
+   *
+   * @param contacto contacto con los datos actualizados
+   * @throws IllegalArgumentException si el contacto no es válido, no tiene correo o el correo ya pertenece a otra cuenta
+   */
   @Transactional
   public void actualizarEmailSiExiste(Contacto contacto) {
 
@@ -111,6 +151,11 @@ public class CuentaPortalService implements ICuentaPortalService {
             });
   }
 
+  /**
+   * Genera una contraseña segura aleatoria de 12 caracteres que combina mayúsculas, minúsculas, dígitos y símbolos.
+   *
+   * @return contraseña temporal de 12 caracteres
+   */
   private String generarPasswordTemporal() {
 
     String mayusculas = "ABCDEFGHJKLMNPQRSTUVWXYZ";

@@ -17,167 +17,212 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Implementación del servicio de gestión de empresas (tenants) del sistema.
+ * <p>
+ * Maneja el aprovisionamiento inicial y registro integral de nuevas empresas,
+ * incluyendo la configuración por defecto de políticas SLA por prioridad,
+ * encuesta CSAT, ponderación de Health Score y el usuario administrador
+ * inicial.
+ * </p>
+ *
+ * @author ServiClient Dev Team
+ * @version 1.0.0
+ * @see IEmpresaService
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class EmpresaService implements IEmpresaService {
 
-  private final EmpresaRepository empresaRepository;
-  private final RolRepository rolRepository;
-  private final UsuarioRepository usuarioRepository;
-  private final ConfiguracionSlaRepository configuracionSlaRepository;
-  private final ConfiguracionCsatRepository configuracionCsatRepository;
-  private final ConfiguracionHealthScoreRepository configuracionHealthScoreRepository;
-  private final PasswordEncoder passwordEncoder;
+    private final EmpresaRepository empresaRepository;
+    private final RolRepository rolRepository;
+    private final UsuarioRepository usuarioRepository;
+    private final ConfiguracionSlaRepository configuracionSlaRepository;
+    private final ConfiguracionCsatRepository configuracionCsatRepository;
+    private final ConfiguracionHealthScoreRepository configuracionHealthScoreRepository;
+    private final PasswordEncoder passwordEncoder;
 
-  @Transactional
-  public Empresa registrarEmpresaCompleta(RegistroEmpresaDto dto) {
+    /**
+     * Realiza el registro completo de una nueva empresa tenant en el sistema.
+     * <p>
+     * El proceso comprende:
+     * <ol>
+     * <li>Creación de la entidad {@link Empresa}.</li>
+     * <li>Asociación del rol Administrador global.</li>
+     * <li>Creación de políticas SLA por defecto para prioridades CRÍTICA, ALTA,
+     * MEDIA y BAJA.</li>
+     * <li>Configuración inicial del módulo de satisfacción CSAT.</li>
+     * <li>Ponderaciones del cálculo de Health Score (Tickets, CSAT, Actividad,
+     * Renovación).</li>
+     * <li>Creación del usuario administrador inicial con credenciales
+     * cifradas.</li>
+     * </ol>
+     *
+     * @param dto formulario con los datos de la empresa, administrador y
+     *            configuración inicial
+     * @return entidad {@link Empresa} persistida con todas sus configuraciones
+     * @throws NullPointerException     si el DTO proporcionado es nulo
+     * @throws IllegalArgumentException si faltan datos requeridos o el correo ya se
+     *                                  encuentra registrado
+     * @throws IllegalStateException    si el rol global Administrador no existe en
+     *                                  la base de datos
+     */
+    @Transactional
+    public Empresa registrarEmpresaCompleta(RegistroEmpresaDto dto) {
 
-    log.info("Iniciando registro de una nueva empresa");
-    // --- GUAVA PRECONDITIONS
-    Preconditions.checkNotNull(dto, "El formulario de registro de empresa no puede ser nulo");
-    Preconditions.checkArgument(
-        dto.getNombreComercial() != null && !dto.getNombreComercial().isBlank(),
-        "El nombre comercial es obligatorio");
-    Preconditions.checkArgument(
-        dto.getAdminEmail() != null && !dto.getAdminEmail().isBlank(),
-        "El correo del administrador es obligatorio");
-    Preconditions.checkArgument(
-        dto.getAdminPassword() != null && !dto.getAdminPassword().isBlank(),
-        "La contraseña del administrador es obligatoria");
+        log.info("Iniciando registro de una nueva empresa");
+        // --- GUAVA PRECONDITIONS
+        Preconditions.checkNotNull(dto, "El formulario de registro de empresa no puede ser nulo");
+        Preconditions.checkArgument(
+                dto.getNombreComercial() != null && !dto.getNombreComercial().isBlank(),
+                "El nombre comercial es obligatorio");
+        Preconditions.checkArgument(
+                dto.getAdminEmail() != null && !dto.getAdminEmail().isBlank(),
+                "El correo del administrador es obligatorio");
+        Preconditions.checkArgument(
+                dto.getAdminPassword() != null && !dto.getAdminPassword().isBlank(),
+                "La contraseña del administrador es obligatoria");
 
+        if (usuarioRepository.existsByEmail(dto.getAdminEmail())) {
+            log.warn("Registro de empresa rechazado: correo de administrador ya registrado");
+            throw new IllegalArgumentException(
+                    "Ya existe un usuario registrado con el correo: " + dto.getAdminEmail());
+        }
 
-    if (usuarioRepository.existsByEmail(dto.getAdminEmail())) {
-      log.warn("Registro de empresa rechazado: correo de administrador ya registrado");
-      throw new IllegalArgumentException(
-          "Ya existe un usuario registrado con el correo: " + dto.getAdminEmail());
+        // 1. Crear Empresa
+        Empresa empresa = Empresa.builder()
+                .nombreComercial(dto.getNombreComercial())
+                .razonSocial(dto.getRazonSocial())
+                .ruc(dto.getRuc())
+                .industria(dto.getIndustria())
+                .tamanoEmpresa(dto.getTamanoEmpresa())
+                .pais(dto.getPais())
+                .ciudad(dto.getCiudad())
+                .direccion(dto.getDireccion())
+                .sitioWeb(dto.getSitioWeb())
+                .logoUrl(dto.getLogoUrl())
+                .zonaHoraria("America/Lima")
+                .estado("ACTIVA")
+                .build();
+
+        Empresa empresaGuardada = empresaRepository.save(empresa);
+
+        // 2. Obtener el rol global Administrador
+        RolEntity rolAdmin = rolRepository
+                .findByNombre("Administrador")
+                .orElseThrow(
+                        () -> new IllegalStateException(
+                                "No se encontró el rol global Administrador."));
+
+        // 3. Crear Configuraciones de SLA, CSAT y Health Score
+        int sla1ra = dto.getSlaPrimerRespuestaHoras() != null ? dto.getSlaPrimerRespuestaHoras() * 60 : 120;
+        int slaResol = dto.getSlaResolucionHoras() != null ? dto.getSlaResolucionHoras() * 60 : 1440;
+
+        configuracionSlaRepository.save(
+                ConfiguracionSla.builder()
+                        .empresa(empresaGuardada)
+                        .prioridad(PrioridadTicket.CRITICA)
+                        .tiempoRespuestaMinutos(Math.max(30, sla1ra / 4))
+                        .tiempoResolucionMinutos(Math.max(240, slaResol / 4))
+                        .estado("ACTIVO")
+                        .build());
+
+        configuracionSlaRepository.save(
+                ConfiguracionSla.builder()
+                        .empresa(empresaGuardada)
+                        .prioridad(PrioridadTicket.ALTA)
+                        .tiempoRespuestaMinutos(Math.max(60, sla1ra / 2))
+                        .tiempoResolucionMinutos(Math.max(480, slaResol / 2))
+                        .estado("ACTIVO")
+                        .build());
+
+        configuracionSlaRepository.save(
+                ConfiguracionSla.builder()
+                        .empresa(empresaGuardada)
+                        .prioridad(PrioridadTicket.MEDIA)
+                        .tiempoRespuestaMinutos(sla1ra)
+                        .tiempoResolucionMinutos(slaResol)
+                        .estado("ACTIVO")
+                        .build());
+
+        configuracionSlaRepository.save(
+                ConfiguracionSla.builder()
+                        .empresa(empresaGuardada)
+                        .prioridad(PrioridadTicket.BAJA)
+                        .tiempoRespuestaMinutos(sla1ra * 2)
+                        .tiempoResolucionMinutos(slaResol * 2)
+                        .estado("ACTIVO")
+                        .build());
+
+        configuracionCsatRepository.save(
+                ConfiguracionCsat.builder()
+                        .empresa(empresaGuardada)
+                        .activo(dto.getActivarCsat() != null ? dto.getActivarCsat() : true)
+                        .escalaMin(1)
+                        .escalaMax(5)
+                        .pregunta("¿Qué tan satisfecho estás con la atención recibida?")
+                        .build());
+
+        configuracionHealthScoreRepository.save(
+                ConfiguracionHealthScore.builder()
+                        .empresa(empresaGuardada)
+                        .pesoTickets(new BigDecimal("30.00"))
+                        .pesoCsat(new BigDecimal("30.00"))
+                        .pesoActividad(new BigDecimal("15.00"))
+                        .pesoRenovacion(new BigDecimal("25.00"))
+                        .rangoSaludableMin(80)
+                        .rangoObservacionMin(50)
+                        .estado("ACTIVO")
+                        .build());
+
+        // 4. Crear Usuario Administrador
+        Usuario admin = Usuario.builder()
+                .empresa(empresaGuardada)
+                .rolEntity(rolAdmin)
+                .nombre(dto.getAdminNombre())
+                .apellido(dto.getAdminApellido())
+                .email(dto.getAdminEmail())
+                .telefono(dto.getAdminTelefono())
+                .password(passwordEncoder.encode(dto.getAdminPassword()))
+                .debeCambiarPassword(false)
+                .estado("ACTIVO")
+                .build();
+
+        usuarioRepository.save(admin);
+
+        log.info(
+                "Empresa registrada correctamente. empresaId={}",
+                empresaGuardada.getId());
+
+        return empresaGuardada;
     }
 
-    // 1. Crear Empresa
-    Empresa empresa =
-        Empresa.builder()
-            .nombreComercial(dto.getNombreComercial())
-            .razonSocial(dto.getRazonSocial())
-            .ruc(dto.getRuc())
-            .industria(dto.getIndustria())
-            .tamanoEmpresa(dto.getTamanoEmpresa())
-            .pais(dto.getPais())
-            .ciudad(dto.getCiudad())
-            .direccion(dto.getDireccion())
-            .sitioWeb(dto.getSitioWeb())
-            .logoUrl(dto.getLogoUrl())
-            .zonaHoraria("America/Lima")
-            .estado("ACTIVA")
-            .build();
+    /**
+     * Obtiene una empresa por su identificador único.
+     *
+     * @param id identificador de la empresa
+     * @return entidad {@link Empresa} correspondiente
+     * @throws IllegalArgumentException si la empresa no existe
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public Empresa obtenerPorId(Long id) {
+        return empresaRepository
+                .findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Empresa no encontrada con id: " + id));
+    }
 
-    Empresa empresaGuardada = empresaRepository.save(empresa);
-
-    // 2. Obtener el rol global Administrador
-    RolEntity rolAdmin =
-        rolRepository
-            .findByNombre("Administrador")
-            .orElseThrow(
-                () ->
-                    new IllegalStateException(
-                        "No se encontró el rol global Administrador."));
-
-    // 3. Crear Configuraciones de SLA, CSAT y Health Score
-    int sla1ra =
-        dto.getSlaPrimerRespuestaHoras() != null ? dto.getSlaPrimerRespuestaHoras() * 60 : 120;
-    int slaResol = dto.getSlaResolucionHoras() != null ? dto.getSlaResolucionHoras() * 60 : 1440;
-
-    configuracionSlaRepository.save(
-        ConfiguracionSla.builder()
-            .empresa(empresaGuardada)
-            .prioridad(PrioridadTicket.CRITICA)
-            .tiempoRespuestaMinutos(Math.max(30, sla1ra / 4))
-            .tiempoResolucionMinutos(Math.max(240, slaResol / 4))
-            .estado("ACTIVO")
-            .build());
-
-    configuracionSlaRepository.save(
-        ConfiguracionSla.builder()
-            .empresa(empresaGuardada)
-            .prioridad(PrioridadTicket.ALTA)
-            .tiempoRespuestaMinutos(Math.max(60, sla1ra / 2))
-            .tiempoResolucionMinutos(Math.max(480, slaResol / 2))
-            .estado("ACTIVO")
-            .build());
-
-    configuracionSlaRepository.save(
-        ConfiguracionSla.builder()
-            .empresa(empresaGuardada)
-            .prioridad(PrioridadTicket.MEDIA)
-            .tiempoRespuestaMinutos(sla1ra)
-            .tiempoResolucionMinutos(slaResol)
-            .estado("ACTIVO")
-            .build());
-
-    configuracionSlaRepository.save(
-        ConfiguracionSla.builder()
-            .empresa(empresaGuardada)
-            .prioridad(PrioridadTicket.BAJA)
-            .tiempoRespuestaMinutos(sla1ra * 2)
-            .tiempoResolucionMinutos(slaResol * 2)
-            .estado("ACTIVO")
-            .build());
-
-    configuracionCsatRepository.save(
-        ConfiguracionCsat.builder()
-            .empresa(empresaGuardada)
-            .activo(dto.getActivarCsat() != null ? dto.getActivarCsat() : true)
-            .escalaMin(1)
-            .escalaMax(5)
-            .pregunta("¿Qué tan satisfecho estás con la atención recibida?")
-            .build());
-
-    configuracionHealthScoreRepository.save(
-        ConfiguracionHealthScore.builder()
-            .empresa(empresaGuardada)
-            .pesoTickets(new BigDecimal("30.00"))
-            .pesoCsat(new BigDecimal("30.00"))
-            .pesoActividad(new BigDecimal("15.00"))
-            .pesoRenovacion(new BigDecimal("25.00"))
-            .rangoSaludableMin(80)
-            .rangoObservacionMin(50)
-            .estado("ACTIVO")
-            .build());
-
-    // 4. Crear Usuario Administrador
-    Usuario admin =
-        Usuario.builder()
-            .empresa(empresaGuardada)
-            .rolEntity(rolAdmin)
-            .nombre(dto.getAdminNombre())
-            .apellido(dto.getAdminApellido())
-            .email(dto.getAdminEmail())
-            .telefono(dto.getAdminTelefono())
-            .password(passwordEncoder.encode(dto.getAdminPassword()))
-            .debeCambiarPassword(false)
-            .estado("ACTIVO")
-            .build();
-
-    usuarioRepository.save(admin);
-
-    log.info(
-    "Empresa registrada correctamente. empresaId={}",
-    empresaGuardada.getId());
-
-    return empresaGuardada;
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public Empresa obtenerPorId(Long id) {
-    return empresaRepository
-        .findById(id)
-        .orElseThrow(() -> new IllegalArgumentException("Empresa no encontrada con id: " + id));
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public Empresa obtenerPrimera() {
-    return empresaRepository.findFirstByOrderByIdAsc()
-        .orElseThrow(() -> new IllegalStateException("No existe ninguna empresa registrada."));
-  }
+    /**
+     * Retorna la primera empresa registrada en el sistema.
+     *
+     * @return primera entidad {@link Empresa}
+     * @throws IllegalStateException si no existe ninguna empresa registrada
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public Empresa obtenerPrimera() {
+        return empresaRepository.findFirstByOrderByIdAsc()
+                .orElseThrow(() -> new IllegalStateException("No existe ninguna empresa registrada."));
+    }
 }

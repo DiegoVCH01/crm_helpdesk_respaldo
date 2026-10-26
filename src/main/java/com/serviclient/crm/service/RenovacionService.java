@@ -16,6 +16,18 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Implementación del servicio de gestión de renovaciones de contratos y retención de clientes.
+ * <p>
+ * Proporciona funcionalidades para el seguimiento de vencimientos de contratos (ARR),
+ * cálculo de ventanas de riesgo (&lt;30 días, 31-90 días, &gt;90 días), registro de bitácoras
+ * de interacción comercial y actualización del ciclo de vida de la renovación.
+ * </p>
+ *
+ * @author ServiClient Dev Team
+ * @version 1.0.0
+ * @see IRenovacionService
+ */
 @Service
 @RequiredArgsConstructor
 public class RenovacionService implements IRenovacionService {
@@ -24,11 +36,23 @@ public class RenovacionService implements IRenovacionService {
   private final RenovacionSeguimientoRepository seguimientoRepository;
   private final HealthScoreService healthScoreService;
 
-
+  /**
+   * Obtiene la totalidad de contratos y renovaciones registrados en el sistema.
+   *
+   * @return lista completa de renovaciones
+   */
   public List<Renovacion> obtenerProximasRenovaciones() {
     return renovacionRepository.findAll();
   }
 
+  /**
+   * Lista las renovaciones de una empresa aplicando filtros opcionales de búsqueda y estado.
+   *
+   * @param empresaId identificador de la empresa
+   * @param busqueda término opcional de búsqueda por nombre comercial del cliente
+   * @param estado estado del proceso de renovación para filtrar
+   * @return lista de renovaciones coincidentes
+   */
   @Transactional(readOnly = true)
   public List<Renovacion> listarProximasRenovaciones(Long empresaId, String busqueda, EstadoRenovacion estado) {
     if (empresaId == null) {
@@ -38,6 +62,12 @@ public class RenovacionService implements IRenovacionService {
     return renovacionRepository.buscarConFiltros(empresaId, busqueda, estado);
   }
 
+  /**
+   * Calcula indicadores cuantitativos de contratos distribuidos por ventanas temporales de vencimiento.
+   *
+   * @param empresaId identificador de la empresa
+   * @return objeto {@link MetricasRenovaciones} con conteos por períodos y estados
+   */
   @Override
   @Transactional(readOnly = true)
   public MetricasRenovaciones calcularMetricas(Long empresaId) {
@@ -88,6 +118,13 @@ public class RenovacionService implements IRenovacionService {
         .build();
   }
 
+  /**
+   * Obtiene una renovación específica por su identificador primario.
+   *
+   * @param id identificador de la renovación
+   * @return entidad {@link Renovacion} encontrada
+   * @throws RuntimeException si la renovación no existe
+   */
   @Override
   public Renovacion obtenerPorId(Long id) {
     return renovacionRepository
@@ -95,6 +132,14 @@ public class RenovacionService implements IRenovacionService {
         .orElseThrow(() -> new RuntimeException("Renovación no encontrada con ID: " + id));
   }
 
+  /**
+   * Actualiza el estado del ciclo de vida de un contrato o renovación.
+   *
+   * @param id identificador de la renovación
+   * @param nuevoEstado nuevo estado a establecer
+   * @param responsable usuario que efectúa el cambio
+   * @return entidad {@link Renovacion} actualizada
+   */
   @Transactional
   public Renovacion actualizarEstado(Long id, EstadoRenovacion nuevoEstado, Usuario responsable) {
     Renovacion renovacion = obtenerPorId(id);
@@ -102,6 +147,14 @@ public class RenovacionService implements IRenovacionService {
     return renovacionRepository.save(renovacion);
   }
 
+  /**
+   * Añade una nota de seguimiento a la bitácora de la renovación.
+   *
+   * @param renovacionId identificador de la renovación
+   * @param nota contenido del comentario o apunte comercial
+   * @param responsable usuario autor de la nota
+   * @return entidad {@link RenovacionSeguimiento} creada y persistida
+   */
   @Override
   @Transactional
   public RenovacionSeguimiento agregarSeguimiento(Long renovacionId, String nota, Usuario responsable) {
@@ -116,6 +169,15 @@ public class RenovacionService implements IRenovacionService {
     return seguimientoRepository.save(seguimiento);
   }
 
+  /**
+   * Registra una acción de seguimiento validando pertenencia a la empresa y actualizando opcionalmente el estado.
+   *
+   * @param dto datos del formulario de seguimiento
+   * @param usuario usuario que registra el evento
+   * @param empresaId identificador de la empresa activa para validación de pertenencia
+   * @return entidad {@link RenovacionSeguimiento} persistida
+   * @throws IllegalArgumentException si la renovación no pertenece a la empresa actual
+   */
   @Transactional
   public RenovacionSeguimiento registrarSeguimiento(
       TicketMensajeDto.RegistrarSeguimientoRenovacion dto, Usuario usuario, Long empresaId) {
@@ -143,6 +205,12 @@ public class RenovacionService implements IRenovacionService {
     return seguimientoRepository.save(seguimiento);
   }
 
+  /**
+   * Obtiene el historial completo de seguimientos registrados para una renovación en orden cronológico inverso.
+   *
+   * @param renovacionId identificador de la renovación
+   * @return lista de seguimientos asociados
+   */
   public List<RenovacionSeguimiento> obtenerSeguimientos(Long renovacionId) {
     return seguimientoRepository.findByRenovacionIdOrderByFechaDesc(renovacionId);
   }

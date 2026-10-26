@@ -9,6 +9,16 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.*;
 
+/**
+ * Entidad JPA que representa una empresa cliente (cuenta B2B) dentro del modelo multi-tenant.
+ * <p>
+ * Almacena datos comerciales, fiscales (RUC), ejecutivos asignados, métricas algorítmicas de retención
+ * (Health Score, promedio CSAT) y relaciones con contactos, servicios suscritos y renovaciones.
+ * </p>
+ *
+ * @author ServiClient Dev Team
+ * @version 1.0.0
+ */
 @Entity
 @Table(
     name = "clientes",

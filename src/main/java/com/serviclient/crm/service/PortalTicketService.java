@@ -16,6 +16,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+/**
+ * Implementación del servicio de gestión de tickets e incidencias reportadas desde el portal de autoservicio del cliente.
+ * <p>
+ * Se encarga de transformar las peticiones del portal en tickets formales del CRM asignados
+ * con origen {@link CanalOrigen#PORTAL_WEB}, gestionando además el almacenamiento físico
+ * y validación de archivos adjuntos (límite de 10 MB y formatos permitidos png, jpg, jpeg, pdf, txt).
+ * </p>
+ *
+ * @author ServiClient Dev Team
+ * @version 1.0.0
+ * @see IPortalTicketService
+ */
 @Service
 @RequiredArgsConstructor
 public class PortalTicketService implements IPortalTicketService {
@@ -28,6 +40,17 @@ public class PortalTicketService implements IPortalTicketService {
   private final TicketService ticketService;
   private final TicketAdjuntoRepository ticketAdjuntoRepository;
 
+  /**
+   * Registra una nueva incidencia emitida por un contacto cliente autenticado a través del portal de clientes.
+   *
+   * @param cuentaPortal credencial de la cuenta del portal en sesión
+   * @param dto formulario con el asunto, categoría, prioridad y descripción del problema
+   * @param archivos arreglo opcional de archivos adjuntos cargados por el usuario
+   * @return entidad {@link Ticket} creada y asociada a la empresa y cliente correspondientes
+   * @throws IOException si ocurre un error de E/S al guardar los archivos adjuntos en disco
+   * @throws IllegalArgumentException si la cuenta está inactiva o los archivos superan límites de tamaño o formato
+   * @throws IllegalStateException si la cuenta del portal carece de relación con un contacto o cliente
+   */
   @Transactional
   public Ticket crearTicketDesdePortal(
       CuentaPortal cuentaPortal, PortalTicketDto dto, MultipartFile[] archivos) throws IOException {
@@ -69,6 +92,14 @@ public class PortalTicketService implements IPortalTicketService {
     return ticket;
   }
 
+  /**
+   * Almacena físicamente los archivos adjuntos en el sistema de archivos del servidor
+   * y registra las entidades {@link TicketAdjunto} en la base de datos.
+   *
+   * @param ticket ticket al que se asocian los adjuntos
+   * @param archivos lista de ficheros subidos en la petición HTTP
+   * @throws IOException si falla la creación del directorio o la copia del flujo binario
+   */
   private void guardarAdjuntos(Ticket ticket, MultipartFile[] archivos) throws IOException {
 
     if (archivos == null || archivos.length == 0) {
@@ -89,7 +120,7 @@ public class PortalTicketService implements IPortalTicketService {
 
       String nombreOriginal =
           archivo.getOriginalFilename() != null
-              ? Paths.get(archivo.getOriginalFilename()).getFileName().toString()
+               ? Paths.get(archivo.getOriginalFilename()).getFileName().toString()
               : "archivo";
 
       String extension = obtenerExtension(nombreOriginal);
@@ -114,6 +145,12 @@ public class PortalTicketService implements IPortalTicketService {
     }
   }
 
+  /**
+   * Valida que el archivo individual no exceda el límite máximo de tamaño ni utilice extensiones no permitidas.
+   *
+   * @param archivo archivo multiparte a validar
+   * @throws IllegalArgumentException si excede 10 MB, no tiene nombre o la extensión no es soportada
+   */
   private void validarArchivo(MultipartFile archivo) {
 
     if (archivo.getSize() > MAX_FILE_SIZE) {
@@ -134,6 +171,12 @@ public class PortalTicketService implements IPortalTicketService {
     }
   }
 
+  /**
+   * Extrae la extensión del nombre del archivo en minúsculas.
+   *
+   * @param nombreArchivo nombre del fichero
+   * @return extensión sin el punto, o cadena vacía si no posee extensión
+   */
   private String obtenerExtension(String nombreArchivo) {
 
     int punto = nombreArchivo.lastIndexOf('.');

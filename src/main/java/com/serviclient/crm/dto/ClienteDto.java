@@ -7,6 +7,15 @@ import java.time.LocalDate;
 import lombok.*;
 import org.springframework.format.annotation.DateTimeFormat;
 
+/**
+ * Objeto de transferencia de datos (DTO) para los formularios de alta y actualización de clientes B2B.
+ * <p>
+ * Incluye campos del cliente corporativo, fechas de contrato y los datos opcionales para el contacto principal.
+ * </p>
+ *
+ * @author ServiClient Dev Team
+ * @version 1.0.0
+ */
 @Getter
 @Setter
 @NoArgsConstructor

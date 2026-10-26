@@ -10,6 +10,12 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
 
+/**
+ * Contenedor de objetos de transferencia de datos (DTOs) estáticos para acciones operativas sobre tickets y renovaciones.
+ *
+ * @author ServiClient Dev Team
+ * @version 1.0.0
+ */
 public class TicketMensajeDto {
 
     @Getter

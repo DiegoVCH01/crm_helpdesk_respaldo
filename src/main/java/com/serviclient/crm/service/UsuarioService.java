@@ -20,6 +20,18 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Implementación del servicio de gestión de usuarios y agentes del sistema.
+ * <p>
+ * Proporciona la lógica de negocio para la administración de agentes y supervisores,
+ * consulta de usuarios autenticados, restablecimiento y actualización de contraseñas,
+ * asignación de roles y control de acceso por empresa.
+ * </p>
+ *
+ * @author ServiClient Dev Team
+ * @version 1.0.0
+ * @see IUsuarioService
+ */
 @Service
 @RequiredArgsConstructor
 public class UsuarioService implements IUsuarioService {
@@ -29,6 +41,11 @@ public class UsuarioService implements IUsuarioService {
     private final RolRepository rolRepository;
     private final PasswordEncoder passwordEncoder;
 
+    /**
+     * Obtiene el usuario actualmente autenticado a partir del contexto de Spring Security.
+     *
+     * @return {@link Optional} con la entidad del usuario autenticado o vacío si no hay sesión
+     */
     @Transactional(readOnly = true)
     public Optional<Usuario> obtenerUsuarioAutenticado() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -41,17 +58,36 @@ public class UsuarioService implements IUsuarioService {
         return usuarioRepository.findByEmail(auth.getName());
     }
 
+    /**
+     * Obtiene todos los usuarios (agentes y administradores) asociados a una empresa.
+     *
+     * @param empresaId identificador de la empresa
+     * @return lista de usuarios pertenecientes a la empresa
+     */
     @Transactional(readOnly = true)
     public List<Usuario> obtenerAgentesYAdminsPorEmpresa(Long empresaId) {
         return usuarioRepository.findByEmpresaId(empresaId);
     }
 
+    /**
+     * Obtiene la totalidad de los usuarios registrados para una empresa.
+     *
+     * @param empresaId identificador de la empresa
+     * @return lista completa de usuarios de la empresa
+     */
     @Override
     @Transactional(readOnly = true)
     public List<Usuario> obtenerTodosPorEmpresa(Long empresaId) {
         return usuarioRepository.findByEmpresaId(empresaId);
     }
 
+    /**
+     * Busca un usuario por su identificador primario.
+     *
+     * @param id identificador del usuario
+     * @return entidad {@link Usuario} correspondiente
+     * @throws IllegalArgumentException si el usuario no existe
+     */
     @Override
     @Transactional(readOnly = true)
     public Usuario obtenerPorId(Long id) {
@@ -60,6 +96,12 @@ public class UsuarioService implements IUsuarioService {
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado con id: " + id));
     }
 
+    /**
+     * Lista únicamente los usuarios con rol operativo (excluyendo administradores) de una empresa.
+     *
+     * @param empresaId identificador de la empresa
+     * @return lista de agentes y supervisores
+     */
     @Override
     @Transactional(readOnly = true)
     public List<Usuario> listarAgentesPorEmpresa(Long empresaId) {
@@ -68,6 +110,14 @@ public class UsuarioService implements IUsuarioService {
                 .toList();
     }
 
+    /**
+     * Obtiene un agente específico validando su existencia y pertenencia a la empresa activa.
+     *
+     * @param id identificador del usuario
+     * @param empresaId identificador de la empresa
+     * @return entidad {@link Usuario} encontrada
+     * @throws IllegalArgumentException si el usuario no existe, pertenece a otra empresa o es administrador
+     */
     @Transactional(readOnly = true)
     public Usuario obtenerAgentePorEmpresa(Long id, Long empresaId) {
         Usuario usuario = usuarioRepository
@@ -84,6 +134,15 @@ public class UsuarioService implements IUsuarioService {
         return usuario;
     }
 
+    /**
+     * Registra un nuevo agente o supervisor para la empresa especificada y genera una contraseña temporal.
+     *
+     * @param empresaId identificador de la empresa
+     * @param dto datos del agente a registrar
+     * @return {@link CredencialTemporalDto} con el usuario creado y la contraseña generada en texto plano
+     * @throws IllegalArgumentException si el rol no es gestionable, el email ya está en uso o la empresa no existe
+     * @throws IllegalStateException si el rol solicitado no se encuentra en el repositorio
+     */
     @Transactional
     public CredencialTemporalDto crearAgente(Long empresaId, AgenteDto dto) {
 
@@ -122,6 +181,16 @@ public class UsuarioService implements IUsuarioService {
         return new CredencialTemporalDto(usuarioGuardado, passwordTemporal);
     }
 
+    /**
+     * Actualiza los datos personales y el rol de un agente existente.
+     *
+     * @param id identificador del agente
+     * @param empresaId identificador de la empresa para validación de acceso
+     * @param dto nuevos datos del agente
+     * @return entidad {@link Usuario} actualizada
+     * @throws IllegalArgumentException si el rol no es gestionable o el correo ya pertenece a otro usuario
+     * @throws IllegalStateException si el rol no existe en el catálogo
+     */
     @Transactional
     public Usuario actualizarAgente(Long id, Long empresaId, AgenteDto dto) {
 
@@ -148,6 +217,13 @@ public class UsuarioService implements IUsuarioService {
         return usuarioRepository.save(usuario);
     }
 
+    /**
+     * Alterna el estado activo/inactivo de un agente.
+     *
+     * @param id identificador del agente
+     * @param empresaId identificador de la empresa
+     * @throws IllegalArgumentException si el agente no pertenece a la empresa o es administrador
+     */
     @Transactional
     public void cambiarEstadoAgente(Long id, Long empresaId) {
 
@@ -158,6 +234,12 @@ public class UsuarioService implements IUsuarioService {
         usuarioRepository.save(usuario);
     }
 
+    /**
+     * Valida que el rol asignado sea un rol operativo permitido (AGENTE o SUPERVISOR).
+     *
+     * @param rol rol a validar
+     * @throws IllegalArgumentException si el rol es nulo o no es gestionable
+     */
     private void validarRolGestionable(Rol rol) {
         if (rol != Rol.AGENTE && rol != Rol.SUPERVISOR) {
 
@@ -165,6 +247,13 @@ public class UsuarioService implements IUsuarioService {
         }
     }
 
+    /**
+     * Traduce el enum {@link Rol} al nombre descriptivo almacenado en la tabla de roles.
+     *
+     * @param rol enumeración del rol
+     * @return nombre del rol en la entidad
+     * @throws IllegalArgumentException si el rol no es compatible
+     */
     private String nombreRol(Rol rol) {
         return switch (rol) {
             case AGENTE -> "Agente de Soporte";
@@ -173,6 +262,14 @@ public class UsuarioService implements IUsuarioService {
         };
     }
 
+    /**
+     * Restablece la contraseña de un agente generando una nueva clave temporal aleatoria.
+     *
+     * @param id identificador del agente
+     * @param empresaId identificador de la empresa
+     * @return contraseña temporal generada en texto plano
+     * @throws IllegalArgumentException si el usuario no es accesible
+     */
     @Transactional
     public String restablecerPasswordAgente(Long id, Long empresaId) {
 
@@ -188,6 +285,13 @@ public class UsuarioService implements IUsuarioService {
         return passwordTemporal;
     }
 
+    /**
+     * Valida el formato y la coincidencia de una nueva contraseña.
+     *
+     * @param nuevaPassword nueva contraseña propuesta
+     * @param confirmarPassword confirmación de la contraseña
+     * @throws IllegalArgumentException si la longitud no está entre 8 y 72 caracteres, está en blanco o no coinciden
+     */
     private void validarNuevaPassword(
             String nuevaPassword, String confirmarPassword) {
 
@@ -209,6 +313,14 @@ public class UsuarioService implements IUsuarioService {
         }
     }
 
+    /**
+     * Permite a un usuario cambiar su contraseña temporal por una definitiva en su primer inicio de sesión.
+     *
+     * @param usuarioId identificador del usuario
+     * @param nuevaPassword nueva contraseña elegida
+     * @param confirmarPassword confirmación de la nueva contraseña
+     * @throws IllegalArgumentException si el usuario no existe, no requiere cambio, las claves no coinciden o es igual a la anterior
+     */
     @Transactional
     public void cambiarPasswordTemporal(
             Long usuarioId, String nuevaPassword, String confirmarPassword) {
@@ -233,6 +345,11 @@ public class UsuarioService implements IUsuarioService {
         usuarioRepository.save(usuario);
     }
 
+    /**
+     * Genera una cadena aleatoria de 10 caracteres alfanuméricos segura para su uso como contraseña temporal.
+     *
+     * @return contraseña temporal generada
+     */
     private String generarPasswordTemporal() {
 
         String caracteres = "ABCDEFGHJKLMNPQRSTUVWXYZ"

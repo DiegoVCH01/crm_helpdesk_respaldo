@@ -24,6 +24,23 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.server.ResponseStatusException;
 
+/**
+ * Controlador MVC del Portal de Clientes para la gestión de tickets.
+ *
+ * <p>Permite a los clientes autenticados mediante {@link CuentaPortal} crear
+ * nuevas incidencias y consultar el detalle de sus tickets existentes.
+ *
+ * <p><b>Rutas expuestas:</b>
+ *
+ * <pre>
+ * GET /portal/tickets/nuevo  → formulario de nueva incidencia
+ * GET /portal/tickets/{id}   → detalle del ticket del cliente
+ * </pre>
+ *
+ * @author ServiClient Dev Team
+ * @version 1.0.0
+ * @see com.serviclient.crm.service.ITicketService
+ */
 @Controller
 @RequestMapping("/portal/tickets")
 @RequiredArgsConstructor
@@ -34,6 +51,13 @@ public class PortalTicketController {
     private final ITicketService ticketService;
     private final CuentaPortalRepository cuentaPortalRepository;
 
+    /**
+     * Muestra el formulario para que el cliente registre una nueva incidencia.
+     *
+     * @param model modelo Thymeleaf con datos del usuario y opciones del formulario
+     * @param principal usuario autenticado en el portal
+     * @return vista {@code portal/nueva-incidencia}
+     */
     @Operation(summary = "Formulario de nueva incidencia")
     @ApiResponse(responseCode = "200", description = "Formulario renderizado")
     @GetMapping("/nuevo")
@@ -49,6 +73,16 @@ public class PortalTicketController {
         return "portal/nueva-incidencia";
     }
 
+    /**
+     * Muestra el detalle de un ticket específico del cliente autenticado.
+     * Valida que el ticket pertenezca al cliente.
+     *
+     * @param id identificador del ticket
+     * @param model modelo Thymeleaf
+     * @param principal usuario autenticado en el portal
+     * @return vista {@code portal/detalle-ticket}
+     * @throws ResponseStatusException si el ticket no pertenece al cliente
+     */
     @Operation(summary = "Detalle del ticket del cliente")
     @ApiResponse(responseCode = "200", description = "Ticket encontrado")
     @ApiResponse(responseCode = "404", description = "Ticket no encontrado")
@@ -77,6 +111,14 @@ public class PortalTicketController {
         return "portal/detalle-ticket";
     }
 
+    /**
+     * Obtiene la cuenta de portal activa a partir del principal autenticado.
+     *
+     * @param principal usuario autenticado
+     * @return cuenta de portal activa con contacto y cliente asociados
+     * @throws ResponseStatusException si el principal es nulo, la cuenta no existe
+     *         o el contacto/cliente no está identificado
+     */
     private CuentaPortal obtenerCuenta(Principal principal) {
 
         if (principal == null) {
@@ -98,6 +140,13 @@ public class PortalTicketController {
         return cuenta;
     }
 
+    /**
+     * Carga en el modelo los datos del usuario autenticado en el portal:
+     * nombre completo, iniciales y nombre de la empresa.
+     *
+     * @param model modelo Thymeleaf donde se añaden los atributos
+     * @param cuenta cuenta de portal con el contacto asociado
+     */
     private void cargarDatosUsuarioAutenticado(Model model, CuentaPortal cuenta) {
         Contacto contacto = cuenta.getContacto();
 

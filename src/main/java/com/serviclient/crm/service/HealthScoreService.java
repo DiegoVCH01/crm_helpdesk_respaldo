@@ -20,6 +20,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Implementación del servicio de cálculo algorítmico y evaluación del Health Score del cliente.
+ * <p>
+ * Modela la salud del cliente en una escala normalizada de 0 a 100 puntos evaluando variables
+ * operativas como tickets abiertos, incidencias críticas sin resolver y satisfacción promedio (CSAT).
+ * Además, persiste el registro histórico de salud y clasifica al cliente en categorías:
+ * SALUDABLE (80-100), EN_OBSERVACION (50-79) o EN_RIESGO (0-49).
+ * </p>
+ *
+ * @author ServiClient Dev Team
+ * @version 1.0.0
+ * @see IHealthScoreService
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -30,16 +43,31 @@ public class HealthScoreService implements IHealthScoreService {
   private final EncuestaSatisfaccionRepository encuestaSatisfaccionRepository;
   private final HealthScoreHistorialRepository healthScoreHistorialRepository;
 
+  /**
+   * Representa un factor cualitativo y cuantitativo que influye en la calificación del Health Score.
+   */
   @Getter
   @Builder
   public static class FactorSalud {
+    /** Título descriptivo del factor */
     private String titulo;
+    /** Concepto o explicación de la causa */
     private String concepto;
-    private String impacto; // "NEGATIVO", "POSITIVO", "NEUTRO"
+    /** Tipo de impacto en la salud: "NEGATIVO", "POSITIVO" o "NEUTRO" */
+    private String impacto;
+    /** Representación textual de la penalización o bonificación aplicada */
     private String penalizacionTexto;
+    /** Recomendación o plan de acción sugerido para mitigar el riesgo */
     private String recomendacion;
   }
 
+  /**
+   * Recalcula el puntaje de salud del cliente en base a sus métricas operativas vigentes,
+   * registra una entrada en el historial de Health Score y actualiza la entidad cliente.
+   *
+   * @param cliente cliente cuyo Health Score será recalculado
+   * @return puntaje final normalizado entre 0 y 100
+   */
   @Transactional
   public int recalcularYActualizarHealthScore(Cliente cliente) {
     int puntaje = 100;
@@ -93,6 +121,13 @@ public class HealthScoreService implements IHealthScoreService {
     return puntaje;
   }
 
+  /**
+   * Obtiene la lista de factores explicativos de riesgo o bonificación que justifican
+   * el puntaje actual del cliente.
+   *
+   * @param cliente cliente a evaluar
+   * @return lista de factores de salud identificados
+   */
   @Override
   @Transactional(readOnly = true)
   public List<FactorSalud> obtenerFactoresSalud(Cliente cliente) {

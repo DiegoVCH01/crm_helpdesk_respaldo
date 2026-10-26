@@ -4,6 +4,17 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import lombok.*;
 
+/**
+ * Entidad JPA que representa las credenciales de acceso al Portal de Autoservicio para un contacto de cliente.
+ * <p>
+ * Mantiene la asociación uno a uno con {@link Contacto}, almacena el hash BCrypt de la contraseña,
+ * el estado de actividad y la bandera de obligatoriedad de cambio de contraseña en el primer inicio de sesión.
+ * </p>
+ *
+ * @author ServiClient Dev Team
+ * @version 1.0.0
+ * @see Contacto
+ */
 @Entity
 @Table(
     name = "cuentas_portal",

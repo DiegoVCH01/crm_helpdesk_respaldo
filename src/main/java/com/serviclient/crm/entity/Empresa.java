@@ -7,6 +7,16 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Entidad JPA raíz que representa la empresa cliente (Tenant) en la arquitectura multi-inquilino de la aplicación.
+ * <p>
+ * Aísla lógicamente todos los recursos de la organización: usuarios internos, clientes B2B, tickets de soporte,
+ * políticas de SLA, encuestas de satisfacción CSAT, reglas de cálculo de Health Score y catálogo de servicios.
+ * </p>
+ *
+ * @author ServiClient Dev Team
+ * @version 1.0.0
+ */
 @Entity
 @Table(name = "empresas", uniqueConstraints = {
     @UniqueConstraint(name = "uq_empresa_ruc", columnNames = {"ruc"})

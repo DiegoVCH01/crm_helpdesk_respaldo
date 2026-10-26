@@ -10,6 +10,17 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.List;
 
+/**
+ * Implementación personalizada de {@link UserDetails} para representar el usuario autenticado en Spring Security.
+ * <p>
+ * Encapsula la información del usuario interno (administradores, agentes, supervisores), su pertenencia
+ * a una empresa tenant específica y su rol mapeado a una autoridad con prefijo "ROLE_".
+ * </p>
+ *
+ * @author ServiClient Dev Team
+ * @version 1.0.0
+ * @see org.springframework.security.core.userdetails.UserDetails
+ */
 @Getter
 public class CustomUserDetails implements UserDetails {
 
@@ -26,6 +37,11 @@ public class CustomUserDetails implements UserDetails {
     private final boolean activo;
     private final Collection<? extends GrantedAuthority> authorities;
 
+    /**
+     * Construye un objeto CustomUserDetails a partir de la entidad de dominio {@link Usuario}.
+     *
+     * @param usuario entidad de usuario con sus relaciones de rol y empresa
+     */
     public CustomUserDetails(Usuario usuario) {
         this.id = usuario.getId();
         this.nombreCompleto = usuario.getNombreCompleto();
@@ -41,6 +57,11 @@ public class CustomUserDetails implements UserDetails {
         this.authorities = List.of(new SimpleGrantedAuthority("ROLE_" + usuario.getRol().name()));
     }
 
+    /**
+     * Obtiene las iniciales del nombre y apellido para avatares por defecto.
+     *
+     * @return iniciales en mayúsculas (ej: "JD") o "U" si no están disponibles
+     */
     public String getIniciales() {
         String n = (nombre != null && !nombre.isBlank()) ? String.valueOf(nombre.charAt(0)).toUpperCase() : "";
         String a = (apellido != null && !apellido.isBlank()) ? String.valueOf(apellido.charAt(0)).toUpperCase() : "";

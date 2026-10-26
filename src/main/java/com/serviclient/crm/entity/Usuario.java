@@ -6,6 +6,16 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
+/**
+ * Entidad JPA que modela a un usuario interno de la empresa tenant (Administrador, Agente de Soporte o Supervisor).
+ * <p>
+ * Gestiona los datos de acceso, credenciales cifradas con BCrypt, bandera de cambio obligatorio
+ * de contraseña temporal y relación con su rol funcional y empresa.
+ * </p>
+ *
+ * @author ServiClient Dev Team
+ * @version 1.0.0
+ */
 @Entity
 @Table(name = "usuarios", uniqueConstraints = {
     @UniqueConstraint(name = "uq_usuario_email_empresa", columnNames = {"empresa_id", "email"})
@@ -66,6 +76,11 @@ public class Usuario {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt = LocalDateTime.now();
 
+    /**
+     * Mapea la entidad de rol {@link RolEntity} al enum de seguridad tipado {@link Rol}.
+     *
+     * @return rol tipado (ADMIN, AGENTE o SUPERVISOR)
+     */
     public Rol getRol() {
         if (rolEntity != null && rolEntity.getNombre() != null) {
             String roleName = rolEntity.getNombre().toUpperCase().trim();
@@ -76,6 +91,11 @@ public class Usuario {
         return Rol.AGENTE;
     }
 
+    /**
+     * Indica si el usuario posee estado operativo ACTIVO.
+     *
+     * @return true si el estado es ACTIVO, false en caso contrario
+     */
     public Boolean getActivo() {
         return "ACTIVO".equalsIgnoreCase(this.estado);
     }
@@ -84,10 +104,20 @@ public class Usuario {
         this.estado = (Boolean.TRUE.equals(activo)) ? "ACTIVO" : "INACTIVO";
     }
 
+    /**
+     * Retorna el nombre y apellido concatenados del usuario.
+     *
+     * @return nombre completo
+     */
     public String getNombreCompleto() {
         return nombre + " " + apellido;
     }
 
+    /**
+     * Genera las iniciales a partir del nombre y apellido para avatares visuales.
+     *
+     * @return iniciales en mayúsculas o "U"
+     */
     public String getIniciales() {
         String n = (nombre != null && !nombre.isBlank()) ? String.valueOf(nombre.charAt(0)).toUpperCase() : "";
         String a = (apellido != null && !apellido.isBlank()) ? String.valueOf(apellido.charAt(0)).toUpperCase() : "";
