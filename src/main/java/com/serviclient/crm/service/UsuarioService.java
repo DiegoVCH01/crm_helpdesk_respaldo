@@ -32,7 +32,7 @@ public class UsuarioService implements IUsuarioService {
     @Transactional(readOnly = true)
     public Optional<Usuario> obtenerUsuarioAutenticado() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-    if (auth == null || !auth.isAuthenticated() || auth.getPrincipal().equals("anonymousUser")) {
+        if (auth == null || !auth.isAuthenticated() || auth.getPrincipal().equals("anonymousUser")) {
             return Optional.empty();
         }
         if (auth.getPrincipal() instanceof CustomUserDetails userDetails) {
@@ -55,32 +55,30 @@ public class UsuarioService implements IUsuarioService {
     @Override
     @Transactional(readOnly = true)
     public Usuario obtenerPorId(Long id) {
-    return usuarioRepository
-        .findById(id)
-        .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado con id: " + id));
+        return usuarioRepository
+                .findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado con id: " + id));
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<Usuario> listarAgentesPorEmpresa(Long empresaId) {
         return usuarioRepository.findByEmpresaId(empresaId).stream()
-            .filter(usuario -> usuario.getRol() != Rol.ADMIN)
-            .toList();
+                .filter(usuario -> usuario.getRol() != Rol.ADMIN)
+                .toList();
     }
 
     @Transactional(readOnly = true)
     public Usuario obtenerAgentePorEmpresa(Long id, Long empresaId) {
-        Usuario usuario =
-            usuarioRepository
+        Usuario usuario = usuarioRepository
                 .findByIdAndEmpresaId(id, empresaId)
                 .orElseThrow(
-                    () ->
-                        new IllegalArgumentException(
-                            "El usuario no existe o no pertenece a tu empresa."));
+                        () -> new IllegalArgumentException(
+                                "El usuario no existe o no pertenece a tu empresa."));
 
         if (usuario.getRol() == Rol.ADMIN) {
-        throw new IllegalArgumentException(
-            "Los administradores no pueden modificarse desde Gestión de Agentes.");
+            throw new IllegalArgumentException(
+                    "Los administradores no pueden modificarse desde Gestión de Agentes.");
         }
 
         return usuario;
@@ -134,11 +132,10 @@ public class UsuarioService implements IUsuarioService {
         Optional<Usuario> existente = usuarioRepository.findByEmail(dto.getEmail().trim());
 
         if (existente.isPresent() && !existente.get().getId().equals(usuario.getId())) {
-        throw new IllegalArgumentException("Ya existe un usuario registrado con ese correo.");
+            throw new IllegalArgumentException("Ya existe un usuario registrado con ese correo.");
         }
 
-        RolEntity rolEntity =
-            rolRepository
+        RolEntity rolEntity = rolRepository
                 .findByNombre(nombreRol(dto.getRol()))
                 .orElseThrow(() -> new IllegalStateException("No se encontró el rol solicitado."));
 
@@ -164,15 +161,15 @@ public class UsuarioService implements IUsuarioService {
     private void validarRolGestionable(Rol rol) {
         if (rol != Rol.AGENTE && rol != Rol.SUPERVISOR) {
 
-        throw new IllegalArgumentException("Solo se puede asignar el rol Agente o Supervisor.");
+            throw new IllegalArgumentException("Solo se puede asignar el rol Agente o Supervisor.");
         }
     }
 
     private String nombreRol(Rol rol) {
         return switch (rol) {
-        case AGENTE -> "Agente de Soporte";
-        case SUPERVISOR -> "Supervisor Customer Success";
-        default -> throw new IllegalArgumentException("Rol no permitido para un agente.");
+            case AGENTE -> "Agente de Soporte";
+            case SUPERVISOR -> "Supervisor Customer Success";
+            default -> throw new IllegalArgumentException("Rol no permitido para un agente.");
         };
     }
 
@@ -191,17 +188,32 @@ public class UsuarioService implements IUsuarioService {
         return passwordTemporal;
     }
 
+    private void validarNuevaPassword(
+            String nuevaPassword, String confirmarPassword) {
+
+        if (nuevaPassword == null ||
+                nuevaPassword.length() < 8 ||
+                nuevaPassword.length() > 72) {
+            throw new IllegalArgumentException(
+                    "La nueva contraseña debe tener entre 8 y 72 caracteres.");
+        }
+
+        if (nuevaPassword.isBlank()) {
+            throw new IllegalArgumentException(
+                    "La contraseña no puede contener solo espacios.");
+        }
+
+        if (!nuevaPassword.equals(confirmarPassword)) {
+            throw new IllegalArgumentException(
+                    "Las contraseñas no coinciden.");
+        }
+    }
+
     @Transactional
     public void cambiarPasswordTemporal(
             Long usuarioId, String nuevaPassword, String confirmarPassword) {
 
-        if (nuevaPassword == null || nuevaPassword.length() < 8 || nuevaPassword.length() > 72) {
-            throw new IllegalArgumentException("La nueva contraseña debe tener entre 8 y 72 caracteres.");
-        }
-
-        if (!nuevaPassword.equals(confirmarPassword)) {
-            throw new IllegalArgumentException("Las contraseñas no coinciden.");
-        }
+        validarNuevaPassword(nuevaPassword, confirmarPassword);
 
         Usuario usuario = usuarioRepository
                 .findById(usuarioId)
